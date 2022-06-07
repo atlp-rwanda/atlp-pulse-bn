@@ -1,7 +1,7 @@
 {
-  "name": "phantom-backend",
+  "name": "atlp-pulse-backend",
   "version": "1.0.0",
-  "description": "Elevate the public transport experience",
+  "description": "ATLP app backend",
   "main": "src/index.ts",
   "scripts": {
     "start": "tsc && node dist/index",
@@ -30,19 +30,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Stackup-Rwanda/phantom-backend.git"
+    "url": "git+https://github.com/atlp-rwanda/atlp-pulse-backend.git"
   },
   "keywords": [
-    "buses",
-    "transport",
+    "ed-tech",
+    "graphql",
     "typescript"
   ],
   "author": "ceelogre",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Stackup-Rwanda/phantom-backend/issues"
+    "url": "git+https://github.com/atlp-rwanda/atlp-pulse-backend.git"
   },
-  "homepage": "https://github.com/Stackup-Rwanda/phantom-backend#readme",
+  "homepage": "https://github.com/atlp-rwanda/atlp-pulse-backend#readme",
   "dependencies": {
     "express": "^4.17.1",
     "@types/express": "^4.17.6",
