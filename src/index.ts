@@ -1,22 +1,21 @@
-import express from 'express'
-const app = express()
-const port = process.env.PORT || 3003
+import { ApolloServer, gql } from 'apollo-server'
 
-const normalResponse = {
-    msg: 'App running.'
+const typeDefs = gql`
+  type Query {
+    hello: String
+    }`
+
+const resolvers = {
+  Query: {
+    hello: () => 'Hellooo, welcome to your Graphql server'
+  }
 }
-const exceptionalResponse= {
-    msg: 'Wow! you\'re a deep digger'
-}
-app.use('/', (req, res) => {
-    res.json(normalResponse)
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers
 })
 
-app.use('*', (req, res) => {
-    
-    res.json(exceptionalResponse)
-})
-
-app.listen(port, () => {
-    console.info(port)
-})
+server.listen().then(
+  ({ url }) => console.log(`Server ready at ${url}`
+  ))
