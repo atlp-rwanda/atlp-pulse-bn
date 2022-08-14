@@ -1,21 +1,21 @@
-import { ApolloServer, gql } from 'apollo-server'
+import { ApolloServer, gql } from "apollo-server";
+import { connect } from "./database/db.config";
+import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
+import typeDefs from "./schema/index"
 
-const typeDefs = gql`
-  type Query {
-    hello: String
-    }`
+import resolvers from "./resolvers/resolver";
 
-const resolvers = {
-  Query: {
-    hello: () => 'Hellooo, welcome to your Graphql server'
-  }
-}
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers
-})
+  resolvers,
+  introspection: true,
+  plugins: [ApolloServerPluginLandingPageLocalDefault],
+  cache: "bounded",
+});
 
-server.listen().then(
-  ({ url }) => console.log(`Server ready at ${url}`
-  ))
+connect().then(() => {
+  console.log("Database connected");
+  server.listen().then(({ url }) => console.log(`Server ready at ${url}`));
+});
+
