@@ -1,13 +1,14 @@
 import { ApolloError } from 'apollo-server-errors'
 import * as jwt from 'jsonwebtoken'
-import { Profile, User, UserRole, Organization } from '../models/user'
-import { Context } from './../context'
-import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { EmailPattern } from '../utils/validation.utils'
-import registrationRequest from '../utils/templates/registrationRequestTemplate'
+import mongoose from 'mongoose'
 import generateRandomPassword from '../helpers/generateRandomPassword'
-import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Organization, Profile, User, UserRole } from '../models/user'
 import { sendEmail } from '../utils/sendEmail'
+import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
+import registrationRequest from '../utils/templates/registrationRequestTemplate'
+import { EmailPattern } from '../utils/validation.utils'
+import { Context } from './../context'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -62,6 +63,18 @@ const resolvers: any = {
 
             return { token, user: newUser }
         },
+        async createProfile(_: any, args: any, context: { userId: any }) {
+          if (!context.userId) throw new Error('Unauthorized')
+          if (!mongoose.isValidObjectId(context.userId)) throw new Error('Invalid user id')
+          const userExists = await User.findOne({ _id: context.userId })
+          if (!userExists) throw new Error('This user does not exists')
+          const profile = await Profile.findOneAndUpdate({ user: context.userId }, args, {
+              upsert: true,
+              new: true,
+          })
+
+          return profile.toJSON()
+      },
         async loginUser(_: any, { loginInput: { email, password } }: any) {
             const user: any = await User.findOne({ email: email })
             if (await user?.checkPass(password)) {
@@ -177,7 +190,7 @@ const resolvers: any = {
             // send the requester an email with his password
             const content = organizationCreatedTemplate(org.name, email, password)
 
-            // send an email to the user who desire the organisation
+            // send an email to the user who desire the organization
             await sendEmail(email, 'Organization created notice', content)
 
             return org

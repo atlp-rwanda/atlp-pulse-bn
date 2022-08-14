@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { systemRating } from '../models/ratingSystem'
+import { systemRating } from '../models/ratingSystem';
 
 
 const createRatingSystemresolver = {
@@ -12,8 +12,8 @@ const createRatingSystemresolver = {
           const ratingSystem = await systemRating.findById(args.id)
           if(!ratingSystem) throw new Error("This rating system doesn't exist");
           return ratingSystem;
-          
-          
+
+
          }
     },
     Mutation: {

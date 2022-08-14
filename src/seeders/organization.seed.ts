@@ -1,5 +1,4 @@
 /* eslint-disable */
-import { hashSync } from 'bcryptjs';
 import { Organization, User } from '../models/user';
 
 const seedOrganizations = async () => {
@@ -14,7 +13,7 @@ const seedOrganizations = async () => {
 		{
 			name: 'organization 2',
 			description: 'organization 2 description',
-			admin: admin[0]._id,
+			admin: admin[1]._id,
 		},
 	];
 	await Organization.deleteMany({});

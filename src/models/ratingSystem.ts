@@ -26,4 +26,4 @@ const systemRating = mongoose.model(
       },
     })
   );
-  export {systemRating};
+  export { systemRating };
