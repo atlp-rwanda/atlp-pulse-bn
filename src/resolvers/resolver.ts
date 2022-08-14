@@ -1,7 +1,7 @@
+import mongoose from 'mongoose'
+import { Profile, User, UserRole } from '../models/user'
 import bcrypt from 'bcryptjs'
 import * as jwt from 'jsonwebtoken'
-import mongoose from 'mongoose'
-import { Profile, User } from '../models/user'
 import { ApolloError, UserInputError, ValidationError } from 'apollo-server-errors'
 import { GraphQLError } from 'graphql'
 
@@ -9,16 +9,27 @@ const SECRET = process.env.SECRET || 'test_secret'
 
 const resolvers = {
     Query: {
+        hello: () => 'Hellooo, welcome to your Graphql server',
+        async getAllUsers() {
+            const users = await User.find({})
+            return users
+        },
+        async getAllRoles() {
+            const roles = await UserRole.find({})
+            return roles
+        },
+
         async getAllProfiles(_: any, _args: any, context: { userId: any }) {
             if (!context.userId) throw new Error('Unauthorized')
             const profiles = await Profile.find({})
             return profiles
         },
     },
+
     Mutation: {
         async createUser(
             _: any,
-            { registerInput: { email, password, role } }: any
+            { email, password, role } : { email: string, password: string, role: string } 
         ) {
             const userExists = await User.findOne({ email: email })
             if (userExists) throw new ApolloError('email already taken', 'UserInputError')
@@ -43,6 +54,7 @@ const resolvers = {
 
             return { token, user: newUser }
         },
+
         async loginUser(_: any, { loginInput: { email, password } }: any) {
             const user: any = await User.findOne({ email: email })
             if (await user?.checkPass(password)) {
@@ -60,6 +72,33 @@ const resolvers = {
                 throw new ApolloError('Invalid credential','UserInputError')
             }
         },
+       
+
+        async createUserRole(_: any, { name }: any) {
+            const newRole = await UserRole.create({ name })
+            return newRole
+        },
+
+        async updateUserRole(_: any, { id, name }: any) {
+            // Checking user privilege
+
+            const roleExists = await UserRole.findOne({ name: name })
+            if (!roleExists) throw new Error('This role doesn\'t exist')
+            const updatedUser = await User.findOneAndUpdate(
+                {
+                    _id: id
+                },
+                {
+                    $set: {
+                        role: name
+                    }
+                }, { new: true })
+            return updatedUser
+
+      
+   
+        },
+
         async createProfile(_: any, args: any, context: { userId: any }) {
             if (!context.userId) throw new Error('Unauthorized')
             if (!mongoose.isValidObjectId(context.userId))
