@@ -21,6 +21,8 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
+        // type: mongoose.Types.ObjectId,
+        // ref: 'User',
         default: 'user',
     },
 })
@@ -54,9 +56,20 @@ profileSchema.virtual('name').get(function () {
     return this.firstName + ' ' + this.lastName
 })
 
+const UserRole = mongoose.model(
+    'UserRole',
+    new Schema({
+        name: {
+            type: String,
+            ref: 'User',
+            required: true,
+            unique: true,
+        }
+    })
+)
 
 
 const User = model('User', userSchema)
 const Profile = mongoose.model('Profile', profileSchema)
 
-export { User, Profile }
+export { User, Profile, UserRole }
