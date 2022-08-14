@@ -24,14 +24,29 @@ const Schema = gql`
     address: String!
     name: String
   }
+
+  type UserRole {
+    id: ID!
+    name: String!
+  }
+
   type Query {
     getUser(id: ID!): User
     user(username: String!): String
   }
+
+  type Query {
+    getAllUsers: [User]
+    getUser(id: ID!): User
+    hello: String
+    user(username: String!): String
+  }
+
   type Query {
     getAllProfiles: [Profile]
     getProfile(id: ID!): Profile
   }
+
   type RegisteredUser {
     token: String
     user: User
@@ -41,8 +56,18 @@ const Schema = gql`
     user: User
   }
   type Mutation {
-    createUser(registerInput: RegisterInput): RegisteredUser!
+    createUser(email: String!, password: String!, role: String): RegisteredUser!
     loginUser(loginInput: LoginInput): Login!
+  }
+
+  type Query {
+    getAllRoles: [UserRole]
+    getRole(id: ID!): UserRole
+  }
+
+  type Mutation {
+    createUserRole(name: String!): UserRole!
+    updateUserRole(id: ID!, name: String): User!
     createProfile(
       lastName: String
       firstName: String
