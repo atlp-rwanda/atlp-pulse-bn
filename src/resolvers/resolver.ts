@@ -1,26 +1,64 @@
 import mongoose from "mongoose";
 import { Profile, User } from "../models/user";
+import bcrypt from "bcryptjs";
+import * as jwt from "jsonwebtoken";
+
+const SECRET = process.env.SECRET || "test_secret";
 
 const resolvers = {
   Query: {
-    hello: () => "Hellooo, welcome to your Graphql server",
-    async getAllUsers() {
-      const users = await User.find({});
-      return users;
-    },
-    async getAllProfiles() {
+    async getAllProfiles(_: any, _args: any, context: { userId: any }) {
+      if (!context.userId) throw new Error("Unauthorized");
       const profiles = await Profile.find({});
       return profiles;
     },
   },
   Mutation: {
-    async createUser(_: any, { email, password }: any) {
+    async createUser(
+      _: any,
+      { registerInput: { email, password, role } }: any
+    ) {
       const userExists = await User.findOne({ email: email });
       if (userExists) throw new Error("Email is taken");
-      const newUser = await User.create({ email, password });
-      return newUser;
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const newUser = await User.create({
+        role: role || "user",
+        email: email,
+        password: hashedPassword,
+      });
+      const token = jwt.sign(
+        { userId: newUser._id, role: newUser?.role },
+        SECRET,
+        { expiresIn: "2h" }
+      );
+
+      return { token, user: newUser };
     },
-    async createProfile(_: any, { user, lastName, firstName, role }: any) {
+    async loginUser(_: any, { loginInput: { email, password } }: any) {
+      const user = await User.findOne<any>({ where: { email: email } });
+
+      if (await user?.checkPass(password)) {
+        const token = jwt.sign(
+          { userId: user._id, role: user._doc?.role || "user" },
+          SECRET,
+          { expiresIn: "2h" }
+        );
+        const data = {
+          token: token,
+          user: { ...user._doc, password: "", role: user?.role || "user" },
+        };
+        console.log(data);
+        return data;
+      } else {
+        throw new Error("Invalid credential,pass");
+      }
+    },
+    async createProfile(
+      _: any,
+      { user, lastName, firstName, role }: any,
+      
+    ) {
       if (!mongoose.isValidObjectId(user)) throw new Error("Invalid user id");
       const profileExists = await Profile.findOne({ where: { user } });
       if (profileExists) throw new Error("User already have a profile");
