@@ -7,13 +7,14 @@ import cohortResolvers from './resolvers/cohort.resolvers'
 import profileResolvers from './resolvers/profileResolver'
 import programResolvers from './resolvers/program.resolvers'
 import userResolvers from './resolvers/userResolver'
+import ratingResolvers from './resolvers/ratingsResolvers'
 import cohortSchema from './schema/cohort.schema'
 import schema from './schema/index'
 import programSchema from './schema/program.schema'
-import coordinatorSchema from './schema/coordinator.schema';
+import coordinatorSchema from './schema/coordinator.schema'
 import { formatError } from './ErrorMsg'
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
-import manageStudentResolvers from './resolvers/coordinatorResolvers';
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
+import manageStudentResolvers from './resolvers/coordinatorResolvers'
 
 export const resolvers = mergeResolvers([
     userResolvers,
@@ -21,7 +22,8 @@ export const resolvers = mergeResolvers([
     programResolvers,
     cohortResolvers,
     createRatingSystemresolver,
-    manageStudentResolvers
+    manageStudentResolvers,
+    ratingResolvers
 ])
 export const typeDefs = mergeTypeDefs([schema, cohortSchema, programSchema, coordinatorSchema])
 
