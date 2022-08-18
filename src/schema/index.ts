@@ -1,20 +1,27 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
+
+type Cohort {
+	name: String
+	phase: String
+	coordinator: User
+}
+
 	type User {
 		id: ID!
 		role: String!
 		email: String!
 		password: String!
 		profile: Profile
-    coordinator:User
-    cohort:Cohort
+		cohort:Cohort
 	}
 	input RegisterInput {
 		email: String!
 		password: String!
 		role: String
 	}
+
 	input LoginInput {
 		email: String
 		password: String
@@ -70,6 +77,68 @@ const Schema = gql`
 		description: String
 	}
 
+  type Rating {
+    user: User!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+		coordinator: String!
+  }
+
+  type AddRating {
+    user: String!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+  type updateRating {
+    user: String
+    sprint: Int
+    quantity: [String]
+    quantityRemark: [String]
+    quality:[String]
+    qualityRemark:[String]
+    professional_Skills:[String]
+    professionalRemark: [String]
+    approved: Boolean
+  }
+
+  type FetchRatingForAdmin {
+    user: User!
+    sprint: Int
+    quantity: [String]
+    quantityRemark: [String]
+    quality:[String]
+    qualityRemark:[String],
+    professional_Skills:[String]
+    professionalRemark: [String]
+    approved: Boolean
+  }
+
+  type ApproveRating {
+    user: String!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+
 	type Query {
 		getAllUsers: [User]
 		getProfile: Profile
@@ -77,6 +146,11 @@ const Schema = gql`
 		getRole(id: ID!): UserRole
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
+    fetchRatings(orgToken: String): [Rating]
+    fetchTrainees: [Cohort]
+    fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin],
+		fetchRatingsTrainee: [Rating]
+		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
 	}
 
 	type Mutation {
@@ -112,6 +186,29 @@ const Schema = gql`
     
 		updateUserRole(id: ID!, name: String): User!
 		deleteOrganization(id: ID!): Organization
+    addRatings(
+      user: String!
+      sprint: Int!
+      quantity: String!
+      quantityRemark: String
+      quality: String!
+      qualityRemark: String,
+      professional_Skills: String!
+      professionalRemark: String
+			orgToken: String!) : AddRating
+    updateRating(
+      user: String!
+      sprint: Int!
+      quantity: [String]
+      quantityRemark: [String]
+      quality: [String]
+      qualityRemark: [String]
+      professional_Skills: [String]
+      professionalRemark: [String] 
+			orgToken: String! ) : updateRating
+    approveRating(user: String!, sprint: Int!): ApproveRating
+   rejectRating (user: String!
+      sprint: Int!): String!
 	}
 	type ratingSystem {
 		id: ID!
