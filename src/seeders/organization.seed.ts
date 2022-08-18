@@ -6,7 +6,7 @@ const seedOrganizations = async () => {
 
 	const organizations = [
 		{
-			name: 'organization 1',
+			name: 'andela',
 			description: 'organization 1 description',
 			admin: admin[0]._id,
 		},

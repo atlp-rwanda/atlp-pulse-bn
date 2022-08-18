@@ -10,7 +10,7 @@ const seedUsers = async () => {
 			role: 'superAdmin',
 		},
 		{
-			email: 'admin@pulse.com',
+			email: 'admin@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'admin',
 		},
@@ -20,7 +20,7 @@ const seedUsers = async () => {
 			role: 'admin',
 		},
 		{
-			email: 'manager@pulse.com',
+			email: 'manager@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'manager',
 		},
@@ -30,14 +30,49 @@ const seedUsers = async () => {
 			role: 'manager',
 		},
 		{
-			email: 'coordinator@pulse.com',
+			email: 'coordinator@devpulse.co',
+			password: hashSync('Andela123'),
+			role: 'coordinator',
+		},
+		{
+			email: 'coordinator1@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'coordinator',
 		},
 		{
 			email: 'trainee@pulse.com',
 			password: hashSync('Andela123'),
-			role: 'trainee',
+			role: 'user',
+		},
+		{
+			email: 'trainee1@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'user',
+		},
+		{
+			email: 'trainee2@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'user',
+		},
+		{
+			email: 'trainee3@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'user',
+		},
+		{
+			email: 'james@gmail.com',
+			password: hashSync('Andela123'),
+			role: 'user',
+		},
+		{
+			email: 'peter@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'user',
+		},
+		{
+			email: 'john@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'user',
 		},
 	];
 	await User.deleteMany({});
