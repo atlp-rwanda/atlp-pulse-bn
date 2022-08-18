@@ -39,6 +39,21 @@ const seedUsers = async () => {
 			password: hashSync('Andela123'),
 			role: 'trainee',
 		},
+		{
+			email: 'trainee1@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'trainee',
+		},
+		{
+			email: 'trainee2@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'trainee',
+		},
+		{
+			email: 'trainee3@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'trainee',
+		},
 	];
 	await User.deleteMany({});
 
