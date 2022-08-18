@@ -5,15 +5,16 @@ import { context } from './context'
 import { connect } from './database/db.config'
 import profileResolvers from './resolvers/profileResolver'
 import userResolvers from './resolvers/userResolver'
+import ratingResolvers from './resolvers/ratingsResolvers'
 import typeDefs from './schema/index'
 
 import { formatError } from './ErrorMsg'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
 const PORT = process.env.PORT || 4000
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver])
+const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, ratingResolvers])
 
-const server = new ApolloServer({
+export const server = new ApolloServer({
     typeDefs,
     resolvers,
     introspection: true,
