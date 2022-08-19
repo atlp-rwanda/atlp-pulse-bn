@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { Profile, User } from "../models/user";
-
+import { Profile, User} from "../models/user";
+import { systemRating } from "../models/rating";
 const resolvers = {
   Query: {
     hello: () => "Hellooo, welcome to your Graphql server",
@@ -12,6 +12,10 @@ const resolvers = {
       const profiles = await Profile.find({});
       return profiles;
     },
+    async getRatingSystem(){
+      const ratingSystem = await systemRating.find({});
+      return ratingSystem;
+    }
   },
   Mutation: {
     async createUser(_: any, { email, password }: any) {
@@ -35,6 +39,12 @@ const resolvers = {
       await userExists.update({ profile: newProfile._id });
       return newProfile;
     },
+    async createRatingSystem(_: any, {name,grade,description,percentage}: any) {
+      const ratingSystemExists = await systemRating.findOne({ name: name });
+      if (ratingSystemExists) throw new Error("Rating system already exists");
+      const newRatingSystem = await systemRating.create({ name,grade,description,percentage  });
+      return newRatingSystem;
+    },
   },
   User: {
     async profile(parent: any) {
@@ -51,6 +61,7 @@ const resolvers = {
       return user;
     },
   },
+ 
 };
 
 export default resolvers;

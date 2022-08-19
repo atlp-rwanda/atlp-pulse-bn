@@ -38,6 +38,36 @@ const Schema = gql`
       user: ID
     ): Profile
   }
+  type ratingSystem {
+    name:String!
+    grade:[Int]!
+    description:[String]!
+    percentage:[Int]!
+  }
+  type Mutation {
+    createRatingSystem(name: String!, grade:[Int]!, description: [String]!, percentage: [Int]!): ratingSystem!
+  }
+  type Query{
+    getRatingSystem:[ratingSystem]
+  }
+  type grades {
+    grade:Int!
+  }
+  type descriptions {
+     description:String!
+  }
+  type percentages {
+    percentage:Int!
+  }
+  input gradesInput{
+    grade:Int!
+  }
+  input descriptionsInput{
+    description:String!
+  }
+  input percentagesInput{
+    percentage:Int!
+  }
 `;
 
 export default Schema;
