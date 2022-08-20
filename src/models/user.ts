@@ -1,5 +1,5 @@
 import mongoose, { model, Schema } from 'mongoose'
-import bcrypt from 'bcryptjs'
+import bcrypt from "bcryptjs"
 
 const userSchema = new Schema({
     email: {
@@ -22,13 +22,12 @@ const userSchema = new Schema({
 })
 
 userSchema.methods.checkPass = async function (password:string) {
-    console.log(password)
     const pass = await bcrypt.compare(password, this.password)
     return pass
 }
 
 
-const User = model('User', userSchema)
+ const User = model("User", userSchema)
 
 const Profile = mongoose.model(
     'Profile',

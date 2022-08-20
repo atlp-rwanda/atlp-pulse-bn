@@ -20,4 +20,3 @@ connect().then(() => {
     console.log('Database connected')
     server.listen().then(({ url }) => console.log(`Server ready at ${url}`))
 })
-

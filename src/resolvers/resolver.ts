@@ -20,6 +20,12 @@ const resolvers = {
         ) {
             const userExists = await User.findOne({ email: email })
             if (userExists) throw new Error('Email is taken')
+            const emailExpression = /^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            const isValidEmail = emailExpression.test(String(email).toLowerCase())
+            if (!isValidEmail)
+                throw new Error('invalid email format')
+            if (password.length < 6)
+                throw new Error('password should be minimum 6 characters')
             const hashedPassword = await bcrypt.hash(password, 10)
             const newUser = await User.create({
                 role: role || 'user',
@@ -54,7 +60,7 @@ const resolvers = {
         async createProfile(
             _: any,
             { user, lastName, firstName, role }: any,
-      
+
         ) {
             if (!mongoose.isValidObjectId(user)) throw new Error('Invalid user id')
             const profileExists = await Profile.findOne({ where: { user } })
@@ -86,5 +92,4 @@ const resolvers = {
         },
     },
 }
-
 export default resolvers
