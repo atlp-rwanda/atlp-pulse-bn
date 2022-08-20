@@ -21,7 +21,6 @@ const resolvers = {
             const userExists = await User.findOne({ email: email })
             if (userExists) throw new Error('Email is taken')
             const hashedPassword = await bcrypt.hash(password, 10)
-
             const newUser = await User.create({
                 role: role || 'user',
                 email: email,
@@ -36,8 +35,7 @@ const resolvers = {
             return { token, user: newUser }
         },
         async loginUser(_: any, { loginInput: { email, password } }: any) {
-            const user = await User.findOne<any>({ where: { email: email } })
-
+            const user = await User.findOne({ email: email })
             if (await user?.checkPass(password)) {
                 const token = jwt.sign(
                     { userId: user._id, role: user._doc?.role || 'user' },
@@ -48,10 +46,9 @@ const resolvers = {
                     token: token,
                     user: { ...user._doc, password: '', role: user?.role || 'user' },
                 }
-                console.log(data)
                 return data
             } else {
-                throw new Error('Invalid credential,pass')
+                throw new Error('Invalid credential')
             }
         },
         async createProfile(
@@ -64,6 +61,7 @@ const resolvers = {
             if (profileExists) throw new Error('User already have a profile')
             const userExists = await User.findOne({ where: { _id: user } })
             if (!userExists) throw new Error('This user does not exists')
+            const user = await User.findOne({ email: email })
             const newProfile = await Profile.create({
                 lastName,
                 firstName,
@@ -76,7 +74,6 @@ const resolvers = {
     },
     User: {
         async profile(parent: any) {
-            console.log(parent)
             return await Profile.findOne({ where: { user: parent._id.toString() } })
         },
     },
@@ -85,7 +82,6 @@ const resolvers = {
             const user = await User.findOne({
                 where: { _id: parent.user._id.toString() },
             })
-            console.log(user)
             return user
         },
     },
