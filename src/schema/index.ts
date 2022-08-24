@@ -7,6 +7,8 @@ const Schema = gql`
     email: String!
     password: String!
     profile: Profile
+    coordinator:User
+    cohort:Cohort
   }
   input RegisterInput {
     email: String!
@@ -43,6 +45,9 @@ const Schema = gql`
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole
+    getTrainees:[User]
+    getAllCohorts: [Cohort]
+    getCohort(cohortName:String):Cohort
   }
 
   type RegisteredUser {
@@ -53,6 +58,18 @@ const Schema = gql`
     token: String
     user: User
   }
+
+  type Cohort {
+    id: ID!
+    name: String!
+    coordinator: User!
+    phase: String!
+    members: [User]
+  }
+  type Message {
+    message:String
+  }
+
   type Mutation {
     createUserRole(name: String!): UserRole!
     createUser(email: String!, password: String!, role: String): RegisteredUser!
@@ -69,7 +86,30 @@ const Schema = gql`
       cover: String
     ): Profile
     updateUserRole(id: ID!, name: String): User!
+
+    createCohort( 
+      name: String!
+      coordinator: ID!
+      phase: String!
+     ): Cohort
+
+     addMemberToCohort(
+      cohortName:String!
+      email:String!
+     ): String
+
+     removeMemberFromCohort(
+      cohortName:String!
+      email:String!
+     ): String
+
+     editMember(
+      removedFromcohortName:String!
+      addedTocohortName:String!
+      email:String!
+     ): String
   }
 `
 
 export default Schema
+

@@ -26,6 +26,7 @@ const resolvers: any = {
                 role: role || 'user',
                 email: email,
                 password,
+                cohort:null
             })
             const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
                 expiresIn: '2h',

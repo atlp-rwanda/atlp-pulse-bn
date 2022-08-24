@@ -5,14 +5,15 @@ import { context } from './context'
 import { connect } from './database/db.config'
 import profileResolvers from './resolvers/profileResolver'
 import userResolvers from './resolvers/userResolver'
+import manageStudentResolvers from './resolvers/manageStudentsResolver'
 import typeDefs from './schema/index'
 
 import { formatError } from './ErrorMsg'
 const PORT = process.env.PORT || 4000
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers])
+const resolvers = mergeResolvers([userResolvers, profileResolvers,manageStudentResolvers])
 
-const server = new ApolloServer({
+export const server = new ApolloServer({
     typeDefs,
     resolvers,
     introspection: true,
@@ -26,5 +27,5 @@ connect().then(() => {
     console.log('Database connected')
     server
         .listen({ port: PORT })
-        .then(({ url }) => console.log(`Server ready at ${url}`))
+        .then(({ url }): void => console.log(`Server ready at ${url}`))
 })
