@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs'
 import * as jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 import { Profile, User } from '../models/user'
+import { ApolloError, UserInputError, ValidationError } from 'apollo-server-errors'
+import { GraphQLError } from 'graphql'
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -19,13 +21,14 @@ const resolvers = {
             { registerInput: { email, password, role } }: any
         ) {
             const userExists = await User.findOne({ email: email })
-            if (userExists) throw new Error('Email is taken')
-            const emailExpression =
-        /^(([^<>()\\[\]\\.,;:\s@“]+(\.[^<>()\\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            if (userExists) throw new ApolloError('email already taken', 'UserInputError')
+          
+            const emailExpression = /^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
             const isValidEmail = emailExpression.test(String(email).toLowerCase())
-            if (!isValidEmail) throw new Error('invalid email format')
+            if (!isValidEmail)
+                throw new ApolloError('invalid email format','ValidationError')
             if (password.length < 6)
-                throw new Error('password should be minimum 6 characters')
+                throw new ApolloError('password should be minimum 6 characters','ValidationError')
             const hashedPassword = await bcrypt.hash(password, 10)
             const newUser = await User.create({
                 role: role || 'user',
@@ -54,7 +57,7 @@ const resolvers = {
                 }
                 return data
             } else {
-                throw new Error('Invalid credential')
+                throw new ApolloError('Invalid credential','UserInputError')
             }
         },
         async createProfile(_: any, args: any, context: { userId: any }) {
