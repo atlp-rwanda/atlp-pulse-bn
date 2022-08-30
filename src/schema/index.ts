@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import { gql } from "apollo-server";
 
 const Schema = gql`
   type User {
@@ -6,7 +6,7 @@ const Schema = gql`
     role: String!
     email: String!
     password: String!
-    profile: Profile!
+    profile: Profile
   }
   input RegisterInput {
     email: String!
@@ -23,6 +23,7 @@ const Schema = gql`
     firstName: String
     lastName: String
     address: String!
+    name: String
   }
   type Query {
     getUser(id: ID!): User
@@ -47,9 +48,8 @@ const Schema = gql`
       lastName: String
       firstName: String
       address: String!
-      user: ID
     ): Profile
   }
-`
+`;
 
-export default Schema
+export default Schema;

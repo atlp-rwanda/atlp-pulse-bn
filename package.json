@@ -54,6 +54,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.8.1",
     "mongoose": "^6.5.0",
+    "normalize-mongoose": "^1.0.0",
     "ts-node-dev": "^2.0.0"
   },
   "devDependencies": {
