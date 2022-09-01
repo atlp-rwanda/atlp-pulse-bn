@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
 import 'dotenv/config'
+import mongoose from 'mongoose'
 
 // add your own uri below
 const uri =
@@ -8,6 +8,7 @@ const uri =
       : process.env.NODE_ENV === 'test'
           ? process.env.MONGO_TEST_DB
           : process.env.MONGO_DEV_DB
+
 
 export const connect = async (): Promise<void> => {
     try {

@@ -1,31 +1,27 @@
-import bcrypt from 'bcryptjs';
-import { Profile, User } from '../models/user';
+import { User } from '../models/user'
 
 const seedUsers = async () => {
-  await User.deleteMany({});
-  await (
-    await User.create({
-      email: 'admin@gmail.com',
-      password: await bcrypt.hash('admin', 10),
-      role: 'admin',
-    })
-  ).save();
+    const users = [
+        {
+            email: 'admin@gmail.com',
+            password: 'Andela123',
+            role: 'admin',
+        },
+        {
+            email: 'coordinator@gmail.com',
+            password: 'Andela123',
+            role: 'coordinator',
+        },
+        {
+            email: 'trainee@gmail.com',
+            password: 'Andela123',
+            role: 'trainee',
+        },
+    ]
+    await User.deleteMany({})
 
-  await (
-    await User.create({
-      email: 'coordinator@gmail.com',
-      password: await bcrypt.hash('coordinator', 10),
-      role: 'coordinator',
-    })
-  ).save();
+    await User.insertMany(users)
+    return null
+}
 
-  await (
-    await User.create({
-      email: 'trainee@gmail.com',
-      password: await bcrypt.hash('trainee', 10),
-      role: 'trainee',
-    })
-  ).save();
-};
-
-export default seedUsers;
+export default seedUsers
