@@ -1,8 +1,10 @@
+import { ApolloError } from 'apollo-server'
+import 'dotenv/config'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
-import 'dotenv/config'
 
 const SECRET = process.env.SECRET || 'test_secret'
+
 export interface AuthTokenPayload {
   userId: string;
   role: string;
@@ -11,13 +13,13 @@ export interface AuthTokenPayload {
 export function decodeAuthHeader(authHeader: string): AuthTokenPayload {
     const token = authHeader.replace('Bearer ', '')
     if (!token) {
-        throw new Error('No token was found')
+        throw new ApolloError('Missing or expired token', 'JWT_MISSING')
     }
     try {
         const data = jwt.verify(token, SECRET)
         return data as AuthTokenPayload
     } catch (error: any) {
-        throw new Error(error.message)
+        throw new ApolloError('Missing or expired token', 'JWT_EXPIRED')
     }
 }
 
