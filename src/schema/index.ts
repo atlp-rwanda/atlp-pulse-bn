@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import { gql } from 'apollo-server'
 
 const Schema = gql`
   type User {
@@ -6,6 +6,7 @@ const Schema = gql`
     role: String!
     email: String!
     password: String!
+    profile: Profile
   }
   input RegisterInput {
     email: String!
@@ -21,8 +22,14 @@ const Schema = gql`
     user: User!
     firstName: String
     lastName: String
-    address: String!
     name: String
+    address: String
+    city: String
+    country: String
+    phoneNumber: String
+    biography: String
+    avatar: String
+    coverImage: String
   }
 
   type UserRole {
@@ -31,20 +38,11 @@ const Schema = gql`
   }
 
   type Query {
-    getUser(id: ID!): User
-    user(username: String!): String
-  }
-
-  type Query {
     getAllUsers: [User]
     getUser(id: ID!): User
-    hello: String
-    user(username: String!): String
-  }
-
-  type Query {
-    getAllProfiles: [Profile]
-    getProfile(id: ID!): Profile
+    getProfile: Profile
+    getAllRoles: [UserRole]
+    getRole(id: ID!): UserRole
   }
 
   type RegisteredUser {
@@ -56,24 +54,22 @@ const Schema = gql`
     user: User
   }
   type Mutation {
+    createUserRole(name: String!): UserRole!
     createUser(email: String!, password: String!, role: String): RegisteredUser!
     loginUser(loginInput: LoginInput): Login!
-  }
-
-  type Query {
-    getAllRoles: [UserRole]
-    getRole(id: ID!): UserRole
-  }
-
-  type Mutation {
-    createUserRole(name: String!): UserRole!
-    updateUserRole(id: ID!, name: String): User!
-    createProfile(
+    updateProfile(
       lastName: String
       firstName: String
-      address: String!
+      address: String
+      city: String
+      country: String
+      phoneNumber: String
+      biography: String
+      fileName: String
+      cover: String
     ): Profile
+    updateUserRole(id: ID!, name: String): User!
   }
-`;
+`
 
-export default Schema;
+export default Schema
