@@ -1,6 +1,7 @@
 #### Devpulse backend
 ATLP Devpulse backend
 
+[![CI](https://github.com/atlp-rwanda/atlp-pulse-bn/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/atlp-rwanda/atlp-pulse-bn/actions/workflows/ci-pipeline.yml)
 ## Introduction
 This is backend system for the devpulse project. A project that is built to help players in the edu-tech sector manage students/trainees at ease. \
 This project is built using modern technologies that make it more scalable. Check the tech stack section. 
@@ -65,8 +66,9 @@ docker run -p 4000:4000 -d devpulse_bn
 - Heroku: Staging Platform
 
 ### Contributors
-- Samuel Shyaka Dushimirimana
-- []Fabrice Hafashimana](https://github.com/feyton)
+- [Fabrice Hafashimana](https://github.com/feyton)
 - Jules Himbazwa
-- Samuel Nishimwe
 - Kevin Kubwimana
+- [Prophete ISINGIZWE](https://github.com/procech20)
+- Samuel Shyaka Dushimirimana
+- Samuel Nishimwe
