@@ -1,4 +1,4 @@
-import { gql } from "apollo-server";
+import { gql } from 'apollo-server'
 
 const Schema = gql`
   type User {
@@ -50,6 +50,6 @@ const Schema = gql`
       address: String!
     ): Profile
   }
-`;
+`
 
-export default Schema;
+export default Schema
