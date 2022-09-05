@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import { gql } from 'apollo-server';
 
 const Schema = gql`
   type User {
@@ -6,7 +6,6 @@ const Schema = gql`
     role: String!
     email: String!
     password: String!
-    profile: Profile
   }
   input RegisterInput {
     email: String!
@@ -50,6 +49,6 @@ const Schema = gql`
       address: String!
     ): Profile
   }
-`
+`;
 
-export default Schema
+export default Schema;
