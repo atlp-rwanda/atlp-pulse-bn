@@ -76,13 +76,13 @@ const resolvers = {
         },
     },
     User: {
-        async profile(parent: any) {
-            const profile = await Profile.findOne({
-                where: { user: parent.id.toString() },
-            })
-            if (!profile) return null
-            return profile.toJSON()
-        },
+        // async profile(parent: any) {
+        //     const profile = await Profile.findOne({
+        //         where: { user: parent.id.toString() },
+        //     })
+        //     if (!profile) return null
+        //     return profile.toJSON()
+        // },
     },
     Profile: {
         async user(parent: any) {
