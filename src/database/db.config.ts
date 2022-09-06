@@ -4,10 +4,10 @@ import 'dotenv/config'
 // add your own uri below
 const uri =
   process.env.NODE_ENV === 'production'
-      ? process.env.MONGO_PROD_URI
+      ? process.env.MONGO_PROD_DB
       : process.env.NODE_ENV === 'test'
-          ? process.env.MONGO_TEST_URI
-          : process.env.MONGO_DEV_URI
+          ? process.env.MONGO_TEST_DB
+          : process.env.MONGO_DEV_DB
 
 export const connect = async (): Promise<void> => {
     try {

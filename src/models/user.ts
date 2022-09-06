@@ -23,10 +23,6 @@ const userSchema = new Schema({
         type: String,
         default: 'user',
     },
-    profile: {
-        type: mongoose.Types.ObjectId,
-        ref: 'Profile',
-    },
 })
 
 userSchema.methods.checkPass = async function (password: string) {
