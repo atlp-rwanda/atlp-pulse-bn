@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:   
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+    build:
+      runs-on: ubuntu-latest
+      services:
+        mongo:
+          image: mongo:latest
+          ports:
+            - 6000:27017
+      env:
+        MONGO_TEST_DB: mongodb://localhost:6000
+        NODE_ENV: test
+      concurrency: test_environment
+      steps:
+        - uses: actions/checkout@v3
+        - name: Uses Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: 16.x
+            cache: 'npm'
+            
+        - run: npm install
+        - run: npm run build
+        - run: npm run test 
+
