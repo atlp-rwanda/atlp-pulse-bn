@@ -1,11 +1,11 @@
 import { UploadApiResponse, v2 as cloudinary } from 'cloudinary'
 import path from 'path'
-import { Profile, User, UserRole } from '../models/user'
+import { Profile, User, UserRole, Organization } from '../models/user'
 
 interface Variables {
-  cloud_name: string;
-  api_key: string;
-  api_secret: string;
+	cloud_name: string;
+	api_key: string;
+	api_secret: string;
 }
 
 cloudinary.config({
@@ -32,7 +32,6 @@ const profileResolvers: any = {
             const roles = await UserRole.find({})
             return roles
         },
-
     },
     Mutation: {
         updateProfile: async (parent: any, args: any, context: any) => {
@@ -57,22 +56,14 @@ const profileResolvers: any = {
                 }
 
                 if (fileName) {
-                    const mainDir: string = path.dirname(
-            require.main?.filename as string
-                    )
-                    photo = await cloudinary.uploader.upload(
-                        `${mainDir}/uploads/${fileName}`
-                    )
+                    const mainDir: string = path.dirname(require.main?.filename as string)
+                    photo = await cloudinary.uploader.upload(`${mainDir}/uploads/${fileName}`)
                     args.photo = photo
                 }
 
                 if (cover) {
-                    const mainDir: string = path.dirname(
-            require.main?.filename as string
-                    )
-                    image = await cloudinary.uploader.upload(
-                        `${mainDir}/uploads/${cover}`
-                    )
+                    const mainDir: string = path.dirname(require.main?.filename as string)
+                    image = await cloudinary.uploader.upload(`${mainDir}/uploads/${cover}`)
                     args.image = image
                 }
 
@@ -89,7 +80,7 @@ const profileResolvers: any = {
                         avatar: args?.photo?.secure_url,
                         coverImage: args?.image?.secure_url,
                     },
-                    { new: true, upsert: true }
+                    { new: true, upsert: true },
                 )
                 return updatedProfile
             } catch (error: any) {
@@ -100,3 +91,4 @@ const profileResolvers: any = {
 }
 
 export default profileResolvers
+
