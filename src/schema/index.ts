@@ -1,5 +1,4 @@
 import { gql } from 'apollo-server'
-
 const Schema = gql`
   type User {
     id: ID!
@@ -70,6 +69,21 @@ const Schema = gql`
     ): Profile
     updateUserRole(id: ID!, name: String): User!
   }
+  type ratingSystem {
+    id: ID!
+    name:String!
+    grade:[Int]!
+    description:[String]!
+    percentage:[String]!
+    userId: String!
+    }
+  type Mutation {
+    createRatingSystem(name: String!, grade:[Int]!, description: [String]!, percentage: [String]!): ratingSystem!
+    deleteRatingSystem(id:ID!): String!
+  }
+  type Query{
+    getRatingSystems:[ratingSystem]
+    getRatingSystem(id:ID!): ratingSystem!
+  }
 `
-
 export default Schema
