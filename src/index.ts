@@ -8,9 +8,10 @@ import userResolvers from './resolvers/userResolver'
 import typeDefs from './schema/index'
 
 import { formatError } from './ErrorMsg'
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
 const PORT = process.env.PORT || 4000
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers])
+const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver])
 
 const server = new ApolloServer({
     typeDefs,

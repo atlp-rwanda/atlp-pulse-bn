@@ -1,4 +1,5 @@
-import { User } from '../models/user'
+/* eslint-disable */
+import { User } from '../models/user';
 
 const seedUsers = async () => {
     const users = [
@@ -23,5 +24,5 @@ const seedUsers = async () => {
     await User.insertMany(users)
     return null
 }
+export default seedUsers;
 
-export default seedUsers
