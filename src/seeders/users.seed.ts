@@ -1,21 +1,22 @@
 /* eslint-disable */
-import { User } from '../models/user';
+import { hashSync } from 'bcryptjs'
+import { User } from '../models/user'
 
 const seedUsers = async () => {
     const users = [
         {
             email: 'admin@gmail.com',
-            password: 'Andela123',
+            password: hashSync('Andela123'),
             role: 'admin',
         },
         {
             email: 'coordinator@gmail.com',
-            password: 'Andela123',
+            password: hashSync('Andela123'),
             role: 'coordinator',
         },
         {
             email: 'trainee@gmail.com',
-            password: 'Andela123',
+            password: hashSync('Andela123'),
             role: 'trainee',
         },
     ]
@@ -24,5 +25,5 @@ const seedUsers = async () => {
     await User.insertMany(users)
     return null
 }
-export default seedUsers;
+export default seedUsers
 
