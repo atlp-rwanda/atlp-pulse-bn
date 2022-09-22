@@ -38,7 +38,7 @@ userSchema.pre('remove', async function (next) {
     return next()
 })
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next()
     const hash = await bcrypt.hash(this.password, 10)
     this.password = hash
@@ -93,12 +93,29 @@ const UserRole = mongoose.model(
             ref: 'User',
             required: true,
             unique: true,
-        }
-    })
+        },
+    }),
 )
 
+const organizationSchema = new Schema({
+    name: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    description: {
+        type: String,
+    },
+    admin: {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+})
 
 const User = model('User', userSchema)
 const Profile = mongoose.model('Profile', profileSchema)
+const Organization = model('Organization', organizationSchema)
 
-export { User, Profile, UserRole }
+export { User, Profile, UserRole, Organization }
+
