@@ -1,4 +1,4 @@
-import { Comment, Reply, Performance } from "../models/comments";
+import { Comment, Reply } from "../models/comments";
 
 
 
@@ -14,26 +14,33 @@ const CommentResolver = {
            const SingleComment = await Comment.findById(args.id)
            if(!SingleComment) throw new Error("Comment not found");
            return SingleComment;
-       },
-       async getReplies(){
-           const Replies = await Reply.find({})
-           return Replies;
        }
-           
     },
+           
+    
     Mutation: {
-        async addComment(_: any,{body,timestamps}: any, context: {author: string}) {
-            const newComment = await Comment.create({ body,timestamps,author:context.author});
-            return newComment;
+        async addComment(_: any,{body}: any, context: {role: string, userId: string}) {
+            const { userId } = context
+            if(!userId) throw new Error("You are not logged in!!")
+            //  if(context.role !== 'trainee') throw new Error("You are not trainee")
+            const newComment = await Comment.create({ body,author:context.userId});
+            return newComment; 
 
         },
-        // async addReply(){
+        async addReply(_: any,{body}: any, context: {userId: String}){
+            const { userId } = context
+            if(!userId) throw new Error("You are not logged in!!")
 
-        // },
-        async deleteComment(parent:any, args:any) {
-            const findComment= await Comment.findById(args.commentId); 
+            const newReply = await Reply.create({body,author:context.userId})
+            return newReply;
+
+        },
+        async deleteComment(parent:any, args:any, context: {userId: String}) {
+            const { userId } = context
+            if(!userId) throw new Error("You are not logged in!!")
+            const findComment= await Comment.findById(args.id); 
             if(!findComment) throw new Error("The Comment you want to delete is not exist")  
-            const deleteComment = await Comment.deleteOne({id:args.commentId});
+            const deleteComment = await Comment.deleteOne({id:args.id});
             return ("The comment has been deleted successfully");
           }
     }
