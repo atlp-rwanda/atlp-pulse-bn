@@ -4,7 +4,7 @@ const CommentSchema = new Schema(
   {
     performanceReview: {
       type: mongoose.Types.ObjectId,
-      ref: "PerformanceReview",
+      ref: "Performance",
       required: true,
     },
     author: {
@@ -39,5 +39,25 @@ const ReplySchema = new Schema({
   },
 });
 
+const PerformanceSchema = new Schema({
+  metric: {
+    type: String,
+    required: true,
+  
+  },
+  grade: {
+    type:[Number],
+    required: true,
+   
+  },
+  comment: {
+    type: mongoose.Types.ObjectId,
+    ref: "Comment",
+    required: true,
+  },
+})
+
 export const Comment = mongoose.model("Comment", CommentSchema);
 export const Reply = mongoose.model("Reply", ReplySchema);
+export const Performance = mongoose.model("Performance", PerformanceSchema)
+

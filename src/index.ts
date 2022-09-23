@@ -7,23 +7,13 @@ import cohortResolvers from './resolvers/cohort.resolvers'
 import profileResolvers from './resolvers/profileResolver'
 import programResolvers from './resolvers/program.resolvers'
 import userResolvers from './resolvers/userResolver'
-import cohortSchema from './schema/cohort.schema'
-import schema from './schema/index'
-import programSchema from './schema/program.schema'
-import coordinatorSchema from './schema/coordinator.schema';
+import CommentResolver from './resolvers/commentResolver'
+import typeDefs from './schema/index'
 import { formatError } from './ErrorMsg'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
 import manageStudentResolvers from './resolvers/coordinatorResolvers';
 
-export const resolvers = mergeResolvers([
-    userResolvers,
-    profileResolvers,
-    programResolvers,
-    cohortResolvers,
-    createRatingSystemresolver,
-    manageStudentResolvers
-])
-export const typeDefs = mergeTypeDefs([schema, cohortSchema, programSchema, coordinatorSchema])
+const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, CommentResolver])
 
 export const server = new ApolloServer({
     typeDefs,
