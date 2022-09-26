@@ -1,7 +1,6 @@
-import { ApolloServer, gql } from 'apollo-server-express'
-import { expect } from 'chai'
-import userResolvers from '../resolvers/userResolver'
-import schema from '../schema/index'
+import { ApolloServer, gql } from 'apollo-server-express';
+import { expect } from 'chai';
+import { typeDefs, resolvers } from '../index';
 
 const ql = gql`
   query Mutation($registerInput: RegisterInput) {
@@ -13,22 +12,22 @@ const ql = gql`
       }
     }
   }
-`
+`;
 describe('User mutations', () => {
-    const testServer = new ApolloServer({
-        typeDefs: schema,
-        resolvers: userResolvers,
-    })
-    it('Should return error as email is taken', async () => {
-        const result = await testServer.executeOperation({
-            query: ql,
-            variables: {
-                registerInput: {
-                    email: 'admin@gmail.com',
-                    password: 'Andela123',
-                },
-            },
-        })
-        expect(result.errors).to.be.a('Array')
-    })
-})
+  const testServer = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
+  it('Should return error as email is taken', async () => {
+    const result = await testServer.executeOperation({
+      query: ql,
+      variables: {
+        registerInput: {
+          email: 'admin@gmail.com',
+          password: 'Andela123',
+        },
+      },
+    });
+    expect(result.errors).to.be.a('Array');
+  });
+});

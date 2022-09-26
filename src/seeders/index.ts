@@ -1,11 +1,20 @@
 import { connect } from './../database/db.config'
+import seedCohorts from './cohorts.seed'
 import seedOrganizations from './organization.seed'
+import seedPrograms from './programs.seed'
 import seedUsers from './users.seed'
 
 connect().then(async () => {
-    await seedUsers()
-    await seedOrganizations()
+    try {
+        await seedUsers()
+        await seedOrganizations()
+        await seedPrograms()
+        await seedCohorts()
 
-    process.exit()
+        process.exit()
+    } catch (error) {
+        process.exit()
+    }
 })
+
 

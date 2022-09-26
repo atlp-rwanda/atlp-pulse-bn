@@ -1,19 +1,31 @@
-import { mergeResolvers } from '@graphql-tools/merge'
+import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
 import { ApolloServer } from 'apollo-server'
 import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core'
 import { context } from './context'
 import { connect } from './database/db.config'
+import cohortResolvers from './resolvers/cohort.resolvers'
 import profileResolvers from './resolvers/profileResolver'
+import programResolvers from './resolvers/program.resolvers'
 import userResolvers from './resolvers/userResolver'
-import typeDefs from './schema/index'
-
+import cohortSchema from './schema/cohort.schema'
+import schema from './schema/index'
+import programSchema from './schema/program.schema'
+import coordinatorSchema from './schema/coordinator.schema';
 import { formatError } from './ErrorMsg'
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
-const PORT = process.env.PORT || 4000
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
+import manageStudentResolvers from './resolvers/coordinatorResolvers';
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver])
+export const resolvers = mergeResolvers([
+    userResolvers,
+    profileResolvers,
+    programResolvers,
+    cohortResolvers,
+    createRatingSystemresolver,
+    manageStudentResolvers
+])
+export const typeDefs = mergeTypeDefs([schema, cohortSchema, programSchema, coordinatorSchema])
 
-const server = new ApolloServer({
+export const server = new ApolloServer({
     typeDefs,
     resolvers,
     introspection: true,
@@ -23,9 +35,10 @@ const server = new ApolloServer({
     context: context,
     csrfPrevention: true,
 })
+
+const PORT: number = parseInt(process.env.PORT!) | 4000
+
 connect().then(() => {
     console.log('Database connected')
-    server
-        .listen({ port: PORT })
-        .then(({ url }) => console.log(`Server ready at ${url}`))
+    server.listen({ port: PORT }).then(({ url }) => console.log(`Server ready at ${url}`))
 })

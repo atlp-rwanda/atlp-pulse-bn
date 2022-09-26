@@ -5,7 +5,7 @@ import { User } from '../models/user';
 const seedUsers = async () => {
 	const users = [
 		{
-			email: 'tsa2341@gmail.com',
+			email: 'superAdmin@pulse.com',
 			password: hashSync('Andela123'),
 			role: 'superAdmin',
 		},
@@ -13,6 +13,21 @@ const seedUsers = async () => {
 			email: 'admin@pulse.com',
 			password: hashSync('Andela123'),
 			role: 'admin',
+		},
+		{
+			email: 'admin2@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'admin',
+		},
+		{
+			email: 'manager@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'manager',
+		},
+		{
+			email: 'manager2@pulse.com',
+			password: hashSync('Andela123'),
+			role: 'manager',
 		},
 		{
 			email: 'coordinator@pulse.com',

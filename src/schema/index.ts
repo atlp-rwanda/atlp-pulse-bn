@@ -1,4 +1,5 @@
 import { gql } from 'apollo-server'
+
 const Schema = gql`
 	type User {
 		id: ID!
@@ -6,6 +7,8 @@ const Schema = gql`
 		email: String!
 		password: String!
 		profile: Profile
+    coordinator:User
+    cohort:Cohort
 	}
 	input RegisterInput {
 		email: String!
@@ -69,7 +72,6 @@ const Schema = gql`
 
 	type Query {
 		getAllUsers: [User]
-		getUser(id: ID!): User
 		getProfile: Profile
 		getAllRoles: [UserRole]
 		getRole(id: ID!): UserRole
@@ -95,6 +97,19 @@ const Schema = gql`
 			fileName: String
 			cover: String
 		): Profile
+
+    createProfile(
+			lastName: String
+			firstName: String
+			address: String
+			city: String
+			country: String
+			phoneNumber: String
+			biography: String
+			fileName: String
+			cover: String
+		): Profile
+    
 		updateUserRole(id: ID!, name: String): User!
 		deleteOrganization(id: ID!): Organization
 	}
