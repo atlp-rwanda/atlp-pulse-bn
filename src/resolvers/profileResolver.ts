@@ -1,6 +1,6 @@
 import { UploadApiResponse, v2 as cloudinary } from 'cloudinary'
 import path from 'path'
-import { Profile, User, UserRole, Organization } from '../models/user'
+import { Profile, User, UserRole } from '../models/user'
 
 interface Variables {
 	cloud_name: string;
