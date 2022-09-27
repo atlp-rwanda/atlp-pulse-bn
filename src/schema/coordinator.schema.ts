@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import { gql } from 'apollo-server'
 
 const Schema = gql`
   type Query {
@@ -22,5 +22,5 @@ const Schema = gql`
       orgToken: String!
     ): String
   }
-`;
-export default Schema;
+`
+export default Schema
