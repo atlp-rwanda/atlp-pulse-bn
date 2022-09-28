@@ -44,7 +44,6 @@ const manageStudentResolvers = {
                 return (
                     await User.find({ role: 'trainee' }).populate({
                         path: 'cohort',
-
                         strictPopulate: false,
                         populate: {
                             path: 'program',

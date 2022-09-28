@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server-errors'
 import * as jwt from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
