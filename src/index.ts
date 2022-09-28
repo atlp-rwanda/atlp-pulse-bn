@@ -10,10 +10,10 @@ import userResolvers from './resolvers/userResolver'
 import cohortSchema from './schema/cohort.schema'
 import schema from './schema/index'
 import programSchema from './schema/program.schema'
-import coordinatorSchema from './schema/coordinator.schema';
+import coordinatorSchema from './schema/coordinator.schema'
 import { formatError } from './ErrorMsg'
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
-import manageStudentResolvers from './resolvers/coordinatorResolvers';
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
+import manageStudentResolvers from './resolvers/coordinatorResolvers'
 
 export const resolvers = mergeResolvers([
     userResolvers,
@@ -36,7 +36,7 @@ export const server = new ApolloServer({
     csrfPrevention: true,
 })
 
-const PORT: number = parseInt(process.env.PORT!) | 4000
+const PORT: number = parseInt(process.env.PORT!) || 4000
 
 connect().then(() => {
     console.log('Database connected')

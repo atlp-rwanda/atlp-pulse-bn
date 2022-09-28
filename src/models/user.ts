@@ -30,11 +30,11 @@ const userSchema = new Schema({
     //   required: false,
     //   ref: 'User'
     //  },
-     cohort: {
-       type: mongoose.Types.ObjectId,
-       required: false,
-       ref: 'Cohort',
-     },
+    cohort: {
+        type: mongoose.Types.ObjectId,
+        required: false,
+        ref: 'Cohort',
+    },
 })
 
 userSchema.methods.checkPass = async function (password: string) {

@@ -1,6 +1,5 @@
 import { ApolloError, ValidationError } from 'apollo-server'
 import { isAfter, isPast } from 'date-fns'
-import { ObjectId } from 'mongodb'
 import { Date } from 'mongoose'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
