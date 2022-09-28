@@ -39,6 +39,6 @@ export const server = new ApolloServer({
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
 connect().then(() => {
-    console.log('Database connected')
+    console.log('Database Connected')
     server.listen({ port: PORT }).then(({ url }) => console.log(`Server ready at ${url}`))
 })
