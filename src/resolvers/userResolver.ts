@@ -64,17 +64,17 @@ const resolvers: any = {
             return { token, user: newUser }
         },
         async createProfile(_: any, args: any, context: { userId: any }) {
-          if (!context.userId) throw new Error('Unauthorized')
-          if (!mongoose.isValidObjectId(context.userId)) throw new Error('Invalid user id')
-          const userExists = await User.findOne({ _id: context.userId })
-          if (!userExists) throw new Error('This user does not exists')
-          const profile = await Profile.findOneAndUpdate({ user: context.userId }, args, {
-              upsert: true,
-              new: true,
-          })
+            if (!context.userId) throw new Error('Unauthorized')
+            if (!mongoose.isValidObjectId(context.userId)) throw new Error('Invalid user id')
+            const userExists = await User.findOne({ _id: context.userId })
+            if (!userExists) throw new Error('This user does not exists')
+            const profile = await Profile.findOneAndUpdate({ user: context.userId }, args, {
+                upsert: true,
+                new: true,
+            })
 
-          return profile.toJSON()
-      },
+            return profile.toJSON()
+        },
         async loginUser(_: any, { loginInput: { email, password } }: any) {
             const user: any = await User.findOne({ email: email })
             if (await user?.checkPass(password)) {

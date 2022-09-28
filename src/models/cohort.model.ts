@@ -23,8 +23,8 @@ const Cohort = mongoose.model(
             ref: 'Program',
         },
         members: {
-          type: [mongoose.Types.ObjectId],
-          ref: 'User',
+            type: [mongoose.Types.ObjectId],
+            ref: 'User',
         },
         startDate: {
             type: Date,
