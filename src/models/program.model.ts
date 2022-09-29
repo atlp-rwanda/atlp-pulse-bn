@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
+import Cohort from './cohort.model'
 
 const programSchema = new Schema(
     {
@@ -25,7 +26,7 @@ const programSchema = new Schema(
     {
         toObject: { virtuals: true },
         toJSON: { virtuals: true },
-    },
+    }
 )
 
 programSchema.virtual('cohorts', {
@@ -33,8 +34,11 @@ programSchema.virtual('cohorts', {
     localField: '_id',
     foreignField: 'program',
 })
+programSchema.pre('remove', async function (next) {
+    await Cohort.deleteMany({ program: this.id })
+    next()
+})
 
 const Program = mongoose.model('Program', programSchema)
 
 export default Program
-

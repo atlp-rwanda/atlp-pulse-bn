@@ -18,7 +18,7 @@ const Rating = mongoose.model(
         },
         quantityRemark: {
             type: String,
-            default: 'no remark'
+            default: 'no remark',
         },
         quality: {
             type: String,
@@ -26,7 +26,7 @@ const Rating = mongoose.model(
         },
         qualityRemark: {
             type: String,
-            default: 'no remark'
+            default: 'no remark',
         },
         professional_Skills: {
             type: String,
@@ -34,7 +34,7 @@ const Rating = mongoose.model(
         },
         professionalRemark: {
             type: String,
-            default: 'no remark'
+            default: 'no remark',
         },
         approved: {
             type: Boolean,
@@ -49,12 +49,11 @@ const Rating = mongoose.model(
             type: mongoose.Types.ObjectId,
             ref: 'Organization',
             required: true,
-        }
-        
+        },
     })
 )
 
-const TempData =mongoose.model(
+const TempData = mongoose.model(
     'TempData',
     new Schema({
         user: {
@@ -68,27 +67,27 @@ const TempData =mongoose.model(
         },
         quantity: {
             type: [String],
-            default: []
+            default: [],
         },
         quantityRemark: {
             type: [String],
-            default: ['no remark']
+            default: ['no remark'],
         },
         quality: {
             type: [String],
-            default: []
+            default: [],
         },
         qualityRemark: {
             type: [String],
-            default: ['no remark']
+            default: ['no remark'],
         },
         professional_Skills: {
             type: [String],
-            default:[]
+            default: [],
         },
         professionalRemark: {
             type: [String],
-            default: ['no remark']
+            default: ['no remark'],
         },
         approved: {
             type: Boolean,
@@ -98,8 +97,7 @@ const TempData =mongoose.model(
             type: mongoose.Types.ObjectId,
             ref: 'Organization',
             required: true,
-        }
-        
+        },
     })
 )
 

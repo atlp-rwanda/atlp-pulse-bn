@@ -1,6 +1,6 @@
 import { ApolloServer, gql } from 'apollo-server-express'
 import { expect } from 'chai'
-import { typeDefs, resolvers } from '../index'
+import { resolvers, typeDefs } from '../index'
 
 const ql = gql`
   query Mutation($registerInput: RegisterInput) {
