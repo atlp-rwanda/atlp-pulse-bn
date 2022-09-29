@@ -12,11 +12,11 @@ const replyResolver = {
            
     
     Mutation: {
-        async addReply(_: any,{body, remark}: any, context: { userId: String}) {
+        async addReply(_: any,{body, Rating}: any, context: { userId: String}) {
             const { userId } = context
             if (!userId) throw new Error("You are not authorized to perfom this task")
 
-            const newReply = await Reply.create({ body,remark,author:context.userId});
+            const newReply = await Reply.create({ body,Rating,author:context.userId});
             return newReply; 
 
         },

@@ -8,7 +8,8 @@ const ReplySchema = new Schema({
     required: true,
   },
   remark: {
-    type: String,
+    type: mongoose.Types.ObjectId,
+    ref: "Rating",
     required: true,
   },
   body: {
