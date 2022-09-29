@@ -24,5 +24,5 @@ const ReplySchema = new Schema({
 
 
 
-export const Reply = mongoose.model("Reply", ReplySchema);
+export const Notifications = mongoose.model("Notifications", ReplySchema);
 

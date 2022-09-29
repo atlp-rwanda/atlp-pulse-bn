@@ -1,10 +1,10 @@
-import { Reply } from "../models/reply.model";
+import { Notifications } from "../models/reply.model";
 
 
 const replyResolver = {
     Query: {
         async getReplies(){
-            const Comments = await Reply.find({})
+            const Comments = await Notifications.find({})
             return Comments;
         
        },
@@ -12,20 +12,20 @@ const replyResolver = {
            
     
     Mutation: {
-        async addReply(_: any,{body, Rating}: any, context: { userId: String}) {
+        async addReply(_: any,{body}: any, context: { userId: String}) {
             const { userId } = context
             if (!userId) throw new Error("You are not authorized to perfom this task")
 
-            const newReply = await Reply.create({ body,Rating,author:context.userId});
+            const newReply = await Notifications.create({ body,author:context.userId});
             return newReply; 
 
         },
         async deleteReply(parent:any, args:any, context: {userId: String}) {
             const { userId } = context
             if(!userId) throw new Error("You are not logged in!!")
-            const findComment= await Reply.findById(args.id); 
+            const findComment= await Notifications.findById(args.id); 
             if(!findComment) throw new Error("The reply you want to delete does not exist")  
-            const deleteComment = await Reply.deleteOne({id:args.id});
+            const deleteComment = await Notifications.deleteOne({id:args.id});
             return ("The reply has been deleted successfully");
           }
     }

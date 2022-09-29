@@ -223,7 +223,7 @@ const Schema = gql`
 	type Reply {
 		id: ID!
 		author: User! 
-		remark: Rating!
+		remark(id: ID): Rating!
 		body: String!
 		createdAt: String!
 	
@@ -235,7 +235,6 @@ const Schema = gql`
 	type Mutation{
 		addReply(
 			body: String!
-			remark: String!
 		): Reply!
 		deleteReply(id: ID): String!
 	}
