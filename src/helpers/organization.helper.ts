@@ -24,4 +24,3 @@ export async function checkLoggedInOrganization(token?: string) {
         throw new AuthenticationError('Missing or expired organization token')
     }
 }
-

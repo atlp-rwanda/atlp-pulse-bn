@@ -104,7 +104,7 @@ const UserRole = mongoose.model(
             required: true,
             unique: true,
         },
-    }),
+    })
 )
 
 const organizationSchema = new Schema({
@@ -128,4 +128,3 @@ const Profile = mongoose.model('Profile', profileSchema)
 const Organization = model('Organization', organizationSchema)
 
 export { User, Profile, UserRole, Organization }
-

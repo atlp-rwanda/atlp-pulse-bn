@@ -4,16 +4,24 @@ const Schema = gql`
   type Query {
     getUsers: [User]
     getCohorts(orgToken: String): [Cohort]
-    getTrainees(orgToken: String):[User]
+    getTrainees(orgToken: String): [User]
   }
 
   type Message {
     message: String
   }
   type Mutation {
-    addMemberToCohort(cohortName: String!, email: String!, orgToken: String!): String
+    addMemberToCohort(
+      cohortName: String!
+      email: String!
+      orgToken: String!
+    ): String
 
-    removeMemberFromCohort(cohortName: String!, email: String!, orgToken: String!): String
+    removeMemberFromCohort(
+      cohortName: String!
+      email: String!
+      orgToken: String!
+    ): String
 
     editMember(
       removedFromcohortName: String!
@@ -22,10 +30,7 @@ const Schema = gql`
       orgToken: String!
     ): String
 
-    inviteUser(
-      email:String!
-      orgToken: String!
-      ):String!
+    inviteUser(email: String!, orgToken: String!): String!
   }
 `
 export default Schema

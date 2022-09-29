@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server-errors'
 import * as jwt from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
@@ -15,6 +14,7 @@ import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
+export type OrganizationType = InstanceType<typeof Organization>;
 
 const resolvers: any = {
     Query: {
@@ -97,8 +97,8 @@ const resolvers: any = {
             { loginInput: { email, password, orgToken } }: any
         ) {
             // get the organization if someone  logs in
-            let org: InstanceType<typeof Organization>
-            org = await checkLoggedInOrganization(orgToken)
+            const org: InstanceType<typeof Organization> =
+        await checkLoggedInOrganization(orgToken)
 
             const user: any = await User.findOne({ email }).populate({
                 path: 'cohort',
@@ -117,7 +117,6 @@ const resolvers: any = {
             })
 
             if (await user?.checkPass(password)) {
-       
                 if (
                     user?.role === 'trainee' &&
           user?.cohort?.program?.organization?.name == org?.name
@@ -153,7 +152,7 @@ const resolvers: any = {
                         user: user.toJSON(),
                     }
                     return data
-                } else if (user?.role === 'manager') { 
+                } else if (user?.role === 'manager') {
                     const program: any = await Program.find({
                         manager: user.id,
                     }).populate({
@@ -166,7 +165,7 @@ const resolvers: any = {
                     for (let i = 0; i < program.length; i++) {
                         if (program[i].organization.name == org?.name) {
                             checkProgramOrganization = true
-                        } 
+                        }
                     }
                     if (checkProgramOrganization) {
                         const managerToken = jwt.sign(
@@ -185,25 +184,27 @@ const resolvers: any = {
                         throw new Error('You logged into a different organization')
                     }
                 } else if (user?.role === 'coordinator') {
-                    const cohort:any = await Cohort.find({coordinator:user.id}).populate({
-                        path:'program',
-                        model:Program,
-                        strictPopulate:false,
-                        populate:{
-                            path:'organization',
-                            model:Organization,
-                            strictPopulate:false
-                        }
+                    const cohort: any = await Cohort.find({
+                        coordinator: user.id,
+                    }).populate({
+                        path: 'program',
+                        model: Program,
+                        strictPopulate: false,
+                        populate: {
+                            path: 'organization',
+                            model: Organization,
+                            strictPopulate: false,
+                        },
                     })
-                    let checkCohortOrganization:any = false
-  
+                    let checkCohortOrganization: any = false
+
                     for (let i = 0; i < cohort.length; i++) {
                         if (cohort[i].program.organization.name == org?.name) {
                             checkCohortOrganization = true
-                        } 
+                        }
                     }
 
-                    if (checkCohortOrganization){
+                    if (checkCohortOrganization) {
                         const coordinatorToken = jwt.sign(
                             { userId: user._id, role: user._doc?.role || 'user' },
                             SECRET,
@@ -216,12 +217,12 @@ const resolvers: any = {
                             user: user.toJSON(),
                         }
                         return coordinatorData
-                    }else{
+                    } else {
                         throw new Error(
                             'You are not part of the organization you logged in.'
                         )
                     }
-                } else if (user?.role === 'superAdmin'){
+                } else if (user?.role === 'superAdmin') {
                     const superAdminToken = jwt.sign(
                         { userId: user._id, role: user._doc?.role || 'user' },
                         SECRET,
@@ -234,7 +235,7 @@ const resolvers: any = {
                         user: user.toJSON(),
                     }
                     return superAdminData
-                } else{
+                } else {
                     throw new Error(
                         'You are not part of the organization you logged in.'
                     )
@@ -317,7 +318,7 @@ const resolvers: any = {
                 content,
                 link,
                 process.env.ADMIN_EMAIL,
-                process.env.ADMIN_PASS,
+                process.env.ADMIN_PASS
             )
                 .then(() => 'Organisation registration request sent successfully')
                 .catch((error) => error)
@@ -363,8 +364,14 @@ const resolvers: any = {
             const content = organizationCreatedTemplate(org.name, email, password)
             const link: any = 'https://king-prawn-app-au5ls.ondigitalocean.app'
             // send an email to the user who desire the organization
-            await sendEmail(email, 'Organization created notice', content, link, process.env.ADMIN_EMAIL,
-                process.env.ADMIN_PASS)
+            await sendEmail(
+                email,
+                'Organization created notice',
+                content,
+                link,
+                process.env.ADMIN_EMAIL,
+                process.env.ADMIN_PASS
+            )
 
             return org
         },

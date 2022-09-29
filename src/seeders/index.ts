@@ -16,5 +16,3 @@ connect().then(async () => {
         process.exit()
     }
 })
-
-

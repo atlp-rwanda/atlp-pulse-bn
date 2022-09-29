@@ -6,16 +6,16 @@ export const sendEmail = async (
     subject: any,
     content: any,
     link: any,
-    senderEmail:any, 
-    senderPassword:any
+    senderEmail: any,
+    senderPassword: any
 ): Promise<any> => {
     const transport = nodemailer.createTransport({
         host: 'mail.privateemail.com',
         port: 587,
         secure: false,
         auth: {
-            user:senderEmail,
-            pass:senderPassword,
+            user: senderEmail,
+            pass: senderPassword,
         },
     })
 

@@ -2,9 +2,9 @@ version: '3'
 
 services:
   devpulse_bn:
-    build: 
+    build:
       context: .
     expose:
       - 4000
     ports:
-      - "4000:4000"
+      - '4000:4000'

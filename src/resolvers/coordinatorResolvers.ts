@@ -44,6 +44,7 @@ const manageStudentResolvers = {
                 return (
                     await User.find({ role: 'trainee' }).populate({
                         path: 'cohort',
+
                         strictPopulate: false,
                         populate: {
                             path: 'program',
@@ -198,7 +199,6 @@ const manageStudentResolvers = {
                 },
             })
 
-
             if (cohort && user) {
                 if (cohort.program.organization.name !== org?.name) {
                     throw new Error(
@@ -240,20 +240,21 @@ const manageStudentResolvers = {
                     )
                 }
                 if (!user.cohort) {
-                    if(user.cohort === undefined){
+                    if (user.cohort === undefined) {
                         if (role === 'admin') {
-                            const organization: any = await Organization.findOne({ _id: org.id })
+                            const organization: any = await Organization.findOne({
+                                _id: org.id,
+                            })
                             if (!organization) {
                                 throw new Error('You don\'t have an organization yet')
                             }
                             if (
                                 organization.admin._id.toString() === userId?.toString() &&
                 organization.name == org.name
-               
                             ) {
-               
                                 const content = getOrganizationTemplate(org.name)
-                                const link:any = 'https://devpulse-staging.herokuapp.com/org-login'
+                                const link: any =
+                  'https://devpulse-staging.herokuapp.com/org-login'
                                 await sendEmail(
                                     user.email,
                                     'Organization membership notice',
@@ -273,7 +274,8 @@ const manageStudentResolvers = {
                             }
                             if (program.organization._id.toString() == org?.id.toString()) {
                                 const content = getOrganizationTemplate(org.name)
-                                const link:any = 'https://devpulse-staging.herokuapp.com/org-login'
+                                const link: any =
+                  'https://devpulse-staging.herokuapp.com/org-login'
                                 await sendEmail(
                                     user.email,
                                     'Organization membership notice',
@@ -282,19 +284,22 @@ const manageStudentResolvers = {
                                     process.env.MANAGER_EMAIL,
                                     process.env.MANAGER_PASSWORD
                                 )
-             
                             } else {
                                 throw new Error('You logged into a different organization')
                             }
-                        }if (role === 'coordinator') {
+                        }
+                        if (role === 'coordinator') {
                             const cohort: any = await Cohort.findOne({ coordinator: userId })
                             if (!cohort) {
                                 throw new Error('You dont\'t have a coordinator yet')
                             }
-                            const program:any = await Program.findOne({ _id:cohort.program  })
+                            const program: any = await Program.findOne({
+                                _id: cohort.program,
+                            })
                             if (program.organization._id.toString() == org?.id.toString()) {
                                 const content = getOrganizationTemplate(org.name)
-                                const link:any = 'https://devpulse-staging.herokuapp.com/org-login'
+                                const link: any =
+                  'https://devpulse-staging.herokuapp.com/org-login'
                                 await sendEmail(
                                     user.email,
                                     'Organization membership notice',
@@ -302,9 +307,7 @@ const manageStudentResolvers = {
                                     link,
                                     process.env.COORDINATOR_EMAIL,
                                     process.env.COORDINATOR_PASS
-
                                 )
-             
                             } else {
                                 throw new Error('You logged into a different organization')
                             }
@@ -571,29 +574,29 @@ const manageStudentResolvers = {
             let org: InstanceType<typeof Organization>
             org = await checkLoggedInOrganization(orgToken)
 
-            const user:any =  await User.findOne({_id:userId,role:role})
+            const user: any = await User.findOne({ _id: userId, role: role })
 
-            const userExists:any = await User.findOne({email})
+            const userExists: any = await User.findOne({ email })
 
-            if(userExists){
-                throw new Error(
-                    'This user already exists in DevPulse'
-                )
-            }else{
-                const content = inviteUserTemplate(org.name,user.email,user.role)
+            if (userExists) {
+                throw new Error('This user already exists in DevPulse')
+            } else {
+                const content = inviteUserTemplate(org.name, user.email, user.role)
                 const link = 'https://devpulse-staging.herokuapp.com/register'
                 await sendEmail(
                     email,
                     'Invitation',
                     content,
                     link,
-                    role === 'manager'  ? process.env.MANAGER_EMAIL : process.env.ADMIN_EMAIL,
-                    role === 'manager'  ? process.env.MANAGER_PASSWORD : process.env.ADMIN_PASS
-                                    
+                    role === 'manager'
+                        ? process.env.MANAGER_EMAIL
+                        : process.env.ADMIN_EMAIL,
+                    role === 'manager'
+                        ? process.env.MANAGER_PASSWORD
+                        : process.env.ADMIN_PASS
                 )
             }
             return 'Invitation sent successfully!'
-     
         },
     },
 }

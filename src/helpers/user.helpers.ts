@@ -2,7 +2,9 @@ import { ValidationError } from 'apollo-server'
 import { User } from '../models/user'
 import { Context } from './../context'
 
-export async function checkUserLoggedIn(context: Context): Promise<(a?: Array<string>) => Context> {
+export async function checkUserLoggedIn(
+    context: Context
+): Promise<(a?: Array<string>) => Context> {
     const { userId, role } = context
 
     if (!userId) {
@@ -16,10 +18,11 @@ export async function checkUserLoggedIn(context: Context): Promise<(a?: Array<st
 
     return (inputRoles: Array<string> = ['admin']) => {
         if (inputRoles && !inputRoles.includes(role as string)) {
-            throw new ValidationError(`Request ${inputRoles.join(' or ')} permission!!`)
+            throw new ValidationError(
+                `Request ${inputRoles.join(' or ')} permission!!`
+            )
         }
 
         return { userId, role }
     }
 }
-
