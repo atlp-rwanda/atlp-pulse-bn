@@ -1,20 +1,27 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
+
+type Cohort {
+	name: String
+	phase: String
+	coordinator: User
+}
+
 	type User {
 		id: ID!
 		role: String!
 		email: String!
 		password: String!
 		profile: Profile
-    coordinator:User
-    cohort:Cohort
+		cohort:Cohort
 	}
 	input RegisterInput {
 		email: String!
 		password: String!
 		role: String
 	}
+
 	input LoginInput {
 		email: String
 		password: String
@@ -80,6 +87,7 @@ const Schema = gql`
     professional_Skills: String!
     professionalRemark: String
     approved: Boolean!
+		coordinator: String!
   }
 
   type AddRating {
@@ -139,8 +147,15 @@ const Schema = gql`
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
     fetchRatings: [Rating]
+<<<<<<< HEAD
     fetchTrainees: [User]
     fetchRatingsForAdmin: [FetchRatingForAdmin]
+=======
+    fetchTrainees: [Cohort]
+    fetchRatingsForAdmin: [FetchRatingForAdmin],
+		fetchRatingsTrainee: [Rating]
+		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
+>>>>>>> 72cf498483edb23f357aae84bd02b293969a47d9
 	}
 
 	type Mutation {

@@ -40,6 +40,11 @@ const Rating = mongoose.model(
             type: Boolean,
             default: true,
         },
+        coordinator: {
+            type: String,
+            ref: 'User',
+            required: true,
+        }
         
     })
 )

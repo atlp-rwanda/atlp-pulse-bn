@@ -2,23 +2,41 @@ import mongoose from 'mongoose'
 import { Rating, TempData } from '../models/ratings'
 import { User } from '../models/user'
 import  { sendEmail } from '../utils/sendEmails'
+import Cohort from '../models/cohort.model'
 import { authenticated, validateRole } from '../utils/validate-role'
 
 const ratingResolvers = {
     Query: {
-        async fetchRatings() {           
-            const ratings = await Rating.find({}).populate('user')
+        async fetchRatings(_:any,args: any,context: {role: string,userId: string}) {           
+            const ratings = await Rating.find({coordinator: context.userId}).populate('user')
             return ratings
         },
 
         async fetchRatingsForAdmin() {
-            const ratings = await TempData.find({}).populate('user')
-            return ratings
+            const ratingsAdmin = await TempData.find({}).populate('user')
+            return ratingsAdmin
         },
 
-        async fetchTrainees() {
-            const ratings = await User.find({role: 'trainee'})
-            return ratings
+        async fetchTrainees(_:any,args: any,context: {role: string,userId: string}) {
+            const id = context.userId
+            if(!id)
+                throw new Error('it seems you have not logged in')
+            const trainees = await Cohort.find({ coordinator: id}).populate('members')
+            return trainees
+        },
+
+        async fetchCohortsCoordinator(_:any,args: any,context: {role: string,userId: string}) {
+            const id = context.userId
+            if(!id)
+                throw new Error('it seems you have not logged in')
+            const trainees = await Cohort.find({ coordinator: id ,  name: args.cohortName }).populate('members')
+            return trainees
+        },
+
+        async fetchRatingsTrainee(_:any,args: any,context: {role: string,userId: string} ) {
+            const loggedId = context.userId
+            const findRatings = Rating.find({user: loggedId}).populate('user')
+            return findRatings
         }
 
     },
@@ -28,7 +46,7 @@ const ratingResolvers = {
                 async (
                     root,
                     { user, sprint, quantity,quantityRemark, quality, qualityRemark,
-                        professional_Skills, professionalRemark }
+                        professional_Skills, professionalRemark }, context: {userId: string}
                 ) => {
                     const userExists = await User.findOne( { _id: user })
                     if (!userExists) 
@@ -46,8 +64,10 @@ const ratingResolvers = {
                         quality,
                         qualityRemark,
                         professional_Skills,
-                        professionalRemark
-                    })
+                        professionalRemark,
+                        coordinator: context.userId
+                    })    
+                    console.log(userExists)         
                     await sendEmail( userExists.email, 'Trainee','Ratings Notification')
                     return saveUserRating
                 }
@@ -104,7 +124,8 @@ const ratingResolvers = {
                     const update = await Rating.findOneAndUpdate(
                         { user: user , sprint: sprint},
                         {
-                            quantity: updatedData[0].quantity== '' ? oldData[0].quantity : updatedData[0]?.quantity[1] ,
+                            quantity: updatedData[0].quantity== '' ? 
+                                oldData[0].quantity : updatedData[0]?.quantity[1] ,
                             quantityRemark: updatedData[0].quantityRemark == 'no remark' ? 
                                 oldData[0]?.quantityRemark : updatedData[0]?.quantityRemark[1] ,
                             quality: updatedData[0].quality== '' ? oldData[0].quality : updatedData[0]?.quality[1],
