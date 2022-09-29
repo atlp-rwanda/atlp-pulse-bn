@@ -70,6 +70,67 @@ const Schema = gql`
 		description: String
 	}
 
+  type Rating {
+    user: User!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+  type AddRating {
+    user: String!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+  type updateRating {
+    user: String
+    sprint: Int
+    quantity: [String]
+    quantityRemark: [String]
+    quality:[String]
+    qualityRemark:[String],
+    professional_Skills:[String]
+    professionalRemark: [String]
+    approved: Boolean
+  }
+
+  type FetchRatingForAdmin {
+    user: User!
+    sprint: Int
+    quantity: [String]
+    quantityRemark: [String]
+    quality:[String]
+    qualityRemark:[String],
+    professional_Skills:[String]
+    professionalRemark: [String]
+    approved: Boolean
+  }
+
+  type ApproveRating {
+    user: String!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+
 	type Query {
 		getAllUsers: [User]
 		getProfile: Profile
@@ -77,6 +138,9 @@ const Schema = gql`
 		getRole(id: ID!): UserRole
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
+    fetchRatings: [Rating]
+    fetchTrainees: [User]
+    fetchRatingsForAdmin: [FetchRatingForAdmin]
 	}
 
 	type Mutation {
@@ -112,6 +176,28 @@ const Schema = gql`
     
 		updateUserRole(id: ID!, name: String): User!
 		deleteOrganization(id: ID!): Organization
+    addRatings(
+      user: String!
+      sprint: Int!
+      quantity: String!
+      quantityRemark: String
+      quality: String!
+      qualityRemark: String,
+      professional_Skills: String!
+      professionalRemark: String) : AddRating
+    updateRating(
+      user: String!
+      sprint: Int!
+      quantity: [String]
+      quantityRemark: [String]
+      quality: [String]
+      qualityRemark: [String],
+      professional_Skills: [String]
+      professionalRemark: [String] 
+       ) : updateRating
+    approveRating(user: String!, sprint: Int!): ApproveRating
+   rejectRating (user: String!
+      sprint: Int!): String!
 	}
 	type ratingSystem {
 		id: ID!
