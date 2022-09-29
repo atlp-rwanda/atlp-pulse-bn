@@ -7,13 +7,13 @@ import cohortResolvers from './resolvers/cohort.resolvers'
 import profileResolvers from './resolvers/profileResolver'
 import programResolvers from './resolvers/program.resolvers'
 import userResolvers from './resolvers/userResolver'
-import CommentResolver from './resolvers/commentResolver'
+import replyResolver from './resolvers/reply.resolver';
 import typeDefs from './schema/index'
 import { formatError } from './ErrorMsg'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
 import manageStudentResolvers from './resolvers/coordinatorResolvers';
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, CommentResolver])
+const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, replyResolver])
 
 export const server = new ApolloServer({
     typeDefs,

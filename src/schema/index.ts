@@ -7,8 +7,7 @@ const Schema = gql`
 		email: String!
 		password: String!
 		profile: Profile
-    coordinator:User
-    cohort:Cohort
+        coordinator:User
 	}
 	input RegisterInput {
 		email: String!
@@ -134,37 +133,25 @@ const Schema = gql`
 		getRatingSystems: [ratingSystem]
 		getRatingSystem(id: ID!): ratingSystem!
 	}
-  type Comment {
-    id: ID!
-    author: String!
-    body: String!
-    createdAt: String!
-    reply: [Reply]
-  }
 
-  type Reply {
-    id: ID!
-    author: String!
-    body: String!
-    Comment(id:ID!): Comment!
-  }
-
-  type Query {
-    getComments: [Comment]!
-    getComment(id:ID!): Comment!
-    getReply(id:ID): Reply!
-  }
-  type Mutation {
-    addComment(
-      body: String! 
-      ): Comment!
-    deleteComment(id:ID!): String!
-
-
-    addReply(
-      body: String!  
-      ): Reply!
-  }
+	type Reply {
+		id: ID!
+		author: User! 
+		remark: String!
+		body: String!
+		createdAt: String!
+	
+	}
+	type Query {
+		getReplies: [Reply]
+	}
+	
+	type Mutation{
+		addReply(
+			body: String!
+		): Reply!
+		deleteReply(id: ID): String!
+	}
   
 
 
