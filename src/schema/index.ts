@@ -1,19 +1,27 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
+
+type Cohort {
+	name: String
+	phase: String
+	coordinator: User
+}
+
 	type User {
 		id: ID!
 		role: String!
 		email: String!
 		password: String!
 		profile: Profile
-        coordinator:User
+		cohort:Cohort
 	}
 	input RegisterInput {
 		email: String!
 		password: String!
 		role: String
 	}
+
 	input LoginInput {
 		email: String
 		password: String
@@ -79,6 +87,7 @@ const Schema = gql`
     professional_Skills: String!
     professionalRemark: String
     approved: Boolean!
+		coordinator: String!
   }
 
   type AddRating {
@@ -138,8 +147,10 @@ const Schema = gql`
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
     fetchRatings: [Rating]
-    fetchTrainees: [User]
-    fetchRatingsForAdmin: [FetchRatingForAdmin]
+    fetchTrainees: [Cohort]
+    fetchRatingsForAdmin: [FetchRatingForAdmin],
+		fetchRatingsTrainee: [Rating]
+		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
 	}
 
 	type Mutation {
@@ -223,7 +234,7 @@ const Schema = gql`
 	type Reply {
 		id: ID!
 		author: User! 
-		remark(id: ID): Rating!
+		rating(id: ID): Rating!
 		body: String!
 		createdAt: String!
 	

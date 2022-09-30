@@ -7,7 +7,7 @@ const ReplySchema = new Schema({
     ref: "User",
     required: true,
   },
-  remark: {
+  rating: {
     type: mongoose.Types.ObjectId,
     ref: "Rating",
     required: true,

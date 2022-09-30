@@ -1,22 +1,22 @@
 import { Notifications } from "../models/reply.model";
+import { Rating } from "../models/ratings";
 
 
 const replyResolver = {
     Query: {
         async getReplies(){
-            const Comments = await Notifications.find({})
-            return Comments;
+            const replies = await Notifications.find({})
+            return replies;
         
        },
     },
            
     
     Mutation: {
-        async addReply(_: any,{body}: any, context: { userId: String}) {
+        async addReply(_: any,{body,rating}: any, context: { userId: String}) {
             const { userId } = context
             if (!userId) throw new Error("You are not authorized to perfom this task")
-
-            const newReply = await Notifications.create({ body,author:context.userId});
+            const newReply = await Notifications.create({ rating, body,author:context.userId});
             return newReply; 
 
         },
