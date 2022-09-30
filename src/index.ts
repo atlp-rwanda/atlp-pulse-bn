@@ -8,13 +8,24 @@ import profileResolvers from './resolvers/profileResolver'
 import programResolvers from './resolvers/program.resolvers'
 import userResolvers from './resolvers/userResolver'
 import ratingResolvers from './resolvers/ratingsResolvers'
-import typeDefs from './schema/index'
-
+import cohortSchema from './schema/cohort.schema'
+import schema from './schema/index'
+import programSchema from './schema/program.schema'
+import coordinatorSchema from './schema/coordinator.schema'
 import { formatError } from './ErrorMsg'
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
-import manageStudentResolvers from './resolvers/coordinatorResolvers';
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
+import manageStudentResolvers from './resolvers/coordinatorResolvers'
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, ratingResolvers])
+export const resolvers = mergeResolvers([
+    userResolvers,
+    profileResolvers,
+    programResolvers,
+    cohortResolvers,
+    createRatingSystemresolver,
+    manageStudentResolvers,
+    ratingResolvers
+])
+export const typeDefs = mergeTypeDefs([schema, cohortSchema, programSchema, coordinatorSchema])
 
 export const server = new ApolloServer({
     typeDefs,
@@ -27,9 +38,9 @@ export const server = new ApolloServer({
     csrfPrevention: true,
 })
 
-const PORT: number = parseInt(process.env.PORT!) | 4000
+const PORT: number = parseInt(process.env.PORT!) || 4000
 
 connect().then(() => {
-    console.log('Database connected')
+    console.log('Database Connected')
     server.listen({ port: PORT }).then(({ url }) => console.log(`Server ready at ${url}`))
 })

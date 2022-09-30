@@ -1,13 +1,11 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
-
 type Cohort {
 	name: String
 	phase: String
 	coordinator: User
 }
-
 	type User {
 		id: ID!
 		role: String!
@@ -21,16 +19,13 @@ type Cohort {
 		password: String!
 		role: String
 	}
-
 	input LoginInput {
 		email: String
 		password: String
 	}
-
 	input OrgInput {
 		name: String
 	}
-
 	type Profile {
 		id: ID!
 		user: User!
@@ -45,12 +40,10 @@ type Cohort {
 		avatar: String
 		coverImage: String
 	}
-
 	type UserRole {
 		id: ID!
 		name: String!
 	}
-
 	type RegisteredUser {
 		token: String
 		user: User
@@ -63,20 +56,17 @@ type Cohort {
 		token: String
 		organization: Organization
 	}
-
 	type Organization {
 		id: ID!
 		name: String!
 		description: String
 		admin: User
 	}
-
 	input OrganizationInput {
 		email: String!
 		name: String!
 		description: String
 	}
-
   type Rating {
     user: User!
     sprint: Int!
@@ -89,7 +79,6 @@ type Cohort {
     approved: Boolean!
 		coordinator: String!
   }
-
   type AddRating {
     user: String!
     sprint: Int!
@@ -101,7 +90,6 @@ type Cohort {
     professionalRemark: String
     approved: Boolean!
   }
-
   type updateRating {
     user: String
     sprint: Int
@@ -113,7 +101,6 @@ type Cohort {
     professionalRemark: [String]
     approved: Boolean
   }
-
   type FetchRatingForAdmin {
     user: User!
     sprint: Int
@@ -125,7 +112,6 @@ type Cohort {
     professionalRemark: [String]
     approved: Boolean
   }
-
   type ApproveRating {
     user: String!
     sprint: Int!
@@ -137,8 +123,6 @@ type Cohort {
     professionalRemark: String
     approved: Boolean!
   }
-
-
 	type Query {
 		getAllUsers: [User]
 		getProfile: Profile
@@ -147,17 +131,11 @@ type Cohort {
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
     fetchRatings: [Rating]
-<<<<<<< HEAD
-    fetchTrainees: [User]
-    fetchRatingsForAdmin: [FetchRatingForAdmin]
-=======
     fetchTrainees: [Cohort]
     fetchRatingsForAdmin: [FetchRatingForAdmin],
 		fetchRatingsTrainee: [Rating]
 		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
->>>>>>> 72cf498483edb23f357aae84bd02b293969a47d9
 	}
-
 	type Mutation {
 		createUserRole(name: String!): UserRole!
 		createUser(email: String!, password: String!, role: String): RegisteredUser!
@@ -176,7 +154,6 @@ type Cohort {
 			fileName: String
 			cover: String
 		): Profile
-
     createProfile(
 			lastName: String
 			firstName: String
@@ -237,4 +214,3 @@ type Cohort {
 	}
 `
 export default Schema
-
