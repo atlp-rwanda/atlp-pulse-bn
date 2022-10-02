@@ -10,9 +10,8 @@ import { Error } from "mongoose";
 
 const replyResolver = {
     Query: {
-        async getReplies(_:any,args: any,context: {role: string,userId: string} )  {
-            const { userId } = context
-            if(!userId) throw new Error("You are not logged in!")
+        async getReplies(_:any,args: any,context: Context)  {
+            (await checkUserLoggedIn(context))(['coordinator', 'trainee'])
             const replies = await Notifications.find({})
             return replies;
         
@@ -39,14 +38,12 @@ const replyResolver = {
                 const {userEmail,sprint, coordinator,quantityRemark, qualityRemark, professionalRemark, body} = args;
                 (await checkUserLoggedIn(context))(['trainee'])
                 const remarkToReplyOn = await Rating.find({ where: { user: userEmail, sprint: sprint } })
-                const userToBeRated = await User.findOne({ user: userEmail })
-                const forCoordinator = await User.findOne({ email: coordinator })
+                const forCoordinator = await User.findOne({ email: coordinator, role: "coordinator" })
                 
                 if(!forCoordinator) throw new Error("This coordinator does not exist")
 
                 const newReply = new Notifications({
-                    author: context.userId,
-                    user: userToBeRated?.id,
+                    user: context.userId,
                     sprint,
                     quantityRemark: remarkToReplyOn[0].quantityRemark,
                     qualityRemark: remarkToReplyOn[0].qualityRemark,
@@ -62,9 +59,8 @@ const replyResolver = {
             }
         },
 
-        async deleteReply(parent:any, args:any, context: {userId: String}) {
-            const { userId } = context
-            if(!userId) throw new Error("You are not logged in!!")
+        async deleteReply(parent:any, args:any, context: Context) {
+            (await checkUserLoggedIn(context))(['coordinator', 'trainee'])
             const findComment= await Notifications.findById(args.id); 
             if(!findComment) throw new Error("The reply you want to delete does not exist")  
             const deleteComment = await Notifications.deleteOne({id:args.id});

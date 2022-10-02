@@ -234,7 +234,6 @@ type Cohort {
 
 	type Notifications {
 		id: ID!
-		author: User! 
 		user: String!
         sprint: Int!
 		quantityRemark: String!
@@ -252,10 +251,8 @@ type Cohort {
 	type Mutation{
 		addReply(
 			sprint: Int!
-			user: String!
 			coordinator: String!
 			body: String!
-
 		): Notifications!
 		deleteReply(id: ID): String!
 	}

@@ -4,7 +4,7 @@ import mongoose, { Schema } from "mongoose";
 const ReplySchema = new Schema({ 
   user: {
     type: mongoose.Types.ObjectId,
-    ref: "Rating",
+    ref: "User",
     required: true, 
   },
   sprint: {
