@@ -21,7 +21,18 @@ const ratingResolvers = {
             const id = context.userId
             if(!id)
                 throw new Error('it seems you have not logged in')
-            const trainees = await Cohort.find({ coordinator: id}).populate('members')
+            const trainees = await Cohort.find({ coordinator: id}).populate({
+                path: 'members',
+                populate: {
+                    path: 'program',
+                    match: context.role === 'coordinator',
+                    strictPopulate: false,
+                    populate: {
+                        path: 'organization',
+                        strictPopulate: false,
+                    },
+                }                         
+            })
             return trainees
         },
 
@@ -29,9 +40,22 @@ const ratingResolvers = {
             const id = context.userId
             if(!id)
                 throw new Error('it seems you have not logged in')
-            const trainees = await Cohort.find({ coordinator: id ,  name: args.cohortName }).populate('members')
+            const trainees = await Cohort.find({ coordinator: id ,  name: args.cohortName }).populate({
+                path: 'members',
+                populate: {
+                    path: 'program',
+                    match: context.role === 'coordinator',
+                    strictPopulate: false,
+                    populate: {
+                        path: 'organization',
+                        strictPopulate: false,
+                    },
+                }                         
+            })
             return trainees
         },
+
+       
 
         async fetchRatingsTrainee(_:any,args: any,context: {role: string,userId: string} ) {
             const loggedId = context.userId
@@ -66,8 +90,7 @@ const ratingResolvers = {
                         professional_Skills,
                         professionalRemark,
                         coordinator: context.userId
-                    })    
-                    console.log(userExists)         
+                    })             
                     await sendEmail( userExists.email, 'Trainee','Ratings Notification')
                     return saveUserRating
                 }
@@ -141,7 +164,7 @@ const ratingResolvers = {
                     )
 
                     await TempData.deleteOne({sprint: sprint , user: user})
-                    await sendEmail( userToNotify[0].email, 'Trainee','Ratings Notification')
+                    await sendEmail( userToNotify[0].email, 'Trainee ratings','Ratings Notification')
                     return update
                 }
             )

@@ -15,7 +15,7 @@ import { formatError } from './ErrorMsg'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
 import manageStudentResolvers from './resolvers/coordinatorResolvers';
 
-const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, ratingResolvers])
+const resolvers = mergeResolvers([userResolvers, profileResolvers,createRatingSystemresolver, ratingResolvers, replyResolver])
 
 export const server = new ApolloServer({
     typeDefs,

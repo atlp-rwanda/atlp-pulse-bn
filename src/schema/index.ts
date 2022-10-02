@@ -78,6 +78,7 @@ type Cohort {
 	}
 
   type Rating {
+	id: ID!
     user: User!
     sprint: Int!
     quantity: String!
@@ -231,22 +232,31 @@ type Cohort {
 		getRatingSystem(id: ID!): ratingSystem!
 	}
 
-	type Reply {
+	type Notifications {
 		id: ID!
 		author: User! 
-		rating(id: ID): Rating!
+		user: String!
+        sprint: Int!
+		quantityRemark: String!
+		qualityRemark: String!
+		professionalRemark: String!
 		body: String!
+		coordinator: String!
 		createdAt: String!
 	
 	}
 	type Query {
-		getReplies: [Reply]
+		getReplies: [Notifications]
 	}
 	
 	type Mutation{
 		addReply(
+			sprint: Int!
+			user: String!
+			coordinator: String!
 			body: String!
-		): Reply!
+
+		): Notifications!
 		deleteReply(id: ID): String!
 	}
   
