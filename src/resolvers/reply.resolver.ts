@@ -23,6 +23,7 @@ const replyResolver = {
         addReply: async (
             _: any,
             args: {
+                rating: string | ObjectId;
                 userEmail: string | ObjectId;
                 sprint: IntegerType | ObjectId;
                 quantityRemark: string | ObjectId;
@@ -35,9 +36,12 @@ const replyResolver = {
             context: Context,
         ) => {
             try {
-                const {userEmail,sprint, coordinator,quantityRemark, qualityRemark, professionalRemark, body} = args;
+                const {userEmail, rating,sprint, coordinator,quantityRemark, qualityRemark, professionalRemark, body} = args;
                 (await checkUserLoggedIn(context))(['trainee'])
-                const remarkToReplyOn = await Rating.find({ where: { user: userEmail, sprint: sprint } })
+                const remarkToReplyOn = await Rating.find({ where: { id: rating} })
+                
+                if (!remarkToReplyOn) throw new Error("The remark you want to reply on, no longer exist!")
+
                 const forCoordinator = await User.findOne({ email: coordinator, role: "coordinator" })
                 
                 if(!forCoordinator) throw new Error("This coordinator does not exist")
@@ -45,6 +49,7 @@ const replyResolver = {
                 const newReply = new Notifications({
                     user: context.userId,
                     sprint,
+                    rating,
                     quantityRemark: remarkToReplyOn[0].quantityRemark,
                     qualityRemark: remarkToReplyOn[0].qualityRemark,
                     professionalRemark: remarkToReplyOn[0].professionalRemark,
