@@ -2,9 +2,9 @@ import { gql } from 'apollo-server'
 
 const Schema = gql`
   type Query {
-    getTrainees: [User]
-    getCoordinatorCohorts(orgToken: String): [Cohort]
-    getCoordinatorTrainees(orgToken: String):[User]
+    getUsers: [User]
+    getCohorts(orgToken: String): [Cohort]
+    getTrainees(orgToken: String):[User]
   }
 
   type Message {
@@ -21,6 +21,11 @@ const Schema = gql`
       email: String!
       orgToken: String!
     ): String
+
+    inviteUser(
+      email:String!
+      orgToken: String!
+      ):String!
   }
 `
 export default Schema

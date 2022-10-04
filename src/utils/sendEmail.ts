@@ -4,7 +4,8 @@ import generateTemplate from '../helpers/emailTemplate.helper'
 export const sendEmail = async (
     receiver: any,
     subject: any,
-    content: any
+    content: any,
+    link: any
 ): Promise<any> => {
     const transport = nodemailer.createTransport({
         host: 'smtp.gmail.com',
@@ -23,6 +24,7 @@ export const sendEmail = async (
         html: generateTemplate({
             message: content,
             title: subject,
+            link: link,
         }),
         from: {
             name: 'Devpulse',
