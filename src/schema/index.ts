@@ -19,6 +19,7 @@ type Cohort {
 		password: String!
 		role: String
 	}
+
 	input LoginInput {
 		email: String
 		password: String
@@ -96,7 +97,7 @@ type Cohort {
     quantity: [String]
     quantityRemark: [String]
     quality:[String]
-    qualityRemark:[String],
+    qualityRemark:[String]
     professional_Skills:[String]
     professionalRemark: [String]
     approved: Boolean
@@ -123,6 +124,8 @@ type Cohort {
     professionalRemark: String
     approved: Boolean!
   }
+
+
 	type Query {
 		getAllUsers: [User]
 		getProfile: Profile
@@ -130,9 +133,9 @@ type Cohort {
 		getRole(id: ID!): UserRole
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
-    fetchRatings: [Rating]
+    fetchRatings(orgToken: String): [Rating]
     fetchTrainees: [Cohort]
-    fetchRatingsForAdmin: [FetchRatingForAdmin],
+    fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin],
 		fetchRatingsTrainee: [Rating]
 		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
 	}
@@ -176,17 +179,18 @@ type Cohort {
       quality: String!
       qualityRemark: String,
       professional_Skills: String!
-      professionalRemark: String) : AddRating
+      professionalRemark: String
+			orgToken: String!) : AddRating
     updateRating(
       user: String!
       sprint: Int!
       quantity: [String]
       quantityRemark: [String]
       quality: [String]
-      qualityRemark: [String],
+      qualityRemark: [String]
       professional_Skills: [String]
       professionalRemark: [String] 
-       ) : updateRating
+			orgToken: String! ) : updateRating
     approveRating(user: String!, sprint: Int!): ApproveRating
    rejectRating (user: String!
       sprint: Int!): String!

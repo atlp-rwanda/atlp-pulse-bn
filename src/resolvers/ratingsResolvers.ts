@@ -1,19 +1,25 @@
 import mongoose from 'mongoose'
 import { Rating, TempData } from '../models/ratings'
-import { User } from '../models/user'
+import { Organization, User } from '../models/user'
 import  { sendEmail } from '../utils/sendEmails'
 import Cohort from '../models/cohort.model'
 import { authenticated, validateRole } from '../utils/validate-role'
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
+
+let org: InstanceType<typeof Organization>
 
 const ratingResolvers = {
     Query: {
-        async fetchRatings(_:any,args: any,context: {role: string,userId: string}) {           
-            const ratings = await Rating.find({coordinator: context.userId}).populate('user')
+        async fetchRatings(_:any,{ orgToken }: any,context: {role: string,userId: string}) { 
+            // get the organization if someone  logs in  
+            org = await checkLoggedInOrganization(orgToken)        
+            const ratings = await Rating.find({coordinator: context.userId, organization: org}).populate('user')
             return ratings
         },
 
-        async fetchRatingsForAdmin() {
-            const ratingsAdmin = await TempData.find({}).populate('user')
+        async fetchRatingsForAdmin(_:any,{ orgToken }: any) {
+            org = await checkLoggedInOrganization(orgToken) 
+            const ratingsAdmin = await TempData.find({organization: org}).populate('user')
             return ratingsAdmin
         },
 
@@ -70,8 +76,10 @@ const ratingResolvers = {
                 async (
                     root,
                     { user, sprint, quantity,quantityRemark, quality, qualityRemark,
-                        professional_Skills, professionalRemark }, context: {userId: string}
+                        professional_Skills, professionalRemark, orgToken }, context: {userId: string}
                 ) => {
+                    // get the organization if someone  logs in
+                    org = await checkLoggedInOrganization(orgToken) 
                     const userExists = await User.findOne( { _id: user })
                     if (!userExists) 
                         throw new Error('User does not exist!')
@@ -89,7 +97,8 @@ const ratingResolvers = {
                         qualityRemark,
                         professional_Skills,
                         professionalRemark,
-                        coordinator: context.userId
+                        coordinator: context.userId,
+                        organization: org
                     })             
                     await sendEmail( userExists.email, 'Trainee','Ratings Notification')
                     return saveUserRating
@@ -103,8 +112,9 @@ const ratingResolvers = {
                 async (
                     root,
                     { user, sprint, quantity,quantityRemark, quality, qualityRemark, 
-                        professional_Skills, professionalRemark }
+                        professional_Skills, professionalRemark, orgToken }
                 ) => {
+                    org = await checkLoggedInOrganization(orgToken)
                     const oldData: any = await Rating.find({ user: user, sprint: sprint})
                     const userExists = await Rating.find({ where: { user: user, sprint: sprint } })
                     if (!userExists) throw new Error('User does not exist!')
@@ -116,17 +126,18 @@ const ratingResolvers = {
                         sprint,
                         quantity: oldData[0]?.quantity == quantity[0].toString() ? 
                             oldData[0]?.quantity : [oldData[0]?.quantity + '->', quantity?.toString()],
-                        quantityRemark: oldData[0]?.quantityRemark == quantityRemark[0].toString() ?
+                        quantityRemark: oldData[0]?.quantityRemark == quantityRemark[0].toString() ? 
                             oldData[0]?.quantityRemark : [oldData[0]?.quantityRemark + '->', quantityRemark?.toString()],
                         quality: oldData[0]?.quality == quality[0].toString() ? 
                             oldData[0]?.quality : [oldData[0]?.quality+ '->', quality?.toString()],
                         qualityRemark: oldData[0]?.qualityRemark == qualityRemark[0].toString() ? 
                             oldData[0]?.qualityRemark : [oldData[0]?.qualityRemark +'->', qualityRemark?.toString()],
-                        professional_Skills: oldData[0]?.professional_Skills == professional_Skills[0].toString() ?
+                        professional_Skills: oldData[0]?.professional_Skills == professional_Skills[0].toString() ? 
                             oldData[0]?.professional_Skills : [oldData[0]?.professional_Skills+ '->', professional_Skills?.toString()],
-                        professionalRemark: oldData[0]?.professionalRemark == professionalRemark[0].toString() ?
-                            oldData[0]?.professionalRemark: [oldData[0]?.professionalRemark + '->',professionalRemark?.toString() ],
-                        approved:false
+                        professionalRemark: oldData[0]?.professionalRemark == professionalRemark[0].toString() ? 
+                            oldData[0]?.professionalRemark: [oldData[0]?.professionalRemark + '->', professionalRemark?.toString()],
+                        approved:false,
+                        organization: org
                     })
                     return updateRating
                 }
