@@ -39,9 +39,8 @@ const replyResolver = {
                 const {userEmail, rating,sprint, coordinator,quantityRemark, qualityRemark, professionalRemark, body} = args;
                 (await checkUserLoggedIn(context))(['trainee'])
                 const remarkToReplyOn = await Rating.find({ where: { id: rating} })
-                
                 if (!remarkToReplyOn) throw new Error("The remark you want to reply on, no longer exist!")
-
+                
                 const forCoordinator = await User.findOne({ email: coordinator, role: "coordinator" })
                 
                 if(!forCoordinator) throw new Error("This coordinator does not exist")
