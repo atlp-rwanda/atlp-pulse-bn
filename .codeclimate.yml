@@ -1,4 +1,5 @@
 exclude_patterns:
+  - 'src/'
   - 'config/'
   - 'db/'
   - 'dist/'

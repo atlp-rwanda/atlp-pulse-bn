@@ -24,10 +24,10 @@ jobs:
         - name: Build and publish Docker Image
           uses: mr-smithers-excellent/docker-build-push@v5
           with:
-            image: procech20/atlp-pulse
+            image: ${{ secrets.DOCKER_HUB_USERNAME}}/backend
             registry: docker.io
             username: ${{ secrets.DOCKER_HUB_USERNAME }}
-            password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+            password: ${{ secrets.DOCKER_HUB_PASSWORD }}
     deploy:
       runs-on: ubuntu-latest
       concurrency: deployment

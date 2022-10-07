@@ -18,6 +18,7 @@ const Schema = gql`
 	input LoginInput {
 		email: String
 		password: String
+    orgToken: String
 	}
 
 	input OrgInput {

@@ -1,8 +1,12 @@
+/* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server-errors'
 import * as jwt from 'jsonwebtoken'
-import mongoose from 'mongoose'
+import mongoose, { Error } from 'mongoose'
 import generateRandomPassword from '../helpers/generateRandomPassword'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import Cohort from '../models/cohort.model'
+import Program from '../models/program.model'
 import { Organization, Profile, User, UserRole } from '../models/user'
 import { sendEmail } from '../utils/sendEmail'
 import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
@@ -20,7 +24,10 @@ const resolvers: any = {
             return Organization.find()
         },
         async getOrganization(_: any, { name }: any, context: Context) {
-            const { userId, role } = (await checkUserLoggedIn(context))(['superAdmin', 'admin'])
+            const { userId, role } = (await checkUserLoggedIn(context))([
+                'superAdmin',
+                'admin',
+            ])
 
             const where = role === 'superAdmin' ? {} : { admin: userId, name }
 
@@ -31,14 +38,19 @@ const resolvers: any = {
     Mutation: {
         async createUser(_: any, { email, password, role }: any) {
             const userExists = await User.findOne({ email: email })
-            if (userExists) throw new ApolloError('email already taken', 'UserInputError')
+            if (userExists)
+                throw new ApolloError('email already taken', 'UserInputError')
 
             const emailExpression =
-				/^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        /^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
             const isValidEmail = emailExpression.test(String(email).toLowerCase())
-            if (!isValidEmail) throw new ApolloError('invalid email format', 'ValidationError')
+            if (!isValidEmail)
+                throw new ApolloError('invalid email format', 'ValidationError')
             if (password.length < 6)
-                throw new ApolloError('password should be minimum 6 characters', 'ValidationError')
+                throw new ApolloError(
+                    'password should be minimum 6 characters',
+                    'ValidationError'
+                )
 
             const user = await User.create({
                 role: role || 'user',
@@ -58,34 +70,175 @@ const resolvers: any = {
                 {
                     profile: newProfile,
                 },
-                { new: true },
+                { new: true }
             )
 
             return { token, user: newUser }
         },
         async createProfile(_: any, args: any, context: { userId: any }) {
             if (!context.userId) throw new Error('Unauthorized')
-            if (!mongoose.isValidObjectId(context.userId)) throw new Error('Invalid user id')
+            if (!mongoose.isValidObjectId(context.userId))
+                throw new Error('Invalid user id')
             const userExists = await User.findOne({ _id: context.userId })
             if (!userExists) throw new Error('This user does not exists')
-            const profile = await Profile.findOneAndUpdate({ user: context.userId }, args, {
-                upsert: true,
-                new: true,
-            })
+            const profile = await Profile.findOneAndUpdate(
+                { user: context.userId },
+                args,
+                {
+                    upsert: true,
+                    new: true,
+                }
+            )
 
             return profile.toJSON()
         },
-        async loginUser(_: any, { loginInput: { email, password } }: any) {
-            const user: any = await User.findOne({ email: email })
+        async loginUser(
+            _: any,
+            { loginInput: { email, password, orgToken } }: any
+        ) {
+            // get the organization if someone  logs in
+            let org: InstanceType<typeof Organization>
+            org = await checkLoggedInOrganization(orgToken)
+
+            const user: any = await User.findOne({ email }).populate({
+                path: 'cohort',
+                model: Cohort,
+                strictPopulate: false,
+                populate: {
+                    path: 'program',
+                    model: Program,
+                    strictPopulate: false,
+                    populate: {
+                        path: 'organization',
+                        model: Organization,
+                        strictPopulate: false,
+                    },
+                },
+            })
+
             if (await user?.checkPass(password)) {
-                const token = jwt.sign({ userId: user._id, role: user._doc?.role || 'user' }, SECRET, {
-                    expiresIn: '2h',
-                })
-                const data = {
-                    token: token,
-                    user: user.toJSON(),
+       
+                if (
+                    user?.role === 'trainee' &&
+          user?.cohort?.program?.organization?.name == org?.name
+                ) {
+                    const token = jwt.sign(
+                        { userId: user._id, role: user._doc?.role || 'user' },
+                        SECRET,
+                        {
+                            expiresIn: '2h',
+                        }
+                    )
+                    const data = {
+                        token: token,
+                        user: user.toJSON(),
+                    }
+                    return data
                 }
-                return data
+                const organization: any = await Organization.findOne({
+                    name: org?.name,
+                    admin: user.id,
+                })
+
+                if (user?.role === 'admin' && organization) {
+                    const token = jwt.sign(
+                        { userId: user._id, role: user._doc?.role || 'user' },
+                        SECRET,
+                        {
+                            expiresIn: '2h',
+                        }
+                    )
+                    const data = {
+                        token: token,
+                        user: user.toJSON(),
+                    }
+                    return data
+                } else if (user?.role === 'manager') { 
+                    const program: any = await Program.find({
+                        manager: user.id,
+                    }).populate({
+                        path: 'organization',
+                        model: Organization,
+                        strictPopulate: false,
+                    })
+                    let checkProgramOrganization: any = false
+
+                    for (let i = 0; i < program.length; i++) {
+                        if (program[i].organization.name == org?.name) {
+                            checkProgramOrganization = true
+                        } 
+                    }
+                    if (checkProgramOrganization) {
+                        const managerToken = jwt.sign(
+                            { userId: user._id, role: user._doc?.role || 'user' },
+                            SECRET,
+                            {
+                                expiresIn: '2h',
+                            }
+                        )
+                        const managerData = {
+                            token: managerToken,
+                            user: user.toJSON(),
+                        }
+                        return managerData
+                    } else {
+                        throw new Error('You logged into a different organization')
+                    }
+                } else if (user?.role === 'coordinator') {
+                    const cohort:any = await Cohort.find({coordinator:user.id}).populate({
+                        path:'program',
+                        model:Program,
+                        strictPopulate:false,
+                        populate:{
+                            path:'organization',
+                            model:Organization,
+                            strictPopulate:false
+                        }
+                    })
+                    let checkCohortOrganization:any = false
+  
+                    for (let i = 0; i < cohort.length; i++) {
+                        if (cohort[i].program.organization.name == org?.name) {
+                            checkCohortOrganization = true
+                        } 
+                    }
+
+                    if (checkCohortOrganization){
+                        const coordinatorToken = jwt.sign(
+                            { userId: user._id, role: user._doc?.role || 'user' },
+                            SECRET,
+                            {
+                                expiresIn: '2h',
+                            }
+                        )
+                        const coordinatorData = {
+                            token: coordinatorToken,
+                            user: user.toJSON(),
+                        }
+                        return coordinatorData
+                    }else{
+                        throw new Error(
+                            'You are not part of the organization you logged in.'
+                        )
+                    }
+                } else if (user?.role === 'superAdmin'){
+                    const superAdminToken = jwt.sign(
+                        { userId: user._id, role: user._doc?.role || 'user' },
+                        SECRET,
+                        {
+                            expiresIn: '2h',
+                        }
+                    )
+                    const superAdminData = {
+                        token: superAdminToken,
+                        user: user.toJSON(),
+                    }
+                    return superAdminData
+                } else{
+                    throw new Error(
+                        'You are not part of the organization you logged in.'
+                    )
+                }
             } else {
                 throw new ApolloError('Invalid credential', 'UserInputError')
             }
@@ -105,7 +258,7 @@ const resolvers: any = {
                         role: name,
                     },
                 },
-                { new: true },
+                { new: true }
             )
             return updatedUser
         },
@@ -117,7 +270,9 @@ const resolvers: any = {
         async loginOrg(_: any, { orgInput: { name } }: any) {
             const organization: any = await Organization.findOne({ name })
             if (organization) {
-                const token = jwt.sign({ name: organization.name }, SECRET, { expiresIn: '2h' })
+                const token = jwt.sign({ name: organization.name }, SECRET, {
+                    expiresIn: '2h',
+                })
                 const data = {
                     token: token,
                     organization: organization.toJSON(),
@@ -128,28 +283,40 @@ const resolvers: any = {
             }
         },
 
-        async requestOrganization(_: any, { organizationInput: { name, email, description } }: any) {
+        async requestOrganization(
+            _: any,
+            { organizationInput: { name, email, description } }: any
+        ) {
             const orgExists = await Organization.findOne({ name: name })
             if (orgExists) {
-                throw new ApolloError('Organization Name already taken ' + name, 'UserInputError')
+                throw new ApolloError(
+                    'Organization Name already taken ' + name,
+                    'UserInputError'
+                )
             }
 
             const emailExpression = EmailPattern
             const isValidEmail = emailExpression.test(String(email).toLowerCase())
-            if (!isValidEmail) throw new ApolloError('invalid email format', 'ValidationError')
+            if (!isValidEmail)
+                throw new ApolloError('invalid email format', 'ValidationError')
 
             const user = await User.findOne({ email, role: { $ne: 'admin' } })
             if (user) {
                 throw new ApolloError(
-                    `User with email ${email} exists and is not an admin, user another email`,
+                    `User with email ${email} exists and is not an admin, user another email`
                 )
             }
 
             const superAdmin = await User.find({ role: 'superAdmin' })
 
             const content = registrationRequest(email, name, description)
-
-            return sendEmail(superAdmin[0].email, 'Organisation registration request', content)
+            const link: any = 'https://king-prawn-app-au5ls.ondigitalocean.app'
+            return sendEmail(
+                superAdmin[0].email,
+                'Organisation registration request',
+                content,
+                link
+            )
                 .then(() => 'Organisation registration request sent successfully')
                 .catch((error) => error)
         },
@@ -157,14 +324,17 @@ const resolvers: any = {
         async addOrganization(
             _: any,
             { organizationInput: { name, email, description } }: any,
-            context: Context,
+            context: Context
         ) {
             // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
             (await checkUserLoggedIn(context))(['superAdmin'])
 
             const orgExists = await Organization.findOne({ name: name })
             if (orgExists) {
-                throw new ApolloError('Organization Name already taken ' + name, 'UserInputError')
+                throw new ApolloError(
+                    'Organization Name already taken ' + name,
+                    'UserInputError'
+                )
             }
 
             // check if the requester is already an admin, if not create him
@@ -189,9 +359,9 @@ const resolvers: any = {
 
             // send the requester an email with his password
             const content = organizationCreatedTemplate(org.name, email, password)
-
+            const link: any = 'https://king-prawn-app-au5ls.ondigitalocean.app'
             // send an email to the user who desire the organization
-            await sendEmail(email, 'Organization created notice', content)
+            await sendEmail(email, 'Organization created notice', content, link)
 
             return org
         },
@@ -200,7 +370,8 @@ const resolvers: any = {
             const { userId } = (await checkUserLoggedIn(context))(['admin'])
 
             const organizationExists = await Organization.findOne({ id })
-            if (!organizationExists) throw new Error('This Organization doesn\'t exist')
+            if (!organizationExists)
+                throw new Error('This Organization doesn\'t exist')
             const deleteOrg = await Organization.findOneAndDelete({
                 admin: userId,
                 _id: id,
@@ -234,4 +405,3 @@ const resolvers: any = {
     },
 }
 export default resolvers
-
