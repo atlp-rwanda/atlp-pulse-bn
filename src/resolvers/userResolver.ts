@@ -383,28 +383,26 @@ const resolvers: any = {
         },
     },
 
-    User: {
-        async profile(parent: any) {
-            const profile = await Profile.findOne({
-                where: { user: parent.id.toString() },
-            })
-            if (!profile) return null
-            return profile.toJSON()
-        },
+  User: {
+    async profile(parent: any) {
+      const profile = await Profile.findOne({ user: parent.id.toString() });
+      if (!profile) return null;
+      return profile.toJSON();
     },
-    Profile: {
-        async user(parent: any) {
-            const user = await User.findOne({
-                where: { _id: parent.user.id.toString() },
-            })
-            if (!user) return null
-            return user?.toJSON()
-        },
+  },
+  Profile: {
+    async user(parent: any) {
+      const user = await User.findOne(
+      { _id: parent.user.id.toString() },
+      );
+      if (!user) return null;
+      return user?.toJSON();
     },
-    Organization: {
-        async admin(parent: any) {
-            return User.findById(parent.admin)
-        },
+  },
+  Organization: {
+    async admin(parent: any) {
+      return User.findById(parent.admin);
     },
-}
-export default resolvers
+  },
+};
+export default resolvers;

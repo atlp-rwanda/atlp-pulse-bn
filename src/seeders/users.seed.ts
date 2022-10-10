@@ -1,11 +1,12 @@
 /* eslint-disable */
 import { hashSync } from 'bcryptjs';
-import { User } from '../models/user';
+import { User, Profile } from '../models/user';
+
 
 const seedUsers = async () => {
 	const users = [
 		{
-			email: 'superAdmin@pulse.com',
+			email: 'superAdmin@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'superAdmin',
 		},
@@ -15,7 +16,7 @@ const seedUsers = async () => {
 			role: 'admin',
 		},
 		{
-			email: 'admin2@pulse.com',
+			email: 'admin2@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'admin',
 		},
@@ -25,7 +26,7 @@ const seedUsers = async () => {
 			role: 'manager',
 		},
 		{
-			email: 'manager2@pulse.com',
+			email: 'manager2@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'manager',
 		},
@@ -40,7 +41,7 @@ const seedUsers = async () => {
 			role: 'coordinator',
 		},
 		{
-			email: 'trainee@pulse.com',
+			email: 'trainee@devpulse.co',
 			password: hashSync('Andela123'),
 			role: 'user',
 		},
@@ -76,8 +77,56 @@ const seedUsers = async () => {
 		},
 	];
 	await User.deleteMany({});
-
 	await User.insertMany(users);
+
+  const superAdmin: any= await User.findOne({email:'superAdmin@devpulse.co'})
+  const admin: any = await User.findOne({email:'admin@devpulse.co'})
+  const admin2: any = await User.findOne({email:'admin2@devpulse.co'})
+  const manager:any = await User.findOne({email:'manager@devpulse.co'})
+  const manager2:any = await User.findOne({email:'manager2@devpulse.co'})
+  const coordinator:any = await User.findOne({email:'coordinator@devpulse.co'})
+  const trainee:any = await User.findOne({email:'trainee@devpulse.co'})
+   
+  const profiles = [
+    {
+      user:superAdmin.id,
+      firstName:'Gary',
+      lastName:'Mukasa',
+    },
+    {
+      user:admin.id,
+      firstName:'Mike',
+      lastName:'Akello'
+    },
+    {
+      user:admin2.id,
+      firstName:'Steven',
+      lastName:'Mugabo',
+    },
+    {
+      user:manager.id,
+      firstName:'Charlotte',
+      lastName:'Byiringiro',
+    },
+    {
+      user:manager2.id,
+      firstName:'Zaytzeff',
+      lastName:'Amani',
+    },
+    {
+      user:coordinator.id,
+      firstName:'Yvonne',
+      lastName:'Mbabazi',
+    },
+    {
+      user:trainee.id,
+      firstName:'John',
+      lastName:'Birungi',
+    },
+  ]
+  await Profile.deleteMany({});
+	await Profile.insertMany(profiles);
+
 	return null;
 };
 export default seedUsers;
