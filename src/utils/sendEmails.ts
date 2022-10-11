@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import ejs from 'ejs'
+import generateTemplate from '../helpers/emailForTrainee.helper'
  
 const mode = process.env.NODE_ENV  || 'development'
 
@@ -31,25 +31,21 @@ export const sendEmail = async(receiver: any, subject: any, content: any) => {
     
     // transportOptions.development = transportOptions.test
     const transport =nodemailer.createTransport(transportOptions[mode] || transportOptions.development)
-    ejs.renderFile(__dirname + '/templates/emailTemplate.ejs', { receiver, content }, (err: any, data: any) => {
-        if (err) {
-            console.log(err)
-        } else {
-            const mailOptions = {
-                from:process.env.SENDER_EMAIL,
-                to:receiver,
-                subject:subject,
-                html:data
-            }
+
+    const mailOptions = {
+        from:process.env.SENDER_EMAIL,
+        to:receiver,
+        subject:subject,
+        html: generateTemplate(),
+    }
   
-            transport.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    return console.log(error)
-                }
-                console.log('Message sent: %s', info)
-                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
-            })
+    transport.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return console.log(error)
         }
+        console.log('Message sent: %s', info)
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
     })
+        
 }
 

@@ -41,8 +41,13 @@ const Rating = mongoose.model(
             default: true,
         },
         coordinator: {
-            type: String,
+            type: mongoose.Types.ObjectId,
             ref: 'User',
+            required: true,
+        },
+        organization: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Organization',
             required: true,
         }
         
@@ -89,6 +94,11 @@ const TempData =mongoose.model(
             type: Boolean,
             default: false,
         },
+        organization: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Organization',
+            required: true,
+        }
         
     })
 )

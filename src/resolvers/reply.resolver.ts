@@ -14,7 +14,6 @@ const replyResolver = {
             (await checkUserLoggedIn(context))(['coordinator', 'trainee'])
             const replies = await Notifications.find({})
             return replies;
-        
        },
     },
            

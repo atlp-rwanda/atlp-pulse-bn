@@ -1,13 +1,11 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
-
 type Cohort {
 	name: String
 	phase: String
 	coordinator: User
 }
-
 	type User {
 		id: ID!
 		role: String!
@@ -16,6 +14,7 @@ type Cohort {
 		profile: Profile
 		cohort:Cohort
 	}
+
 	input RegisterInput {
 		email: String!
 		password: String!
@@ -26,11 +25,9 @@ type Cohort {
 		email: String
 		password: String
 	}
-
 	input OrgInput {
 		name: String
 	}
-
 	type Profile {
 		id: ID!
 		user: User!
@@ -45,12 +42,10 @@ type Cohort {
 		avatar: String
 		coverImage: String
 	}
-
 	type UserRole {
 		id: ID!
 		name: String!
 	}
-
 	type RegisteredUser {
 		token: String
 		user: User
@@ -63,20 +58,17 @@ type Cohort {
 		token: String
 		organization: Organization
 	}
-
 	type Organization {
 		id: ID!
 		name: String!
 		description: String
 		admin: User
 	}
-
 	input OrganizationInput {
 		email: String!
 		name: String!
 		description: String
 	}
-
   type Rating {
 	id: ID!
     user: User!
@@ -90,7 +82,6 @@ type Cohort {
     approved: Boolean!
 		coordinator: String!
   }
-
   type AddRating {
     user: String!
     sprint: Int!
@@ -102,19 +93,17 @@ type Cohort {
     professionalRemark: String
     approved: Boolean!
   }
-
   type updateRating {
     user: String
     sprint: Int
     quantity: [String]
     quantityRemark: [String]
     quality:[String]
-    qualityRemark:[String],
+    qualityRemark:[String]
     professional_Skills:[String]
     professionalRemark: [String]
     approved: Boolean
   }
-
   type FetchRatingForAdmin {
     user: User!
     sprint: Int
@@ -126,7 +115,6 @@ type Cohort {
     professionalRemark: [String]
     approved: Boolean
   }
-
   type ApproveRating {
     user: String!
     sprint: Int!
@@ -147,13 +135,12 @@ type Cohort {
 		getRole(id: ID!): UserRole
 		getOrganizations: [Organization]!
 		getOrganization(name: String!): Organization
-    fetchRatings: [Rating]
+    fetchRatings(orgToken: String): [Rating]
     fetchTrainees: [Cohort]
-    fetchRatingsForAdmin: [FetchRatingForAdmin],
+    fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin],
 		fetchRatingsTrainee: [Rating]
 		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
 	}
-
 	type Mutation {
 		createUserRole(name: String!): UserRole!
 		createUser(email: String!, password: String!, role: String): RegisteredUser!
@@ -172,7 +159,6 @@ type Cohort {
 			fileName: String
 			cover: String
 		): Profile
-
     createProfile(
 			lastName: String
 			firstName: String
@@ -195,17 +181,18 @@ type Cohort {
       quality: String!
       qualityRemark: String,
       professional_Skills: String!
-      professionalRemark: String) : AddRating
+      professionalRemark: String
+			orgToken: String!) : AddRating
     updateRating(
       user: String!
       sprint: Int!
       quantity: [String]
       quantityRemark: [String]
       quality: [String]
-      qualityRemark: [String],
+      qualityRemark: [String]
       professional_Skills: [String]
       professionalRemark: [String] 
-       ) : updateRating
+			orgToken: String! ) : updateRating
     approveRating(user: String!, sprint: Int!): ApproveRating
    rejectRating (user: String!
       sprint: Int!): String!
@@ -232,6 +219,7 @@ type Cohort {
 		getRatingSystem(id: ID!): ratingSystem!
 	}
 
+	
 	type Notifications {
 		id: ID!
 		user: String!
@@ -261,4 +249,3 @@ type Cohort {
 
 `
 export default Schema
-
