@@ -24,6 +24,7 @@ type Cohort {
 	input LoginInput {
 		email: String
 		password: String
+    orgToken: String
 	}
 	input OrgInput {
 		name: String
