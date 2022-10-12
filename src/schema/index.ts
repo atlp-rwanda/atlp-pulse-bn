@@ -156,7 +156,7 @@ type Cohort {
 
 	type Mutation {
 		createUserRole(name: String!): UserRole!
-		createUser(email: String!, password: String!, role: String): RegisteredUser!
+		createUser(firstName: String!, lastName: String!,dateOfBirth: DateTime!,gender:String! email: String!, password: String!, role: String): RegisteredUser!
 		loginUser(loginInput: LoginInput): Login!
 		loginOrg(orgInput: OrgInput): OrgLogin!
 		requestOrganization(organizationInput: OrganizationInput!): String!

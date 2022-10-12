@@ -83,6 +83,12 @@ const profileSchema = new Schema({
     coverImage: {
         type: String,
     },
+    gender:{
+      type: String,
+    },
+    dateOfBirth:{
+      type: Date,
+    },
     user: {
         type: mongoose.Types.ObjectId,
         ref: 'User',

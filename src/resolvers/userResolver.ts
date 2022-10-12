@@ -35,7 +35,7 @@ const resolvers: any = {
         },
     },
     Mutation: {
-        async createUser(_: any, { email, password, role }: any) {
+        async createUser(_: any, { firstName, lastName, dateOfBirth, gender, email, password, role }: any) {
             const userExists = await User.findOne({ email: email })
             if (userExists)
                 throw new ApolloError('email already taken', 'UserInputError')
@@ -62,6 +62,10 @@ const resolvers: any = {
 
             const newProfile = await Profile.create({
                 user,
+                firstName,
+                lastName,
+                dateOfBirth,
+                gender
             })
 
             const newUser: string | null = await User.findByIdAndUpdate(
@@ -384,18 +388,16 @@ const resolvers: any = {
 
     User: {
         async profile(parent: any) {
-            const profile = await Profile.findOne({
-                where: { user: parent.id.toString() },
-            })
+            const profile = await Profile.findOne( { user: parent.id.toString() }
+            )
             if (!profile) return null
             return profile.toJSON()
         },
     },
     Profile: {
         async user(parent: any) {
-            const user = await User.findOne({
-                where: { _id: parent.user.id.toString() },
-            })
+            const user = await User.findOne( { _id: parent.user.id.toString() },
+            )
             if (!user) return null
             return user?.toJSON()
         },
