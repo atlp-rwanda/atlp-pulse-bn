@@ -25,7 +25,7 @@ const profileResolvers: any = {
             return profile
         },
         async getAllUsers() {
-            const users = await User.find({})
+            const users = await User.find({}).populate('cohort')
             return users
         },
         async getAllRoles() {
