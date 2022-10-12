@@ -5,16 +5,17 @@ export const sendEmail = async (
     receiver: any,
     subject: any,
     content: any,
-    link: any
+    link: any,
+    senderEmail:any, 
+    senderPassword:any
 ): Promise<any> => {
     const transport = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        service: 'gmail',
+        host: 'mail.privateemail.com',
+        port: 587,
+        secure: false,
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            user:senderEmail,
+            pass:senderPassword,
         },
     })
 
@@ -28,7 +29,7 @@ export const sendEmail = async (
         }),
         from: {
             name: 'Devpulse',
-            address: process.env.EMAIL_USER as string,
+            address: senderEmail as string,
         },
     }
 
