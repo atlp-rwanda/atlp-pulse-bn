@@ -253,8 +253,7 @@ const manageStudentResolvers = {
                 organization.name == org.name
                             ) {
                                 const content = getOrganizationTemplate(org.name)
-                                const link: any =
-                  'https://devpulse-staging.herokuapp.com/org-login'
+                                const link:any = 'https://devpulse-staging.herokuapp.com/login/org'
                                 await sendEmail(
                                     user.email,
                                     'Organization membership notice',
