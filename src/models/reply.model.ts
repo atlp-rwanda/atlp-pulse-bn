@@ -23,14 +23,19 @@ const ReplySchema = new Schema({
     type: String,
     required: false,
   },
-  coordinator: {
-    type: mongoose.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  body: {
+  bodyQuantity: {
     type: String,
-    required: true,
+    required: false,
+  },
+
+  bodyQuality: {
+    type: String,
+    required: false,
+  },
+
+  bodyProfessional: {
+    type: String,
+    required: false,
   },
 },
 {

@@ -81,7 +81,7 @@ type Cohort {
     professional_Skills: String!
     professionalRemark: String
     approved: Boolean!
-		coordinator: String!
+	coordinator: String!
   }
   type AddRating {
     user: String!
@@ -228,8 +228,9 @@ type Cohort {
 		quantityRemark: String!
 		qualityRemark: String!
 		professionalRemark: String!
-		body: String!
-		coordinator: String!
+		bodyQuantity: String
+		bodyQuality: String
+		bodyProfessional: String
 		createdAt: String!
 	
 	}
@@ -239,9 +240,10 @@ type Cohort {
 	
 	type Mutation{
 		addReply(
-			coordinator: String!
 			sprint: Int!
-			body: String!
+			bodyQuantity: String
+			bodyQuality: String
+			bodyProfessional: String
 		): Notifications!
 		deleteReply(id: ID): String!
 	}
