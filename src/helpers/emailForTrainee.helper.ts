@@ -1,5 +1,5 @@
-export default function generateTemplate() {
-  return `
+export default function generateTemplate(content: any, title: any) {
+    return `
     <!doctype html>
     <html lang="en-US">
     <head>
@@ -24,7 +24,7 @@ export default function generateTemplate() {
                         <tr>
                             <td style="text-align:center;">
                               <a href=""  target="_blank">
-                             <img src="https://www.facebook.com/devpulse/ />
+                             <img src="https://www.google.com/imgres?imgurl=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D10150098692763815&imgrefurl=https%3A%2F%2Fwww.facebook.com%2Fdevpulse%2F&tbnid=UawxjefCVdnTOM&vet=12ahUKEwih4c_Ww-76AhUMyRoKHbIUDsYQMygAegQIARBL..i&docid=9vq-vhN23MOG8M&w=720&h=172&q=devpulse%20image&ved=2ahUKEwih4c_Ww-76AhUMyRoKHbIUDsYQMygAegQIARBL" />
                               </a>
                             </td>
                         </tr>
@@ -41,9 +41,9 @@ export default function generateTemplate() {
                                     <tr>
                                         <td style="padding:0 35px;">
                                             <h1 style="color:#1e1e2d; font-weight:500; margin:0;font-size:32px;font-family:'Rubik',sans-serif;">
-                                            Dear Trainee,
+                                            ${title}
     
-                                            This is to inform that , new devpulse ratings are out now
+                                            ${content}
                                             </h1>
                                             <span
                                                 style="display:inline-block; vertical-align:middle; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;"></span>

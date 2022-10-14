@@ -87,7 +87,8 @@ const Schema = gql`
     professional_Skills: String!
     professionalRemark: String
     approved: Boolean!
-    coordinator: String!
+		coordinator: String!
+		cohort: Cohort!
   }
 
   type AddRating {
@@ -124,6 +125,7 @@ const Schema = gql`
     professional_Skills: [String]
     professionalRemark: [String]
     approved: Boolean
+		cohort: Cohort
   }
 
   type ApproveRating {
@@ -149,6 +151,7 @@ const Schema = gql`
     fetchTrainees: [Cohort]
     fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
     fetchRatingsTrainee: [Rating]
+		fetchAllRatings(orgToken: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
   }
 
