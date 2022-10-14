@@ -8,8 +8,11 @@ import profileResolvers from './resolvers/profileResolver'
 import programResolvers from './resolvers/program.resolvers'
 import userResolvers from './resolvers/userResolver'
 import ratingResolvers from './resolvers/ratingsResolvers'
+<<<<<<< HEAD
 import replyResolver from './resolvers/reply.resolver'
 
+=======
+>>>>>>> develop
 import cohortSchema from './schema/cohort.schema'
 import schema from './schema/index'
 import programSchema from './schema/program.schema'

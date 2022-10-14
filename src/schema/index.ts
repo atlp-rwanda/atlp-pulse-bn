@@ -129,6 +129,68 @@ type Cohort {
   }
 
 
+  type Rating {
+    user: User!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+		coordinator: String!
+  }
+
+  type AddRating {
+    user: String!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+  type updateRating {
+    user: String
+    sprint: Int
+    quantity: [String]
+    quantityRemark: [String]
+    quality:[String]
+    qualityRemark:[String]
+    professional_Skills:[String]
+    professionalRemark: [String]
+    approved: Boolean
+  }
+
+  type FetchRatingForAdmin {
+    user: User!
+    sprint: Int
+    quantity: [String]
+    quantityRemark: [String]
+    quality:[String]
+    qualityRemark:[String],
+    professional_Skills:[String]
+    professionalRemark: [String]
+    approved: Boolean
+  }
+
+  type ApproveRating {
+    user: String!
+    sprint: Int!
+    quantity: String!
+    quantityRemark: String
+    quality: String!
+    qualityRemark: String,
+    professional_Skills: String!
+    professionalRemark: String
+    approved: Boolean!
+  }
+
+
 	type Query {
 		getAllUsers: [User]
 		getProfile: Profile
