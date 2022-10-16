@@ -6,4 +6,3 @@ export default function generateRandomPassword(length = 8) {
         numbers: true,
     })
 }
-

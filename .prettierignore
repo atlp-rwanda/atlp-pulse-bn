@@ -1,0 +1,9 @@
+build
+dist
+node_modules
+coverage
+.github
+.husky
+.nyc_output
+*.yml
+package-lock.json

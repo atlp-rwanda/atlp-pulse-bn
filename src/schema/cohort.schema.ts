@@ -1,18 +1,18 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
-	scalar DateTime
+  scalar DateTime
 
-	type Cohort {
-		id: ID!
-		name: String!
-		coordinator: User!
-		phase: String!
-		program: Program!
+  type Cohort {
+    id: ID!
+    name: String!
+    coordinator: User!
+    phase: String!
+    program: Program!
     members: [User]
-		startDate: DateTime!
-		endDate: DateTime
-	}
+    startDate: DateTime!
+    endDate: DateTime
+  }
 
   type Query {
     getAllCohorts(orgToken: String): [Cohort!]
@@ -26,9 +26,16 @@ const Schema = gql`
       startDate: DateTime!
       endDate: DateTime
     ): Cohort!
+    updateCohort(
+      id: ID!
+      orgToken: String
+      name: String
+      phase: String
+      startDate: DateTime
+      endDate: DateTime
+    ): Cohort
+    deleteCohort(id: ID!, orgToken: String): Cohort
   }
 `
 
 export default Schema
-
-

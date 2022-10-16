@@ -18,32 +18,44 @@ const resolvers = {
         },
     },
     Mutation: {
-        async createUser(_: any, { registerInput: { email, password, role } }: any) {
+        async createUser(
+            _: any,
+            { registerInput: { email, password, role } }: any
+        ) {
             const userExists = await User.findOne({ email: email })
             if (userExists) throw new Error('Email is taken')
             const emailExpression =
-				/^(([^<>()\\[\]\\.,;:\s@“]+(\.[^<>()\\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        /^(([^<>()\\[\]\\.,;:\s@“]+(\.[^<>()\\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
             const isValidEmail = emailExpression.test(String(email).toLowerCase())
             if (!isValidEmail) throw new Error('invalid email format')
-            if (password.length < 6) throw new Error('password should be minimum 6 characters')
+            if (password.length < 6)
+                throw new Error('password should be minimum 6 characters')
             const hashedPassword = await bcrypt.hash(password, 10)
             const newUser = await User.create({
                 role: role || 'user',
                 email: email,
                 password: hashedPassword,
             })
-            const token = jwt.sign({ userId: newUser._id, role: newUser?.role }, SECRET, {
-                expiresIn: '2h',
-            })
+            const token = jwt.sign(
+                { userId: newUser._id, role: newUser?.role },
+                SECRET,
+                {
+                    expiresIn: '2h',
+                }
+            )
 
             return { token, user: newUser }
         },
         async loginUser(_: any, { loginInput: { email, password } }: any) {
             const user: any = await User.findOne({ email: email })
             if (await user?.checkPass(password)) {
-                const token = jwt.sign({ userId: user._id, role: user._doc?.role || 'user' }, SECRET, {
-                    expiresIn: '2h',
-                })
+                const token = jwt.sign(
+                    { userId: user._id, role: user._doc?.role || 'user' },
+                    SECRET,
+                    {
+                        expiresIn: '2h',
+                    }
+                )
                 const data = {
                     token: token,
                     user: user.toJSON(),
@@ -55,13 +67,20 @@ const resolvers = {
         },
         async createProfile(_: any, args: any, context: { userId: any }) {
             if (!context.userId) throw new Error('Unauthorized')
-            if (!mongoose.isValidObjectId(context.userId)) throw new Error('Invalid user id')
-            const userExists = await User.findOne({ where: { _id: context.userId } })
-            if (!userExists) throw new Error('This user does not exists')
-            const profile = await Profile.findOneAndUpdate({ user: context.userId }, args, {
-                upsert: true,
-                new: true,
+            if (!mongoose.isValidObjectId(context.userId))
+                throw new Error('Invalid user id')
+            const userExists = await User.findOne({
+                where: { _id: context.userId },
             })
+            if (!userExists) throw new Error('This user does not exists')
+            const profile = await Profile.findOneAndUpdate(
+                { user: context.userId },
+                args,
+                {
+                    upsert: true,
+                    new: true,
+                }
+            )
 
             return profile.toJSON()
         },
@@ -87,4 +106,3 @@ const resolvers = {
 }
 
 export default resolvers
-

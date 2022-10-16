@@ -26,4 +26,3 @@ const seedPrograms = async () => {
 }
 
 export default seedPrograms
-
