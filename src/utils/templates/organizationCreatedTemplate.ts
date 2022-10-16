@@ -1,7 +1,7 @@
 export default function organizationCreatedTemplate(
     orgName: string,
     email: string,
-    password?: string,
+    password?: string
 ) {
     return `
 			<table style="text-align: left;">
@@ -40,4 +40,3 @@ export default function organizationCreatedTemplate(
 		</table>
 		`
 }
-

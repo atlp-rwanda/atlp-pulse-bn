@@ -39,4 +39,3 @@ const seedCohorts = async () => {
 }
 
 export default seedCohorts
-

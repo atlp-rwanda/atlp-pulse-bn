@@ -5,7 +5,7 @@ export default function generateTemplate({
 }: {
   message: string;
   title?: string;
-  link?:string
+  link?: string;
 }) {
     return `
 <!doctype html>
