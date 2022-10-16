@@ -298,6 +298,7 @@ type Cohort {
 	}
 	type Query {
 		getReplies: [Notifications]
+		getRepliesByUser(userId:String): [Notifications]
 	}
 	
 	type Mutation{

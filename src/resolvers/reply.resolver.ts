@@ -15,6 +15,11 @@ const replyResolver = {
             const replies = await Notifications.find({})
             return replies;
        },
+       async getRepliesByUser(_:any, args: any,context: Context) {
+        (await checkUserLoggedIn(context))(['coordinator', 'trainee']) 
+        const SpecificReplies = await Notifications.find({ user: args.userId })
+        return SpecificReplies;
+       }
     },
            
     
