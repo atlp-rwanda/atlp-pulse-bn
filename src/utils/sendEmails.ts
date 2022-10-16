@@ -40,13 +40,7 @@ export const sendEmail = async( senderEmail:any, senderPassword:any, receiver: a
         html: generateTemplate(),
     }
   
-    transport.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error)
-        }
-        console.log('Message sent: %s', info)
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
-    })
+    
         
 }
 

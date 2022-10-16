@@ -76,13 +76,13 @@ const ratingResolvers = {
                 async (
                     root,
                     { user, sprint, quantity,quantityRemark, quality, qualityRemark,
-                        professional_Skills, professionalRemark, orgToken }, context: {role: String, userId: string}
+                        professional_Skills, professionalRemark, orgToken }, context: {userId: string}
                 ) => {
                     // get the organization if someone  logs in
                     org = await checkLoggedInOrganization(orgToken) 
-                    const userExists = await User.findOne( { _id: user, role: "trainee" })
+                    const userExists = await User.findOne( { _id: user })
                     if (!userExists) 
-                        throw new Error('This trainee does not exist!')
+                        throw new Error('User does not exist!')
                     const findSprint = await Rating.find({ sprint: sprint , user: user})
                     if(findSprint.length !== 0)
                         throw  new Error('The sprint has recorded ratings') 
@@ -100,7 +100,7 @@ const ratingResolvers = {
                         coordinator: context.userId,
                         organization: org
                     })             
-                    await sendEmail( userExists.email, 'Trainee','Ratings Notification')
+                    await sendEmail( process.env.COORDINATOR_EMAIL, process.env.COORDINATOR_PASS ,userExists.email, 'Trainee','Ratings Notification')
                     return saveUserRating
                 }
             )
@@ -175,7 +175,7 @@ const ratingResolvers = {
                     )
 
                     await TempData.deleteOne({sprint: sprint , user: user})
-                    await sendEmail( userToNotify[0].email, 'Trainee ratings','Ratings Notification')
+                    await sendEmail( process.env.ADMIN_EMAIL,process.env.ADMIN_PASS ,userToNotify[0].email, 'Trainee ratings','Ratings Notification')
                     return update
                 }
             )
