@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import { gql } from 'apollo-server';
 
 const Schema = gql`
   scalar DateTime
@@ -32,6 +32,6 @@ const Schema = gql`
       description: String
     ): Program
   }
-`
+`;
 
-export default Schema
+export default Schema;

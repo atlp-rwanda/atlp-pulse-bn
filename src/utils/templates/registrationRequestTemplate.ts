@@ -1,9 +1,9 @@
 export default function registrationRequest(
-    email: string,
-    name: string,
-    description: string
+  email: string,
+  name: string,
+  description: string
 ) {
-    return `
+  return `
 			<table>
 			<tr>
 				<td>
@@ -39,5 +39,5 @@ export default function registrationRequest(
 				</td>
 			</tr>
 		</table>
-		`
+		`;
 }

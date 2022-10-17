@@ -36,12 +36,12 @@ const createRatingSystemresolver = {
     },
     async deleteRatingSystem(parent: any, args: any) {
       const ratingSystem = await systemRating.findById(args.id);
-     
+
       if (!ratingSystem) throw new Error("This rating system doesn't exist");
       const deleteRatingSystem = await systemRating.deleteOne({
         _id: args.id,
       });
-      
+
       return 'You have successfully deleted this rating system';
     },
   },
