@@ -147,29 +147,29 @@ const Schema = gql`
     getOrganization(name: String!): Organization
     fetchRatings(orgToken: String): [Rating]
     fetchTrainees: [Cohort]
-    fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
-    fetchRatingsTrainee: [Rating]
-    fetchCohortsCoordinator(cohortName: ID!): [Cohort]
-  }
+    fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin],
+		fetchRatingsTrainee: [Rating]
+		fetchCohortsCoordinator(cohortName: ID!): [Cohort]
+	}
 
-  type Mutation {
-    createUserRole(name: String!): UserRole!
-    createUser(email: String!, password: String!, role: String): RegisteredUser!
-    loginUser(loginInput: LoginInput): Login!
-    loginOrg(orgInput: OrgInput): OrgLogin!
-    requestOrganization(organizationInput: OrganizationInput!): String!
-    addOrganization(organizationInput: OrganizationInput): Organization!
-    updateProfile(
-      lastName: String
-      firstName: String
-      address: String
-      city: String
-      country: String
-      phoneNumber: String
-      biography: String
-      fileName: String
-      cover: String
-    ): Profile
+	type Mutation {
+		createUserRole(name: String!): UserRole!
+		createUser(firstName: String!, lastName: String!,dateOfBirth: DateTime!,gender:String! email: String!, password: String!, role: String): RegisteredUser!
+		loginUser(loginInput: LoginInput): Login!
+		loginOrg(orgInput: OrgInput): OrgLogin!
+		requestOrganization(organizationInput: OrganizationInput!): String!
+		addOrganization(organizationInput: OrganizationInput): Organization!
+		updateProfile(
+			lastName: String
+			firstName: String
+			address: String
+			city: String
+			country: String
+			phoneNumber: String
+			biography: String
+			fileName: String
+			cover: String
+		): Profile
 
     createProfile(
       lastName: String
