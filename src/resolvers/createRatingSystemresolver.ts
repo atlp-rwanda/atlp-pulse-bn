@@ -19,7 +19,7 @@ const createRatingSystemresolver = {
       { name, grade, description, percentage }: any,
       context: { role: string; userId: string }
     ) {
-      if (context.role !== 'admin')
+      if (context.role !== 'admin' || 'superAdmin' || 'manager')
         throw new Error('You are not allowed to perform this action');
       const ratingSystemExists = await systemRating.findOne({
         name: name,
@@ -36,10 +36,12 @@ const createRatingSystemresolver = {
     },
     async deleteRatingSystem(parent: any, args: any) {
       const ratingSystem = await systemRating.findById(args.id);
+     
       if (!ratingSystem) throw new Error("This rating system doesn't exist");
       const deleteRatingSystem = await systemRating.deleteOne({
-        id: args.id,
+        _id: args.id,
       });
+      
       return 'You have successfully deleted this rating system';
     },
   },
