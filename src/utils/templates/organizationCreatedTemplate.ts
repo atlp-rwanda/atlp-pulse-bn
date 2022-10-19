@@ -1,9 +1,9 @@
 export default function organizationCreatedTemplate(
-    orgName: string,
-    email: string,
-    password?: string
+  orgName: string,
+  email: string,
+  password?: string
 ) {
-    return `
+  return `
 			<table style="text-align: left;">
 			<tr>
 				<td>
@@ -24,19 +24,19 @@ export default function organizationCreatedTemplate(
 								<td><p>${email}</p></td>
 							</tr>
 							${
-    password
-        ? `<tr>
+                password
+                  ? `<tr>
 									<td><p>Password:    </p></td>
 									<td><p>${password}</p></td>
 								</tr>
 								`
-        : ''
-}
+                  : ''
+              }
 
 						</tbody>
 					</table>
         </td>
       </tr>
 		</table>
-		`
+		`;
 }

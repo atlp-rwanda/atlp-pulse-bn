@@ -36,7 +36,6 @@ userSchema.methods.checkPass = async function (password: string) {
 };
 
 userSchema.pre('remove', async function (next) {
-
   const prof = await Profile.findOne({ user: this._id });
   if (prof) await prof.remove();
   return next();
@@ -50,46 +49,46 @@ userSchema.pre('save', async function (next) {
 });
 
 const profileSchema = new Schema({
-    firstName: {
-        type: String,
-    },
-    lastName: {
-        type: String,
-    },
-    address: {
-        type: String,
-    },
-    city: {
-        type: String,
-    },
-    country: {
-        type: String,
-    },
-    phoneNumber: {
-        type: String,
-    },
-    biography: {
-        type: String,
-    },
-    avatar: {
-        type: String,
-    },
-    coverImage: {
-        type: String,
-    },
-    gender:{
-      type: String,
-    },
-    dateOfBirth:{
-      type: Date,
-    },
-    user: {
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-        required: true,
-        unique: true,
-    },
-})
+  firstName: {
+    type: String,
+  },
+  lastName: {
+    type: String,
+  },
+  address: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  country: {
+    type: String,
+  },
+  phoneNumber: {
+    type: String,
+  },
+  biography: {
+    type: String,
+  },
+  avatar: {
+    type: String,
+  },
+  coverImage: {
+    type: String,
+  },
+  gender: {
+    type: String,
+  },
+  dateOfBirth: {
+    type: Date,
+  },
+  user: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true,
+  },
+});
 
 profileSchema.virtual('name').get(function () {
   return this.firstName + ' ' + this.lastName;

@@ -1,5 +1,5 @@
 export default function Template(orgName: string) {
-    return `
+  return `
     <table style="text-align: left;">
     <tr>
        
@@ -23,5 +23,5 @@ export default function Template(orgName: string) {
     </tr>
    
   </table>
-		`
+		`;
 }
