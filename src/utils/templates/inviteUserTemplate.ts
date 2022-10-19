@@ -1,9 +1,9 @@
 export default function Template(
-    orgName: string,
-    requesterEmail: string,
-    requesterRole: string
+  orgName: string,
+  requesterEmail: string,
+  requesterRole: string
 ) {
-    return `
+  return `
     <table style="text-align: left;">
     <tr>
 
@@ -27,5 +27,5 @@ export default function Template(
     </tr>
 
   </table>
-  `
+  `;
 }

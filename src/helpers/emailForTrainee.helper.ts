@@ -1,5 +1,5 @@
 export default function generateTemplate() {
-    return `
+  return `
     <!doctype html>
     <html lang="en-US">
     <head>
@@ -76,5 +76,5 @@ export default function generateTemplate() {
         <!-- body table-->
     </body>
     </html>
-`
+`;
 }

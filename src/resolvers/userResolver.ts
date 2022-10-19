@@ -37,8 +37,10 @@ const resolvers: any = {
     },
   },
   Mutation: {
-    async createUser(_: any, { email, password, role,firstName, lastName, dateOfBirth,
-      gender }: any) {
+    async createUser(
+      _: any,
+      { email, password, role, firstName, lastName, dateOfBirth, gender }: any
+    ) {
       const userExists = await User.findOne({ email: email });
       if (userExists)
         throw new ApolloError('email already taken', 'UserInputError');
@@ -68,7 +70,7 @@ const resolvers: any = {
         firstName,
         lastName,
         dateOfBirth,
-        gender
+        gender,
       });
 
       const newUser: string | null = await User.findByIdAndUpdate(
@@ -348,8 +350,8 @@ const resolvers: any = {
 
       // check if the requester is already an admin, if not create him
       const admin = await User.findOne({ email, role: 'admin' });
-      let password = undefined;
-      let newAdmin = undefined;
+      let password: any = undefined;
+      let newAdmin: any = undefined;
       if (!admin) {
         password = generateRandomPassword();
         newAdmin = await User.create({
@@ -408,7 +410,7 @@ const resolvers: any = {
   },
   Profile: {
     async user(parent: any) {
-      const user = await User.findOne({ _id: parent.user.toString()});
+      const user = await User.findOne({ _id: parent.user.toString() });
       if (!user) return null;
       return user;
     },
