@@ -8,71 +8,85 @@ const seedUsers = async () => {
       email: 'superAdmin@devpulse.co',
       password: hashSync('Andela123'),
       role: 'superAdmin',
+      organizations: ['Andela'],
     },
     {
       email: 'admin@devpulse.co',
       password: hashSync('Andela123'),
       role: 'admin',
+      organizations: ['Andela'],
     },
     {
       email: 'admin2@devpulse.co',
       password: hashSync('Andela123'),
       role: 'admin',
+      organizations: ['organization 2'],
     },
     {
       email: 'manager@devpulse.co',
       password: hashSync('Andela123'),
       role: 'manager',
+      organizations: ['Andela'],
     },
     {
       email: 'manager2@devpulse.co',
       password: hashSync('Andela123'),
       role: 'manager',
+      organizations: ['organization 2'],
     },
     {
       email: 'coordinator@devpulse.co',
       password: hashSync('Andela123'),
       role: 'coordinator',
+      organizations: ['Andela'],
     },
     {
       email: 'coordinator1@devpulse.co',
       password: hashSync('Andela123'),
       role: 'coordinator',
+      organizations: ['organization 2'],
     },
     {
       email: 'trainee@devpulse.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['Andela'],
     },
     {
       email: 'trainee1@pulse.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['Andela'],
     },
     {
       email: 'trainee2@pulse.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['organization 2'],
     },
     {
       email: 'trainee3@pulse.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['organization 2'],
     },
     {
       email: 'james@gmail.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['Andela'],
     },
     {
       email: 'peter@pulse.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['Andela'],
     },
     {
       email: 'john@pulse.com',
       password: hashSync('Andela123'),
       role: 'user',
+      organizations: ['organization 2'],
     },
   ];
   await User.deleteMany({});
@@ -139,8 +153,8 @@ const seedUsers = async () => {
     },
     {
       user: trainee3.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
+      firstName: 'Eric',
+      lastName: 'Mugisha',
     },
     {
       user: trainee4.id,

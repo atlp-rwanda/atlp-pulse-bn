@@ -7,6 +7,8 @@ export async function checkLoggedInOrganization(token?: string) {
   const SECRET = process.env.SECRET || 'test_secret';
 
   if (!token) {
+    console.log(token, 'token');
+
     throw new AuthenticationError('Not logged in an organization');
   }
 
@@ -20,12 +22,12 @@ export async function checkLoggedInOrganization(token?: string) {
     }
 
     return org;
-  } catch (error:any) {
-    if(error.message === 'invalid signature'){
+  } catch (error: any) {
+    if (error.message === 'invalid signature') {
       throw new AuthenticationError('Invalid organization token');
-    }else if(error.message === 'jwt expired'){
+    } else if (error.message === 'jwt expired') {
       throw new AuthenticationError('expired organization token');
-    }else {
+    } else {
       throw new AuthenticationError('Missing organization token');
     }
   }
