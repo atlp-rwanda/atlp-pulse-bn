@@ -58,7 +58,6 @@ const manageStudentResolvers = {
         return (
           await User.find({ role: 'trainee' }).populate({
             path: 'cohort',
-
             strictPopulate: false,
             populate: {
               path: 'program',
@@ -90,6 +89,75 @@ const manageStudentResolvers = {
           }
           if (role === 'coordinator') {
             return (
+              user.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.cohort?.coordinator).replace(/['"]+/g, '') ==
+                userId
+            );
+          }
+        });
+      } catch (error) {
+        const { message } = error as { message: any };
+        throw new ApolloError(message.toString(), '500');
+      }
+    },
+    getCohortTrainees: async (
+      _: any,
+      { orgToken, cohort }: any,
+      context: Context
+    ) => {
+      try {
+        // coordinator validation
+        const { userId, role } = (await checkUserLoggedIn(context))([
+          'admin',
+          'manager',
+          'coordinator',
+        ]);
+
+        // get the organization if someone  logs in
+        let org: InstanceType<typeof Organization>;
+        org = await checkLoggedInOrganization(orgToken);
+
+        return (
+          await User.find({ role: 'trainee' }).populate({
+            path: 'cohort',
+
+            strictPopulate: false,
+            //
+            populate: {
+              path: 'program',
+              strictPopulate: false,
+              //
+              populate: {
+                path: 'organization',
+                //
+                strictPopulate: false,
+              },
+            },
+          })
+        ).filter((user: any) => {
+          if (role === 'admin') {
+            return (
+              user.cohort.name == cohort &&
+              user.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.cohort?.program?.organization.admin).replace(
+                /['"]+/g,
+                ''
+              ) == userId
+            );
+          }
+          if (role === 'manager') {
+            return (
+              user.cohort.name == cohort &&
+              user.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.cohort?.program?.manager).replace(
+                /['"]+/g,
+                ''
+              ) == userId
+            );
+          }
+          if (role === 'coordinator') {
+            return (
+              user.cohort.name == cohort &&
               user.cohort?.program?.organization.name == org?.name &&
               JSON.stringify(user.cohort?.coordinator).replace(/['"]+/g, '') ==
                 userId
@@ -289,7 +357,7 @@ const manageStudentResolvers = {
               if (program.organization._id.toString() == org?.id.toString()) {
                 const content = getOrganizationTemplate(org.name);
                 const link: any =
-                  'https://devpulse-staging.herokuapp.com/org-login';
+                  'https://devpulse-staging.herokuapp.com/login/org';
                 await sendEmail(
                   user.email,
                   'Organization membership notice',
@@ -598,7 +666,7 @@ const manageStudentResolvers = {
         });
         const newToken: any = token.replaceAll('.', '*');
         const content = inviteUserTemplate(org.name, user.email, user.role);
-        const link = `https://devpulse.co/register/${newToken}`;
+        const link = `https://devpulse-staging.herokuapp.com/register/${newToken}`;
         await sendEmail(
           email,
           'Invitation',
