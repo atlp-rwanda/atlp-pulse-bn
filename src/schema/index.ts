@@ -14,6 +14,7 @@ const Schema = gql`
     password: String!
     profile: Profile
     cohort: Cohort
+    organizations: [String!]!
   }
   input RegisterInput {
     email: String!
@@ -140,11 +141,13 @@ const Schema = gql`
 
   type Query {
     getAllUsers: [User]
+    getUsers(orgToken: String):[User]
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole
     getOrganizations: [Organization]!
     getOrganization(name: String!): Organization
+    getSignupOrganization(orgToken: String!): Organization
     fetchRatings(orgToken: String): [Rating]
     fetchTrainees: [Cohort]
     fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
@@ -161,6 +164,7 @@ const Schema = gql`
       gender: String!
       email: String!
       password: String!
+      orgToken: String!
       role: String
     ): RegisteredUser!
     loginUser(loginInput: LoginInput): Login!
