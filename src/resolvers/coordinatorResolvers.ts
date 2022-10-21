@@ -1,6 +1,7 @@
 /* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server';
 import Cohort from '../models/cohort.model';
+import * as jwt from 'jsonwebtoken';
 import { Organization, User } from '../models/user';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
 import { checkLoggedInOrganization } from '../helpers/organization.helper';
@@ -10,10 +11,17 @@ import { sendEmail } from '../utils/sendEmail';
 import { Context } from './../context';
 import Program from '../models/program.model';
 
+const SECRET: string = process.env.SECRET || 'test_secret';
+
 const manageStudentResolvers = {
   Query: {
-    getUsers: async (_: any, __: any, context: Context) => {
+    getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
+
+         // get the organization if someone  logs in
+         let org: InstanceType<typeof Organization>;
+         org = await checkLoggedInOrganization(orgToken);
+
         // coordinator validation
         const { userId, role } = (await checkUserLoggedIn(context))([
           'admin',
@@ -21,7 +29,7 @@ const manageStudentResolvers = {
           'coordinator',
         ]);
         return (await User.find({ role: 'user' })).filter((user: any) => {
-          return user.cohort == null || user.cohort == undefined;
+          return user.cohort == null && user.organizations.includes(org.name)|| user.cohort == undefined && user.organizations.includes(org.name);
         });
       } catch (error) {
         const { message } = error as { message: any };
@@ -299,7 +307,7 @@ const manageStudentResolvers = {
               if (program.organization._id.toString() == org?.id.toString()) {
                 const content = getOrganizationTemplate(org.name);
                 const link: any =
-                  'https://devpulse-staging.herokuapp.com/org-login';
+                  'https://devpulse.co/login/org';
                 await sendEmail(
                   user.email,
                   'Organization membership notice',
@@ -575,14 +583,17 @@ const manageStudentResolvers = {
       org = await checkLoggedInOrganization(orgToken);
 
       const user: any = await User.findOne({ _id: userId, role: role });
-
       const userExists: any = await User.findOne({ email });
 
       if (userExists) {
         throw new Error('This user already exists in DevPulse');
       } else {
+        const token:any = jwt.sign({ name: org.name }, SECRET, {
+          expiresIn: '2d',
+        });
+        const newToken:any = token.replaceAll('.','*')
         const content = inviteUserTemplate(org.name, user.email, user.role);
-        const link = 'https://devpulse-staging.herokuapp.com/register';
+        const link = `https://devpulse.co/register/${newToken}`;
         await sendEmail(
           email,
           'Invitation',
