@@ -269,7 +269,7 @@ const Schema = gql`
   type ratingSystem {
     id: ID!
     name: String!
-    grade: [Int]!
+    grade: [String]!
     description: [String]!
     percentage: [String]!
     userId: String!
@@ -277,7 +277,7 @@ const Schema = gql`
   type Mutation {
     createRatingSystem(
       name: String!
-      grade: [Int]!
+      grade: [String]!
       description: [String]!
       percentage: [String]!
     ): ratingSystem!
