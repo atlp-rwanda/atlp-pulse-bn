@@ -12,7 +12,7 @@ export default function Template(
             <p style="font-size: 18px; font-family: 'Rubik';text-align: left;"> Hello, <p>
 
         <p style="font-size: 18px; font-family: 'Rubik';margin-top: 10px; line-height: 20px;">
-          You have been invited to join DevPulse by <strong>${requesterRole}</strong> '<strong>${requesterEmail}</strong>' in organization <strong>'${orgName}'<strong>.
+          You have been invited to join DevPulse by <strong>${requesterRole}</strong> '<strong>${requesterEmail}</strong>'.
         </p>
         </br>
         <p style="font-size: 18px; font-family: 'Rubik'; margin-top: 10px">

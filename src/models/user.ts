@@ -28,6 +28,10 @@ const userSchema = new Schema({
     required: false,
     ref: 'Cohort',
   },
+  organizations:{
+    type:[String],
+    required: true,
+  }
 });
 
 userSchema.methods.checkPass = async function (password: string) {
