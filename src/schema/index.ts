@@ -143,7 +143,7 @@ const Schema = gql`
 
   type Query {
     getAllUsers: [User]
-    getUsers(orgToken: String):[User]
+    getUsers(orgToken: String): [User]
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole

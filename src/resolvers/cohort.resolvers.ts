@@ -133,16 +133,39 @@ const resolvers = {
     },
     updateCohort: async (
       _: any,
-      { id, orgToken, name, phase, startDate, endDate }: any,
+      args: {
+        id: any;
+        orgToken: string;
+        name: string;
+        phase: string;
+        coordinatorEmail: string;
+        programName: string;
+        startDate: Date;
+        endDate?: Date;
+      },
       context: Context
     ) => {
+      const {
+        id,
+        orgToken,
+        name,
+        coordinatorEmail,
+        phase,
+        programName,
+        startDate,
+        endDate,
+      } = args;
+
       const { userId, role } = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'manager',
         'coordinator',
       ]);
-
+      const coordinator = await User.findOne({
+        email: coordinatorEmail,
+      });
+      const program = await Program.findOne({ name: programName });
       const cohort = await Cohort.findById(id).populate({
         path: 'program',
         strictPopulate: false,
@@ -151,12 +174,22 @@ const resolvers = {
           strictPopulate: false,
         },
       });
+      const cohortProgram = cohort?.program as ProgramType;
+      const cohortOrg = cohortProgram.organization as OrganizationType;
+
       if (!cohort) {
         throw new ValidationError(`Cohort with id "${id}" doesn't exist`);
       }
-      const cohortProgram = cohort.program as ProgramType;
-      const cohortOrg = cohortProgram.organization as OrganizationType;
-
+      if (!coordinator) {
+        throw new ValidationError(
+          `Coordinator with email ${coordinatorEmail} doesn't exist`
+        );
+      }
+      if (!program) {
+        throw new ValidationError(
+          `Program with name ${programName} doesn't exist`
+        );
+      }
       if (name && name !== cohort.name && (await Cohort.findOne({ name }))) {
         throw new ValidationError(`Cohort with name ${name} already exist`);
       }
@@ -210,6 +243,8 @@ const resolvers = {
       phase && (cohort.phase = phase);
       startDate && (cohort.startDate = startDate);
       endDate && (cohort.endDate = endDate);
+      coordinatorEmail && (cohort.coordinator = coordinator.id);
+      programName && (cohort.program = program.id);
 
       await cohort.save();
 
@@ -262,7 +297,7 @@ const resolvers = {
         }
       }
 
-      return cohort.delete();
+      return Cohort.disactivate(cohort?.id);
     },
   },
 };

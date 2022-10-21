@@ -18,10 +18,10 @@ const resolvers = {
           'admin',
         ]);
         let org;
-        let where = {};
+        let where: any = { active: true };
         if (role === 'admin') {
           org = await checkLoggedInOrganization(orgToken);
-          where = { organization: org.id };
+          where = { ...where, organization: org.id };
         }
 
         return Program.find(where).populate('cohorts');
@@ -38,6 +38,7 @@ const resolvers = {
         return Program.findOne({
           manager: userId,
           organization: org?.id,
+          active: true,
         }).populate('cohorts');
       } catch (error) {
         const { message } = error as { message: any };
@@ -74,18 +75,72 @@ const resolvers = {
           throw new ValidationError(`Program with name ${name} already exist`);
         }
 
-        return (
-          await Program.create({
-            name,
-            description,
-            manager: manager?.id,
-            organization: org?.id,
-          })
-        ).populate('cohorts');
+        return await Program.create({
+          name,
+          description,
+          manager: manager?.id,
+          organization: org?.id,
+        });
       } catch (error) {
         const { message } = error as { message: any };
         throw new ApolloError(message.toString(), '500');
       }
+    },
+    updateProgram: async (
+      _: any,
+      { id, name, description, orgToken, managerEmail }: any,
+      context: Context
+    ) => {
+      const { userId, role } = (await checkUserLoggedIn(context))([
+        'superAdmin',
+        'admin',
+        'manager',
+      ]);
+
+      // get the program and its organization from the id and checks if it exists
+      const program = await Program.findById(id).populate('organization');
+      if (!program) {
+        throw new ValidationError(`Program with id "${id}" doesn't exist`);
+      }
+      const programOrg = program?.organization as OrganizationType;
+      const manager = await User.findOne({ email: managerEmail });
+
+      // check program with that name exists and manager with this email exists
+      if (!manager) {
+        throw new ValidationError(
+          `A manager with email ${managerEmail} doesn't exist`
+        );
+      }
+      if (name && name !== program.name && (await Program.findOne({ name }))) {
+        throw new ValidationError(`Program with name ${name} already exist`);
+      }
+
+      // check if a given user have priviledges to update this program
+      if (role !== 'superAdmin') {
+        const org = await checkLoggedInOrganization(orgToken);
+
+        if (programOrg.id.toString() !== org.id.toString()) {
+          throw new ValidationError(
+            `Program with id "${program?.id}" doesn't exist in this organization`
+          );
+        }
+        if (role === 'admin' && programOrg.admin.toString() !== userId) {
+          throw new ValidationError(
+            `Program with id "${program?.id}" doesn't exist in your organization`
+          );
+        }
+        if (role === 'manager' && program.manager.toString() !== userId) {
+          throw new ValidationError('You are not assigned this program');
+        }
+      }
+
+      name && (program.name = name);
+      description && (program.description = description);
+      managerEmail && (program.manager = manager.id);
+
+      await program.save();
+
+      return program;
     },
     deleteProgram: async (_: any, { id, orgToken }: any, context: Context) => {
       const { userId, role } = (await checkUserLoggedIn(context))([
@@ -112,56 +167,7 @@ const resolvers = {
         }
       }
 
-      return await program?.delete();
-    },
-    updateProgram: async (
-      _: any,
-      { id, name, description, orgToken }: any,
-      context: Context
-    ) => {
-      const { userId, role } = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'manager',
-      ]);
-
-      // get the program and its organization from the id and checks if it exists
-      const program = await Program.findById(id).populate('organization');
-      if (!program) {
-        throw new ValidationError(`Program with id "${id}" doesn't exist`);
-      }
-      const programOrg = program?.organization as OrganizationType;
-
-      // check program with that name exists
-      if (name && name !== program.name && (await Program.findOne({ name }))) {
-        throw new ValidationError(`Program with name ${name} already exist`);
-      }
-
-      // check if a given user have priviledges to update this program
-      if (role !== 'superAdmin') {
-        const org = await checkLoggedInOrganization(orgToken);
-
-        if (programOrg.id.toString() !== org.id.toString()) {
-          throw new ValidationError(
-            `Program with id "${program?.id}" doesn't exist in this organization`
-          );
-        }
-        if (role === 'admin' && programOrg.admin.toString() !== userId) {
-          throw new ValidationError(
-            `Program with id "${program?.id}" doesn't exist in your organization`
-          );
-        }
-        if (role === 'manager' && program.manager.toString() !== userId) {
-          throw new ValidationError('You are not assigned this program');
-        }
-      }
-
-      name && (program.name = name);
-      description && (program.description = description);
-
-      await program.save();
-
-      return program;
+      return await Program.disactivate(program.id);
     },
   },
   Program: {

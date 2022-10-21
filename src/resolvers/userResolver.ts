@@ -36,24 +36,36 @@ const resolvers: any = {
       return organization[0];
     },
 
-    async getSignupOrganization(_: any, { orgToken }:any, context:Context) {
+    async getSignupOrganization(_: any, { orgToken }: any, context: Context) {
       let org: InstanceType<typeof Organization>;
       org = await checkLoggedInOrganization(orgToken);
-      return Organization.findOne({ name : org.name });
-    }
+      return Organization.findOne({ name: org.name });
+    },
   },
   Mutation: {
     async createUser(
       _: any,
-      { email, password, role, firstName, lastName, dateOfBirth, gender, orgToken }: any
+      {
+        email,
+        password,
+        role,
+        firstName,
+        lastName,
+        dateOfBirth,
+        gender,
+        orgToken,
+      }: any
     ) {
       let org: InstanceType<typeof Organization>;
-      // checkLoggedInOrganization checks if the organization token passed was valid 
+      // checkLoggedInOrganization checks if the organization token passed was valid
       org = await checkLoggedInOrganization(orgToken);
 
       const userExists = await User.findOne({ email: email });
       if (userExists)
-        throw new ApolloError('User with a such email already exists', 'UserInputError');
+        throw new ApolloError(
+          'User with a such email already exists',
+          'UserInputError'
+        );
 
       const emailExpression =
         /^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -70,7 +82,7 @@ const resolvers: any = {
         role: role || 'user',
         email: email,
         password,
-        organizations:org.name
+        organizations: org.name,
       });
       const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
         expiresIn: '2h',
