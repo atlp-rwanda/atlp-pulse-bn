@@ -81,6 +81,7 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
+    reply:[Notifications]
     quantity: String!
     quantityRemark: String
     quality: String!
@@ -243,5 +244,33 @@ const Schema = gql`
     getRatingSystems: [ratingSystem]
     getRatingSystem(id: ID!): ratingSystem!
   }
+  type Notifications {
+		id: ID!
+		user: String!
+        sprint: Int!
+		quantityRemark: String!
+		qualityRemark: String!
+		professionalRemark: String!
+		bodyQuantity: String
+		bodyQuality: String
+		bodyProfessional: String
+		createdAt: String!
+	
+	}
+	type Query {
+		getReplies: [Notifications]
+		getRepliesByUser(userId:String): [Notifications]
+	}
+	
+	type Mutation{
+		addReply(
+			sprint: Int!
+			bodyQuantity: String
+			bodyQuality: String
+			bodyProfessional: String
+		): Notifications!
+		deleteReply(id: ID): String!
+	}
+  
 `;
 export default Schema;

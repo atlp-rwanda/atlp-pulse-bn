@@ -85,7 +85,7 @@ const ratingResolvers = {
       context: { role: string; userId: string }
     ) {
       const loggedId = context.userId;
-      const findRatings = Rating.find({ user: loggedId }).populate('user');
+      const findRatings = Rating.find({ user: loggedId }).populate('user').populate('reply');
       return findRatings;
     },
   },

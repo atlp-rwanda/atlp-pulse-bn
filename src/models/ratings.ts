@@ -45,6 +45,11 @@ const Rating = mongoose.model(
       ref: 'User',
       required: true,
     },
+    reply: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Notifications',
+      required: false,
+  },
     organization: {
       type: mongoose.Types.ObjectId,
       ref: 'Organization',
