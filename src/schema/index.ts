@@ -76,27 +76,36 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
+    reply:[Notifications]
     quantity: String!
     quantityRemark: String
+    bodyQuantity: String
     quality: String!
     qualityRemark: String
+    bodyQuality: String
     professional_Skills: String!
     professionalRemark: String
+    bodyProfessional: String
     approved: Boolean!
     coordinator: String!
     cohort: Cohort!
   }
 
   type AddRating {
-    user: String!
+    user: User!
     sprint: Int!
+    reply:[Notifications]
     quantity: String!
     quantityRemark: String
+    bodyQuantity: String
     quality: String!
     qualityRemark: String
+    bodyQuality: String
     professional_Skills: String!
     professionalRemark: String
+    bodyProfessional: String
     approved: Boolean!
+    coordinator: String!
   }
 
   type updateRating {
@@ -108,6 +117,20 @@ const Schema = gql`
     qualityRemark: [String]
     professional_Skills: [String]
     professionalRemark: [String]
+    approved: Boolean
+  }
+  type updateToReply {
+    user: String
+    sprint: Int
+    quantity: [String]
+    bodyQuantity: [String]
+    quantityRemark: [String]
+    bodyQuality: [String]
+    quality: [String]
+    qualityRemark: [String]
+    professional_Skills: [String]
+    professionalRemark: [String]
+    bodyProfessional: String
     approved: Boolean
   }
 
@@ -206,9 +229,12 @@ const Schema = gql`
       quantity: String!
       quantityRemark: String
       quality: String!
+      bodyQuality: String
       qualityRemark: String
       professional_Skills: String!
+      bodyQuantity: String
       professionalRemark: String
+      bodyProfessional: String
       orgToken: String!
     ): AddRating
     updateRating(
@@ -222,6 +248,21 @@ const Schema = gql`
       professionalRemark: [String]
       orgToken: String!
     ): updateRating
+    updateToReply(
+      user: String!
+      sprint: Int!
+      quantity: [String]
+      bodyQuantity: [String]
+      quantityRemark: [String]
+      quality: [String]
+      bodyQuality: [String]
+      qualityRemark: [String]
+      professional_Skills: [String]
+      professionalRemark: [String]
+      bodyProfessional: [String]
+      orgToken: String!
+    ): updateToReply
+
     approveRating(user: String!, sprint: Int!): ApproveRating
     rejectRating(user: String!, sprint: Int!): String!
   }
@@ -246,5 +287,33 @@ const Schema = gql`
     getRatingSystems: [ratingSystem]
     getRatingSystem(id: ID!): ratingSystem!
   }
+  type Notifications {
+		id: ID!
+		user: String!
+        sprint: Int!
+		quantityRemark: String!
+		qualityRemark: String!
+		professionalRemark: String!
+		bodyQuantity: String
+		bodyQuality: String
+		bodyProfessional: String
+		createdAt: String!
+	
+	}
+	type Query {
+		getReplies: [Notifications]
+		getRepliesByUser(userId:String): [Notifications]
+	}
+	
+	type Mutation{
+		addReply(
+			sprint: Int!
+			bodyQuantity: String
+			bodyQuality: String
+			bodyProfessional: String
+		): Notifications!
+		deleteReply(id: ID): String!
+	}
+  
 `;
 export default Schema;

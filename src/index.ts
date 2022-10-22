@@ -15,6 +15,7 @@ import cohortSchema from './schema/cohort.schema';
 import coordinatorSchema from './schema/coordinator.schema';
 import schema from './schema/index';
 import programSchema from './schema/program.schema';
+import replyResolver from './resolvers/reply.resolver';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -24,6 +25,7 @@ export const resolvers = mergeResolvers([
   createRatingSystemresolver,
   manageStudentResolvers,
   ratingResolvers,
+  replyResolver,
 ]);
 export const typeDefs = mergeTypeDefs([
   schema,
