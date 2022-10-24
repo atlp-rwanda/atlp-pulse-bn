@@ -44,6 +44,20 @@ const Rating = mongoose.model(
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
+    },  
+    bodyQuantity: {
+      type: String,
+      required: false,
+    },
+  
+    bodyQuality: {
+      type: String,
+      required: false,
+    },
+  
+    bodyProfessional: {
+      type: String,
+      required: false,
     },
     reply: {
       type: mongoose.Types.ObjectId,

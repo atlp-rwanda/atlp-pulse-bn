@@ -85,7 +85,7 @@ const ratingResolvers = {
       context: { role: string; userId: string }
     ) {
       const loggedId = context.userId;
-      const findRatings = Rating.find({ user: loggedId }).populate('user').populate('reply');
+      const findRatings = Rating.find({ user: loggedId }).populate('user');
       return findRatings;
     },
   },
@@ -103,6 +103,9 @@ const ratingResolvers = {
             qualityRemark,
             professional_Skills,
             professionalRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
             orgToken,
           },
           context: { userId: string }
@@ -125,6 +128,9 @@ const ratingResolvers = {
             qualityRemark,
             professional_Skills,
             professionalRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
             coordinator: context.userId,
             organization: org,
           });
@@ -153,6 +159,9 @@ const ratingResolvers = {
             qualityRemark,
             professional_Skills,
             professionalRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
             orgToken,
           }
         ) => {
@@ -171,6 +180,7 @@ const ratingResolvers = {
           });
           if (findSprint.length !== 0)
             await TempData.deleteOne({ sprint: sprint, user: user });
+         
           const updateRating = await TempData.create({
             user,
             sprint,
@@ -268,7 +278,36 @@ const ratingResolvers = {
         return update;
       })
     ),
-
+    updateToReply: authenticated(
+        validateRole('trainee')(async (root, { 
+            user,
+            sprint,
+            quantity,
+            quantityRemark,
+            quality,
+            qualityRemark,
+            professional_Skills,
+            professionalRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
+            orgToken,
+        }) => {
+            org = await checkLoggedInOrganization(orgToken);
+            const oldData: any = await Rating.find({ user: user, sprint: sprint });
+            const updateReply = await Rating.findOneAndUpdate(
+                { user: user, sprint: sprint },
+            
+                {
+                bodyQuality: bodyQuality[0]?.toString(),
+                bodyQuantity: bodyQuantity[0]?.toString(),
+                bodyProfessional: bodyProfessional[0]?.toString(),
+                },
+                { new: true }
+            );
+            return [updateReply];
+        })
+    ),
     rejectRating: authenticated(
       validateRole('admin')(async (root, { user, sprint }) => {
         const updatedData: any = await TempData.find({

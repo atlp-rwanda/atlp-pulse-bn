@@ -84,24 +84,32 @@ const Schema = gql`
     reply:[Notifications]
     quantity: String!
     quantityRemark: String
+    bodyQuantity: String
     quality: String!
     qualityRemark: String
+    bodyQuality: String
     professional_Skills: String!
     professionalRemark: String
+    bodyProfessional: String
     approved: Boolean!
     coordinator: String!
   }
 
   type AddRating {
-    user: String!
+    user: User!
     sprint: Int!
+    reply:[Notifications]
     quantity: String!
     quantityRemark: String
+    bodyQuantity: String
     quality: String!
     qualityRemark: String
+    bodyQuality: String
     professional_Skills: String!
     professionalRemark: String
+    bodyProfessional: String
     approved: Boolean!
+    coordinator: String!
   }
 
   type updateRating {
@@ -113,6 +121,20 @@ const Schema = gql`
     qualityRemark: [String]
     professional_Skills: [String]
     professionalRemark: [String]
+    approved: Boolean
+  }
+  type updateToReply {
+    user: String
+    sprint: Int
+    quantity: [String]
+    bodyQuantity: [String]
+    quantityRemark: [String]
+    bodyQuality: [String]
+    quality: [String]
+    qualityRemark: [String]
+    professional_Skills: [String]
+    professionalRemark: [String]
+    bodyProfessional: String
     approved: Boolean
   }
 
@@ -204,9 +226,12 @@ const Schema = gql`
       quantity: String!
       quantityRemark: String
       quality: String!
+      bodyQuality: String
       qualityRemark: String
       professional_Skills: String!
+      bodyQuantity: String
       professionalRemark: String
+      bodyProfessional: String
       orgToken: String!
     ): AddRating
     updateRating(
@@ -220,6 +245,21 @@ const Schema = gql`
       professionalRemark: [String]
       orgToken: String!
     ): updateRating
+    updateToReply(
+      user: String!
+      sprint: Int!
+      quantity: [String]
+      bodyQuantity: [String]
+      quantityRemark: [String]
+      quality: [String]
+      bodyQuality: [String]
+      qualityRemark: [String]
+      professional_Skills: [String]
+      professionalRemark: [String]
+      bodyProfessional: [String]
+      orgToken: String!
+    ): updateToReply
+
     approveRating(user: String!, sprint: Int!): ApproveRating
     rejectRating(user: String!, sprint: Int!): String!
   }
