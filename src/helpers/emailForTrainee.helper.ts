@@ -1,5 +1,5 @@
 export default function generateTemplate(content: any, title: any) {
-    return `
+  return `
     <!doctype html>
     <html lang="en-US">
     <head>

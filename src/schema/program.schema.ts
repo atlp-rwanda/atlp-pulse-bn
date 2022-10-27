@@ -30,6 +30,7 @@ const Schema = gql`
       orgToken: String
       name: String
       description: String
+      managerEmail: String!
     ): Program
   }
 `;

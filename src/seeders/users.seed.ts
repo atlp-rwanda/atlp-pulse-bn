@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { hashSync } from 'bcryptjs';
 import { User, Profile } from '../models/user';
 
