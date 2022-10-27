@@ -1,6 +1,7 @@
 /* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server-errors';
 import * as jwt from 'jsonwebtoken';
+import { JwtPayload, verify } from 'jsonwebtoken';
 import mongoose, { Error } from 'mongoose';
 import generateRandomPassword from '../helpers/generateRandomPassword';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
@@ -13,6 +14,8 @@ import organizationCreatedTemplate from '../utils/templates/organizationCreatedT
 import registrationRequest from '../utils/templates/registrationRequestTemplate';
 import { EmailPattern } from '../utils/validation.utils';
 import { Context } from './../context';
+import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate';
+import { error } from 'console';
 
 const SECRET: string = process.env.SECRET || 'test_secret';
 export type OrganizationType = InstanceType<typeof Organization>;
@@ -41,6 +44,14 @@ const resolvers: any = {
       org = await checkLoggedInOrganization(orgToken);
       return Organization.findOne({ name: org.name });
     },
+    async verifyResetPasswordToken(_: any, {  token}: any, context: any){
+      const {email} = verify (token, SECRET) as JwtPayload
+      const user: any = await User.findOne({email})
+      if (!user){
+        throw new Error("Unauthorized to access the page! ")
+      }
+    },
+
   },
   Mutation: {
     async createUser(
@@ -419,6 +430,50 @@ const resolvers: any = {
       });
       return deleteOrg;
     },
+    async forgotPassword(_: any, { email }: any, context: any) {
+      const userExists: any = await User.findOne({ email });
+
+      if (userExists) {
+        const token: any = jwt.sign({ email }, SECRET, {
+          expiresIn: '2d',
+        });
+        const newToken: any = token.replaceAll('.','*')
+        const content = forgotPasswordTemplate();
+        const link = `https://devpulse-staging.herokuapp.com/forgot-password/${newToken}`;
+        await sendEmail(
+          email,
+          'Proceed With Reset Password',
+          content,
+          link,
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        );
+
+        return 'Check Your Email To Proceed!';
+      } else {
+        throw new Error('Email does not exist');
+      }
+    },
+    async resetUserPassword (_: any, { password, confirmPassword, token}: any, context: any){
+      const {email} = verify (token, SECRET) as JwtPayload
+      if (password === confirmPassword){
+        const user: any = await User.findOne({email})
+        if (!user){
+          throw new Error("User doesn't exist! ")
+        }
+        user.password = password
+        await user.save()
+        return "Your password was reset successfully! "
+      } else if(password !== confirmPassword){
+        throw new Error ('Password mismatch! ')
+
+      } else{
+        throw new Error ('Oopps! something went wrong')
+      }
+
+      
+    },
+
   },
 
   User: {
@@ -445,3 +500,7 @@ const resolvers: any = {
   },
 };
 export default resolvers;
+function decodeForgotPasswordToken(_: any, any: any, arg2: { token: any; }, any1: any, context: any, any2: any) {
+  throw new Error('Function not implemented.');
+}
+

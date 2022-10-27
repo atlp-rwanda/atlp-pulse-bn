@@ -151,6 +151,7 @@ const Schema = gql`
     fetchRatingsTrainee: [Rating]
     fetchAllRatings(orgToken: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
+    verifyResetPasswordToken(token: String!): String
   }
 
   type Mutation {
@@ -224,7 +225,10 @@ const Schema = gql`
     ): updateRating
     approveRating(user: String!, sprint: Int!): ApproveRating
     rejectRating(user: String!, sprint: Int!): String!
+    forgotPassword(email: String!): String!
+    resetUserPassword(password: String!, confirmPassword: String!, token: String!): String!
   }
+
   type ratingSystem {
     id: ID!
     name: String!
