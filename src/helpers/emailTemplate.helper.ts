@@ -77,5 +77,5 @@ export default function generateTemplate({
     <!-- body table-->
 </body>
 </html>
-`
+`;
 }

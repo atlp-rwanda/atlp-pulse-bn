@@ -29,6 +29,8 @@ const Schema = gql`
     updateCohort(
       id: ID!
       orgToken: String
+      coordinatorEmail: String!
+      programName: String!
       name: String
       phase: String
       startDate: DateTime

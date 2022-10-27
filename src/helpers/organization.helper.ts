@@ -20,12 +20,12 @@ export async function checkLoggedInOrganization(token?: string) {
     }
 
     return org;
-  } catch (error:any) {
-    if(error.message === 'invalid signature'){
+  } catch (error: any) {
+    if (error.message === 'invalid signature') {
       throw new AuthenticationError('Invalid organization token');
-    }else if(error.message === 'jwt expired'){
+    } else if (error.message === 'jwt expired') {
       throw new AuthenticationError('expired organization token');
-    }else {
+    } else {
       throw new AuthenticationError('Missing organization token');
     }
   }
