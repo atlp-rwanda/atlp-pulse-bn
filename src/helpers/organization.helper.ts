@@ -7,6 +7,8 @@ export async function checkLoggedInOrganization(token?: string) {
   const SECRET = process.env.SECRET || 'test_secret';
 
   if (!token) {
+    console.log(token, 'token');
+
     throw new AuthenticationError('Not logged in an organization');
   }
 
