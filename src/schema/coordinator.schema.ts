@@ -5,6 +5,7 @@ const Schema = gql`
     getUsers: [User]
     getCohorts(orgToken: String): [Cohort]
     getTrainees(orgToken: String): [User]
+    getCohortTrainees(orgToken: String, cohort: String): [User]
   }
 
   type Message {
