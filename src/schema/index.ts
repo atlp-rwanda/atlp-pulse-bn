@@ -26,12 +26,10 @@ const Schema = gql`
     email: String
     password: String
     orgToken: String
-  }
-
-  input OrgInput {
-    name: String
-  }
-
+	}
+	input OrgInput {
+		name: String
+	}
   type Profile {
     id: ID!
     user: User!
@@ -44,14 +42,13 @@ const Schema = gql`
     phoneNumber: String
     biography: String
     avatar: String
-    coverImage: String
+    cover: String
   }
 
   type UserRole {
     id: ID!
     name: String!
   }
-
   type RegisteredUser {
     token: String
     user: User
@@ -61,22 +58,20 @@ const Schema = gql`
     user: User
   }
   type OrgLogin {
-    token: String
-    organization: Organization
-  }
-
-  type Organization {
-    id: ID!
-    name: String!
-    description: String
-    admin: User
-  }
-
-  input OrganizationInput {
-    email: String!
-    name: String!
-    description: String
-  }
+		token: String
+		organization: Organization
+	}
+	type Organization {
+		id: ID!
+		name: String!
+		description: String
+		admin: User
+	}
+	input OrganizationInput {
+		email: String!
+		name: String!
+		description: String
+	}
 
   type Rating {
     user: User!
@@ -187,19 +182,24 @@ const Schema = gql`
     ): Profile
 
     createProfile(
-      lastName: String
-      firstName: String
-      address: String
-      city: String
-      country: String
-      phoneNumber: String
-      biography: String
-      fileName: String
-      cover: String
-    ): Profile
-
-    updateUserRole(id: ID!, name: String): User!
-    deleteOrganization(id: ID!): Organization
+			lastName: String
+			firstName: String
+			address: String
+			city: String
+			country: String
+			phoneNumber: String
+			biography: String
+			fileName: String
+			cover: String
+		): Profile
+		updateAvatar(
+      		  avatar: String
+    	 	): Profile
+    		updateCoverImage(
+      		  cover: String
+    		): Profile
+		updateUserRole(id: ID!, name: String): User!
+		deleteOrganization(id: ID!): Organization
     addRatings(
       user: String!
       sprint: Int!
