@@ -114,6 +114,9 @@ const ratingResolvers = {
             qualityRemark,
             professional_Skills,
             professionalRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
             orgToken,
           },
           context: { userId: string }
@@ -134,6 +137,9 @@ const ratingResolvers = {
             quantityRemark,
             quality,
             qualityRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
             professional_Skills,
             professionalRemark,
             coordinator: context.userId,
@@ -339,7 +345,36 @@ const ratingResolvers = {
         return update;
       })
     ),
-
+    updateToReply: authenticated(
+        validateRole('trainee')(async (root, { 
+            user,
+            sprint,
+            quantity,
+            quantityRemark,
+            quality,
+            qualityRemark,
+            professional_Skills,
+            professionalRemark,
+            bodyQuality,
+            bodyQuantity,
+            bodyProfessional,
+            orgToken,
+        }) => {
+            org = await checkLoggedInOrganization(orgToken);
+            const oldData: any = await Rating.find({ user: user, sprint: sprint });
+            const updateReply = await Rating.findOneAndUpdate(
+                { user: user, sprint: sprint },
+            
+                {
+                bodyQuality: bodyQuality[0]?.toString(),
+                bodyQuantity: bodyQuantity[0]?.toString(),
+                bodyProfessional: bodyProfessional[0]?.toString(),
+                },
+                { new: true }
+            );
+            return [updateReply];
+        })
+    ),
     rejectRating: authenticated(
       validateRole('admin')(async (root, { user, sprint }) => {
         const updatedData: any = await TempData.find({
