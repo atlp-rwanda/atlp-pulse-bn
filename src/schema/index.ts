@@ -26,10 +26,10 @@ const Schema = gql`
     email: String
     password: String
     orgToken: String
-	}
-	input OrgInput {
-		name: String
-	}
+  }
+  input OrgInput {
+    name: String
+  }
   type Profile {
     id: ID!
     user: User!
@@ -58,25 +58,25 @@ const Schema = gql`
     user: User
   }
   type OrgLogin {
-		token: String
-		organization: Organization
-	}
-	type Organization {
-		id: ID!
-		name: String!
-		description: String
-		admin: User
-	}
-	input OrganizationInput {
-		email: String!
-		name: String!
-		description: String
-	}
+    token: String
+    organization: Organization
+  }
+  type Organization {
+    id: ID!
+    name: String!
+    description: String
+    admin: User
+  }
+  input OrganizationInput {
+    email: String!
+    name: String!
+    description: String
+  }
 
   type Rating {
     user: User!
     sprint: Int!
-    reply:[Notifications]
+    reply: [Notifications]
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -94,7 +94,7 @@ const Schema = gql`
   type AddRating {
     user: User!
     sprint: Int!
-    reply:[Notifications]
+    reply: [Notifications]
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -205,24 +205,20 @@ const Schema = gql`
     ): Profile
 
     createProfile(
-			lastName: String
-			firstName: String
-			address: String
-			city: String
-			country: String
-			phoneNumber: String
-			biography: String
-			fileName: String
-			cover: String
-		): Profile
-		updateAvatar(
-      		  avatar: String
-    	 	): Profile
-    		updateCoverImage(
-      		  cover: String
-    		): Profile
-		updateUserRole(id: ID!, name: String): User!
-		deleteOrganization(id: ID!): Organization
+      lastName: String
+      firstName: String
+      address: String
+      city: String
+      country: String
+      phoneNumber: String
+      biography: String
+      fileName: String
+      cover: String
+    ): Profile
+    updateAvatar(avatar: String): Profile
+    updateCoverImage(cover: String): Profile
+    updateUserRole(id: ID!, name: String): User!
+    deleteOrganization(id: ID!): Organization
     addRatings(
       user: String!
       sprint: Int!
@@ -288,32 +284,30 @@ const Schema = gql`
     getRatingSystem(id: ID!): ratingSystem!
   }
   type Notifications {
-		id: ID!
-		user: String!
-        sprint: Int!
-		quantityRemark: String!
-		qualityRemark: String!
-		professionalRemark: String!
-		bodyQuantity: String
-		bodyQuality: String
-		bodyProfessional: String
-		createdAt: String!
-	
-	}
-	type Query {
-		getReplies: [Notifications]
-		getRepliesByUser(userId:String): [Notifications]
-	}
-	
-	type Mutation{
-		addReply(
-			sprint: Int!
-			bodyQuantity: String
-			bodyQuality: String
-			bodyProfessional: String
-		): Notifications!
-		deleteReply(id: ID): String!
-	}
-  
+    id: ID!
+    user: String!
+    sprint: Int!
+    quantityRemark: String!
+    qualityRemark: String!
+    professionalRemark: String!
+    bodyQuantity: String
+    bodyQuality: String
+    bodyProfessional: String
+    createdAt: String!
+  }
+  type Query {
+    getReplies: [Notifications]
+    getRepliesByUser(userId: String): [Notifications]
+  }
+
+  type Mutation {
+    addReply(
+      sprint: Int!
+      bodyQuantity: String
+      bodyQuality: String
+      bodyProfessional: String
+    ): Notifications!
+    deleteReply(id: ID): String!
+  }
 `;
 export default Schema;
