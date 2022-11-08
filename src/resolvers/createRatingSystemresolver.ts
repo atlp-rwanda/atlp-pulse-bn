@@ -19,9 +19,8 @@ const createRatingSystemresolver = {
       { name, grade, description, percentage }: any,
       context: { role: string; userId: string }
     ) {
-      if (context.role !== 'admin' || 'superAdmin' || 'manager')
-        throw new Error('You are not allowed to perform this action');
-      const ratingSystemExists = await systemRating.findOne({
+      if (context.role === 'admin' || 'superAdmin' || 'manager'){      
+        const ratingSystemExists = await systemRating.findOne({
         name: name,
       });
       if (ratingSystemExists) throw new Error('Rating system already exists');
@@ -33,7 +32,10 @@ const createRatingSystemresolver = {
         userId: context.userId,
       });
       return newRatingSystem;
-    },
+    }else {
+        throw new Error('You are not allowed to perform this action');
+
+    }},
     async deleteRatingSystem(parent: any, args: any) {
       const ratingSystem = await systemRating.findById(args.id);
 
