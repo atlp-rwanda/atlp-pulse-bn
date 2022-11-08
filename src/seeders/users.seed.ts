@@ -4,7 +4,7 @@ import { User, Profile } from '../models/user';
 const seedUsers = async () => {
   const users = [
     {
-      email: 'superAdmin@devpulse.co',
+      email: 'superadmin@devpulse.co',
       password: hashSync('Andela123'),
       role: 'superAdmin',
       organizations: ['Andela'],

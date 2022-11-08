@@ -13,7 +13,7 @@ const systemRating = mongoose.model(
       unique: true,
     },
     grade: {
-      type: [Number],
+      type: [String],
       required: true,
     },
     description: {
