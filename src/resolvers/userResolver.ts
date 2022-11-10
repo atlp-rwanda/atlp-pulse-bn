@@ -85,7 +85,7 @@ const resolvers: any = {
         organizations: org.name,
       });
       const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
-        expiresIn: '2h',
+        expiresIn: 60,
       });
 
       const newProfile = await Profile.create({
@@ -156,7 +156,7 @@ const resolvers: any = {
             { userId: user._id, role: user._doc?.role || 'user' },
             SECRET,
             {
-              expiresIn: '2h',
+              expiresIn: 60,
             }
           );
           const data = {
@@ -175,7 +175,7 @@ const resolvers: any = {
             { userId: user._id, role: user._doc?.role || 'user' },
             SECRET,
             {
-              expiresIn: '2h',
+              expiresIn: 60,
             }
           );
           const data = {
@@ -203,7 +203,7 @@ const resolvers: any = {
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
               {
-                expiresIn: '2h',
+                expiresIn: 60,
               }
             );
             const managerData = {
@@ -240,7 +240,7 @@ const resolvers: any = {
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
               {
-                expiresIn: '2h',
+                expiresIn: 60,
               }
             );
             const coordinatorData = {
@@ -258,7 +258,7 @@ const resolvers: any = {
             { userId: user._id, role: user._doc?.role || 'user' },
             SECRET,
             {
-              expiresIn: '2h',
+              expiresIn: 60,
             }
           );
           const superAdminData = {

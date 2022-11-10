@@ -40,7 +40,7 @@ const resolvers = {
         { userId: newUser._id, role: newUser?.role },
         SECRET,
         {
-          expiresIn: '2h',
+          expiresIn: 60,
         }
       );
 
@@ -53,7 +53,7 @@ const resolvers = {
           { userId: user._id, role: user._doc?.role || 'user' },
           SECRET,
           {
-            expiresIn: '2h',
+            expiresIn: 60,
           }
         );
         const data = {
