@@ -16,6 +16,11 @@ const seedOrganizations = async () => {
       description: 'Organization 2 description',
       admin: admin[1]._id,
     },
+    {
+      name: 'Google',
+      description: 'Google description for testing',
+      admin: admin[2]._id,
+    },
   ];
   await Organization.deleteMany({});
 

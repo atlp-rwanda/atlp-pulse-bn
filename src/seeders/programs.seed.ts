@@ -17,6 +17,12 @@ const seedPrograms = async () => {
       manager: managers[1].id,
       organization: (await Organization.find())[1]?.id,
     },
+    {
+      name: 'Google Developers Program',
+      description: 'This belong to cohort 7',
+      manager: managers[2].id,
+      organization: (await Organization.find())[2]?.id,
+    },
   ];
 
   await Program.deleteMany({});
