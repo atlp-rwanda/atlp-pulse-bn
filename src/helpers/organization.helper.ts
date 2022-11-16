@@ -1,4 +1,4 @@
-import { AuthenticationError } from 'apollo-server-core';
+import { ApolloError, AuthenticationError } from 'apollo-server-core';
 import 'dotenv/config';
 import { JwtPayload, verify } from 'jsonwebtoken';
 import { Organization } from '../models/user';
@@ -26,9 +26,9 @@ export async function checkLoggedInOrganization(token?: string) {
     if (error.message === 'invalid signature') {
       throw new AuthenticationError('Invalid organization token');
     } else if (error.message === 'jwt expired') {
-      throw new AuthenticationError('expired organization token');
+      throw new ApolloError('Expired organization token', 'ORG_JWT_EXPIRED');
     } else {
-      throw new AuthenticationError('Missing organization token');
+      throw new ApolloError('Missing organization token', 'ORG_JWT_EXPIRED');
     }
   }
 }

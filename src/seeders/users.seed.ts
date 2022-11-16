@@ -92,7 +92,7 @@ const seedUsers = async () => {
   await User.insertMany(users);
 
   const superAdmin: any = await User.findOne({
-    email: 'superAdmin@devpulse.co',
+    email: 'superadmin@devpulse.co',
   });
   const admin: any = await User.findOne({ email: 'admin@devpulse.co' });
   const admin2: any = await User.findOne({ email: 'admin2@devpulse.co' });
