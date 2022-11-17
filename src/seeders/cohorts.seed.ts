@@ -33,6 +33,36 @@ const seedCohorts = async () => {
       startDate: new Date(),
       endDate: new Date(),
     },
+
+    {
+      name: 'cohort 19',
+      phase: '2',
+      coordinator: coordinatorId,
+      program: (await Program.find())[2].id,
+      active: true,
+      startDate: new Date(),
+      endDate: new Date(),
+    },
+    {
+      name: 'cohort 20',
+      phase: '3',
+      coordinator: coordinatorId,
+      program: (await Program.find())[2].id,
+      active: true,
+      startDate: new Date(),
+      endDate: new Date(),
+    },
+    {
+      name: 'cohort 21',
+      phase: '1',
+      coordinator: coordinatorId,
+      program: (await Program.find())[2].id,
+      active: true,
+      startDate: new Date(),
+      endDate: new Date(),
+    },
+
+
   ];
 
   await Cohort.deleteMany({});
