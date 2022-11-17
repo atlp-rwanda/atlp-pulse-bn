@@ -721,28 +721,28 @@ const seedUsers = async () => {
   const john: any = await User.findOne({ email: 'john@pulse.com' });
 
   const done1: any = await User.findOne({ email: 'coise@gmail.com' });
-  const adminThree: any = await User.findOne({ email: 'klay@gmail.com' });
-  const adminFour: any = await User.findOne({ email: 'curry@gmail.com' });
-  const adminFive: any = await User.findOne({ email: 'greendray@gmail.com' });
-  const adminSix: any = await User.findOne({ email: 'bonnieclyde@gmail.com' });
-  const managerThree: any = await User.findOne({ email: 'bonnieclyde1@gmail.com' });
-  const managerFour: any = await User.findOne({ email: 'bonnieclyde2@gmail.com' });
-  const managerFive: any = await User.findOne({ email: 'bonnieclyde3 @gmail.com' });
-  const managerSix: any = await User.findOne({ email: 'bonnieclyde3 @gmail.com' });
-  const coordinatorThree: any = await User.findOne({ email: 'bonnieclyde5@gmail.com' });
-  const coordinatorFour: any = await User.findOne({ email: 'byuma@gmail.com' });
-  const coordinatorFive: any = await User.findOne({
+  const admin30: any = await User.findOne({ email: 'klay@gmail.com' });
+  const admin31: any = await User.findOne({ email: 'curry@gmail.com' });
+  const admin32: any = await User.findOne({ email: 'greendray@gmail.com' });
+  const admin33: any = await User.findOne({ email: 'bonnieclyde@gmail.com' });
+  const manager30: any = await User.findOne({ email: 'bonnieclyde1@gmail.com' });
+  const manager31: any = await User.findOne({ email: 'bonnieclyde2@gmail.com' });
+  const manager32: any = await User.findOne({ email: 'bonnieclyde3 @gmail.com' });
+  const manager33: any = await User.findOne({ email: 'bonnieclyde3 @gmail.com' });
+  const coordinat30: any = await User.findOne({ email: 'bonnieclyde5@gmail.com' });
+  const coordinat31: any = await User.findOne({ email: 'byuma@gmail.com' });
+  const coordinat32: any = await User.findOne({
     email: 'byuma01@gmail.com',
   });
-  const coordinatorSix: any = await User.findOne({ email: 'byuma02@gmail.com' });
-  const coordinatorSev: any = await User.findOne({ email: 'kanyami@gmail.com' });
-  const coordinatorEig: any = await User.findOne({
+  const coordinat33: any = await User.findOne({ email: 'byuma02@gmail.com' });
+  const coordinat34: any = await User.findOne({ email: 'kanyami@gmail.com' });
+  const coordinat35: any = await User.findOne({
     email: 'kanyami1@gmail.com',
   });
-  const coordinatorNin: any = await User.findOne({
+  const coordinat36: any = await User.findOne({
     email: 'kanyami2@gmail.com',
   });
-  const coordinator10: any = await User.findOne({
+  const coordinat37: any = await User.findOne({
     email: 'kanyami3@gmail.com',
   });
   const done2: any = await User.findOne({ email: 'kanyami4@gmail.com' });
@@ -754,22 +754,22 @@ const seedUsers = async () => {
   const done8: any = await User.findOne({ email: 'boneza4@gmail.com' });
   const done9: any = await User.findOne({ email: 'kanyamico@gmail.com' });
   const done10: any = await User.findOne({ email: 'kanyamico1@gmail.com' });
-  const macAngelos: any = await User.findOne({ email: 'sanomcange@gmail.com' });
-  const macAngelos2: any = await User.findOne({ email: 'sanomcangelos1@gmail.com' });
-  const macAngelos3: any = await User.findOne({
+  const macangelos: any = await User.findOne({ email: 'sanomcange@gmail.com' });
+  const macangelos2: any = await User.findOne({ email: 'sanomcangelos1@gmail.com' });
+  const macangelos3: any = await User.findOne({
     email: 'sanomcangelos@gmail.com',
   });
-  const macAngelos4: any = await User.findOne({
+  const macangelos4: any = await User.findOne({
     email: 'sanomc@gmail.com',
   });
-  const macAngelos5: any = await User.findOne({ email: 'sanomcange@gmail.com' });
-  const macAngelos6: any = await User.findOne({
+  const macangelos5: any = await User.findOne({ email: 'sanomcange@gmail.com' });
+  const macangelos6: any = await User.findOne({
     email: 'sanomcangeloss1@gmail.com',
   });
-  const macAngelos7: any = await User.findOne({
+  const macangelos7: any = await User.findOne({
     email: 'sanomcangeloss@gmail.com',
   });
-  const macAngelos8: any = await User.findOne({
+  const macangelos8: any = await User.findOne({
     email: 'sanomcangeloss2@gmail.com',
   });
   const bjayziri: any = await User.findOne({ email: 'bjaywaka@gmail.com' });
@@ -950,7 +950,7 @@ const seedUsers = async () => {
     {
       user: john.id,
       firstName: 'James',
-      lastName: 'Kwanda',
+      lastName: 'Agarwal',
     },
     
 
@@ -960,62 +960,62 @@ const seedUsers = async () => {
       lastName: 'Mukasa',
     },
     {
-      user: adminThree.id,
+      user: admin30.id,
       firstName: 'Mike',
       lastName: 'Akello',
     },
     {
-      user: adminFour.id,
+      user: admin31.id,
       firstName: 'Steven',
       lastName: 'Mugabo',
     },
     {
-      user: adminFive.id,
+      user: admin32.id,
       firstName: 'Charlotte',
       lastName: 'Byiringiro',
     },
     {
-      user: adminSix.id,
+      user: admin33.id,
       firstName: 'Zaytzeff',
       lastName: 'Amani',
     },
     {
-      user: managerThree.id,
+      user: manager30.id,
       firstName: 'Yvonne',
       lastName: 'Mbabazi',
     },
     {
-      user: managerFour.id,
+      user: manager31.id,
       firstName: 'John',
       lastName: 'Birungi',
     },
     {
-      user: managerFive.id,
+      user: manager32.id,
       firstName: 'Peter',
       lastName: 'Mbonyineza',
     },
     {
-      user: managerSix.id,
+      user: manager33.id,
       firstName: 'Eric',
       lastName: 'Mugisha',
     },
     {
-      user: coordinatorThree.id,
+      user: coordinat30.id,
       firstName: 'Jimmy',
       lastName: 'Obonyo',
     },
     {
-      user: coordinatorFour.id,
+      user: coordinat31.id,
       firstName: 'James',
       lastName: 'Kamana',
     },
     {
-      user: coordinatorFive.id,
+      user: coordinat32.id,
       firstName: 'Peter',
       lastName: 'Okwadha',
     },
     {
-      user: coordinatorSix.id,
+      user: coordinat33.id,
       firstName: 'James',
       lastName: 'Kwanda',
     },
@@ -1066,43 +1066,43 @@ const seedUsers = async () => {
       lastName: 'Mugisha',
     },
     {
-      user: macAngelos.id,
+      user: macangelos.id,
       firstName: 'Jimmy',
       lastName: 'Obonyo',
     },
     {
-      user: macAngelos2.id,
+      user: macangelos2.id,
       firstName: 'James',
       lastName: 'Kamana',
     },
     {
-      user: macAngelos3.id,
+      user: macangelos3.id,
       firstName: 'Peter',
       lastName: 'Okwadha',
     },
     {
-      user: macAngelos4.id,
+      user: macangelos4.id,
       firstName: 'James',
       lastName: 'Kwanda',
     },
 
     {
-      user: macAngelos5.id,
+      user: macangelos5.id,
       firstName: 'Jimmy',
       lastName: 'Obonyo',
     },
     {
-      user: macAngelos6.id,
+      user: macangelos6.id,
       firstName: 'James',
       lastName: 'Kamana',
     },
     {
-      user: macAngelos7.id,
+      user: macangelos7.id,
       firstName: 'Peter',
       lastName: 'Okwadha',
     },
     {
-      user: macAngelos8.id,
+      user: macangelos8.id,
       firstName: 'James',
       lastName: 'Kwanda',
     },
@@ -1376,22 +1376,22 @@ const seedUsers = async () => {
       lastName: 'Kwanda',
     },
     {
-      user: coordinatorSev.id,
+      user: coordinat34.id,
       firstName: 'uno',
       lastName: 'Kwanda',
     },
     {
-      user: coordinatorEig.id,
+      user: coordinat35.id,
       firstName: 'uno',
       lastName: 'Kwanda',
     },
     {
-      user: coordinatorNin.id,
+      user: coordinat36.id,
       firstName: 'uno',
       lastName: 'Kwanda',
     },
     {
-      user: coordinator10.id,
+      user: coordinat37.id,
       firstName: 'uno',
       lastName: 'Kwanda',
     },
