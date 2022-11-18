@@ -34,6 +34,12 @@ const seedUsers = async () => {
             organizations: ['Irembo'],
         },
         {
+          email: 'admin@kist.com',
+          password: hashSync('Andela123'),
+          role: 'admin',
+          organizations: ['Kist'],
+        },
+        {
             email: 'manager@devpulse.co',
             password: hashSync('Andela123'),
             role: 'manager',
@@ -129,11 +135,6 @@ const seedUsers = async () => {
             role: 'user',
             organizations: ['Andela'],
         },
-        
-
-
-
-
 
         {
           email: 'iranzi@pulse.co',
@@ -308,6 +309,66 @@ const seedUsers = async () => {
       },
       {
         email: 'byiza6@pulse.com',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'umukundwa@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'bajonge@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'mbera@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'witonze@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'zawadi@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'sogori@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'kanyama@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'murera@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'cedric@devpulse.co',
+        password: hashSync('Andela123'),
+        role: 'user',
+        organizations: ['Irembo'],
+      },
+      {
+        email:'mubyeyi@devpulse.co',
         password: hashSync('Andela123'),
         role: 'user',
         organizations: ['Irembo'],
@@ -523,7 +584,7 @@ const seedUsers = async () => {
           email: 'ishimwe@pulse.com',
           password: hashSync('Andela123'),
           role: 'user',
-          organizations: ['Kist1'],
+          organizations: ['Irembo'],
         },
         {
           email: 'ishimwe1@pulse.com',
@@ -873,6 +934,7 @@ const seedUsers = async () => {
     const admin2: any = await User.findOne({ email: 'admin2@devpulse.co' });
     const admin3: any = await User.findOne({ email: 'admin@mtn.com' });
     const adminIrembo: any = await User.findOne({ email: 'admin@irembo.com' });
+    const adminKist: any = await User.findOne({ email: 'admin@kist.com' });
     const admin4: any = await User.findOne({ email: 'admin3@devpulse.co' });
     const manager: any = await User.findOne({ email: 'manager@devpulse.co' });
     const manager3: any = await User.findOne({ email: 'manager2@devpulse.co' });
@@ -929,6 +991,16 @@ const seedUsers = async () => {
     const jose: any = await User.findOne({ email: 'jose@gmail.com' });
     const biganiro: any = await User.findOne({ email: 'biganiro@gmail.com' });
     const uwineza: any = await User.findOne({ email: 'uwineza@gmail.com' });
+    const zawadi: any  = await User.findOne({ email: 'zawadi@devpulse.co' });
+    const kanyama: any  = await User.findOne({ email: 'kanyama@devpulse.co' });
+    const sogori: any  = await User.findOne({ email: 'sogori@devpulse.co' });
+    const murera: any  = await User.findOne({ email: 'murera@devpulse.co' });
+    const cedric: any  = await User.findOne({ email: 'cedric@devpulse.co' });
+    const mubyeyi: any  = await User.findOne({ email: 'mubyeyi@devpulse.co' });
+    const witonze: any  = await User.findOne({ email: 'witonze@devpulse.co' });
+    const mbera: any  = await User.findOne({ email: 'mbera@devpulse.co' });
+    const bajonge: any  = await User.findOne({ email: 'bajonge@devpulse.co' });
+    const umukundwa: any  = await User.findOne({ email: 'umukundwa@devpulse.co' });
 const ishimwe: any = await User.findOne({ email: 'ishimwe@pulse.com' });
 const ishimwe1: any = await User.findOne({ email: 'ishimwe1@pulse.com' });
 const ishimwe2: any = await User.findOne({ email: 'ishimwe2@pulse.com' });
@@ -1054,6 +1126,12 @@ const ishimwe9: any = await User.findOne({ email: 'ishimwe9@pulse.com' });
             firstName: 'Admin',
             lastName: 'Irembo',
         },
+       {
+          user: adminKist.id,
+          firstName: 'Himbaza',
+          lastName: 'Alain Honore',
+      },
+
         {
             user: admin4.id,
             firstName: 'Admin',
@@ -1074,6 +1152,57 @@ const ishimwe9: any = await User.findOne({ email: 'ishimwe9@pulse.com' });
             firstName: 'Manager',
             lastName: 'MTN',
         },
+        {
+          user: zawadi.id,
+          firstName: 'Niyo',
+          lastName: 'Zawadi',
+        },
+        {
+          user: kanyama.id,
+          firstName: 'Kanyamanza',
+          lastName: 'Ben',
+        },
+        {
+          user: sogori.id,
+          firstName: 'Sogori',
+          lastName: 'Aime',
+        },
+        {
+          user: murera.id,
+          firstName: 'Murera',
+          lastName: 'Kanyanza',
+        },
+        {
+          user: cedric.id,
+          firstName: 'Dukundane',
+          lastName: 'Cedric',
+        },
+        {
+          user: mubyeyi.id,
+          firstName: 'Mubyeyi',
+          lastName: 'Sylivia',
+        },
+        {
+          user: witonze.id,
+          firstName: 'Witonze',
+          lastName: 'Kazungu',
+        },
+        {
+          user: mbera.id,
+          firstName: 'Mbera',
+          lastName: 'Matius',
+        },
+        {
+          user: bajonge.id,
+          firstName: 'Bajonge',
+          lastName: 'Silas',
+        },
+        {
+          user: umukundwa.id,
+          firstName: 'Umukundwa',
+          lastName: 'Emerance',
+        },
+    
         {
             user: managerIrembo.id,
             firstName: 'Manager',
