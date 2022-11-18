@@ -666,7 +666,7 @@ const manageStudentResolvers = {
         });
         const newToken: any = token.replaceAll('.', '*');
         const content = inviteUserTemplate(org.name, user.email, user.role);
-        const link = `https://devpulse-staging.herokuapp.com/register/${newToken}`;
+        const link = `${process.env.REGISTER_FRONTEND_URL}/${newToken}`;
         await sendEmail(
           email,
           'Invitation',
