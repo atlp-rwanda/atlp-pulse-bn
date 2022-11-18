@@ -1,7 +1,7 @@
 export default function generateTemplate({
   message,
   title = 'Notification Email',
-  link = 'https://king-prawn-app-au5ls.ondigitalocean.app',
+  link = `${process.env.FRONTEND_LINK}`,
 }: {
   message: string;
   title?: string;

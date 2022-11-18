@@ -346,7 +346,10 @@ const ratingResolvers = {
       })
     ),
     updateToReply: authenticated(
-        validateRole('trainee')(async (root, { 
+      validateRole('trainee')(
+        async (
+          root,
+          {
             user,
             sprint,
             quantity,
@@ -359,21 +362,26 @@ const ratingResolvers = {
             bodyQuantity,
             bodyProfessional,
             orgToken,
-        }) => {
-            org = await checkLoggedInOrganization(orgToken);
-            const oldData: any = await Rating.find({ user: user, sprint: sprint });
-            const updateReply = await Rating.findOneAndUpdate(
-                { user: user, sprint: sprint },
-            
-                {
-                bodyQuality: bodyQuality[0]?.toString(),
-                bodyQuantity: bodyQuantity[0]?.toString(),
-                bodyProfessional: bodyProfessional[0]?.toString(),
-                },
-                { new: true }
-            );
-            return [updateReply];
-        })
+          }
+        ) => {
+          org = await checkLoggedInOrganization(orgToken);
+          const oldData: any = await Rating.find({
+            user: user,
+            sprint: sprint,
+          });
+          const updateReply = await Rating.findOneAndUpdate(
+            { user: user, sprint: sprint },
+
+            {
+              bodyQuality: bodyQuality[0]?.toString(),
+              bodyQuantity: bodyQuantity[0]?.toString(),
+              bodyProfessional: bodyProfessional[0]?.toString(),
+            },
+            { new: true }
+          );
+          return [updateReply];
+        }
+      )
     ),
     rejectRating: authenticated(
       validateRole('admin')(async (root, { user, sprint }) => {
