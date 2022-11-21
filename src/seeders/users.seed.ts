@@ -75,31 +75,6 @@ const seedUsers = async () => {
       role: 'user',
       organizations: ['Andela'],
     },
-    {
-      email: 'test1@pulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['organization 3'],
-    },
-    {
-      email: 'admin3@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'admin',
-      organizations: ['organization 3'],
-    },
-    {
-      email: 'manager3@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'manager',
-      organizations: ['organization 3'],
-    },
-    {
-      email: 'coordinator3@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
-    },
-
     //mtn org
     //trainee
     {
@@ -219,13 +194,188 @@ const seedUsers = async () => {
       role: 'admin',
       organizations: ['MTN'],
     },
-    // {
-    //   email: 'admin@mtn.com',
-    //   password: hashSync('Andela123'),
-    //   role: 'admin',
-    //   organizations: ['MTN'],
-    // },
-    //admin
+    //organization3
+    {
+      email: 'test1@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'coordinator3@devpulse.co',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'admin3@devpulse.co',
+      password: hashSync('Andela123'),
+      role: 'admin',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'manager3@devpulse.co',
+      password: hashSync('Andela123'),
+      role: 'manager',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'coordinator4@devpulse.co',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'coordinator5@devpulse.co',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'coordinator6@devpulse.co',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'test3@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'test4@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'test5@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'test6@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'test7@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'test8@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+
+    {
+      email: 'inkuba@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba1@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba2@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba3@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba4@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba5@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba6@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'inkuba7@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'danydrink@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'mikedany@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'milestonedany@pulse.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'davedany@gmail.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'danydimtri@gmail.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'danyhelper@gmail.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'dannyclug@gmail.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'danychang@gmail.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
+    {
+      email: 'danychen@gmail.com',
+      password: hashSync('Andela123'),
+      role: 'user',
+      organizations: ['organization 3'],
+    },
   ];
   await User.deleteMany({});
   await User.insertMany(users);
@@ -248,9 +398,6 @@ const seedUsers = async () => {
   const coordinator1: any = await User.findOne({
     email: 'coordinator1@devpulse.co',
   });
-  const coordinator3: any = await User.findOne({
-    email: 'coordinator3@devpulse.co',
-  });
   const coordinatorMtn: any = await User.findOne({
     email: 'coordinator@mtn.com',
   });
@@ -263,6 +410,20 @@ const seedUsers = async () => {
   const coordinatorMtn4: any = await User.findOne({
     email: 'coordinator4@mtn.com',
   });
+  const coordinator3: any = await User.findOne({
+    email: 'coordinator3@devpulse.co',
+  });
+  //organization3
+  const coordinator4: any = await User.findOne({
+    email: 'coordinator4@devpulse.co',
+  });
+  const coordinator5: any = await User.findOne({
+    email: 'coordinator5@devpulse.co',
+  });
+  const coordinator6: any = await User.findOne({
+    email: 'coordinator6@devpulse.co',
+  });
+
   const trainee: any = await User.findOne({ email: 'trainee@devpulse.com' });
   const trainee2: any = await User.findOne({ email: 'trainee1@pulse.com' });
   const trainee3: any = await User.findOne({ email: 'trainee2@pulse.com' });
@@ -281,6 +442,31 @@ const seedUsers = async () => {
   const john4: any = await User.findOne({ email: 'john4@pulse.com' });
   const peter5: any = await User.findOne({ email: 'peter5@pulse.com' });
   const john5: any = await User.findOne({ email: 'john5@pulse.com' });
+
+  //organization 3
+  const test3: any = await User.findOne({ email: 'test3@pulse.com' });
+  const test4: any = await User.findOne({ email: 'test4@pulse.com' });
+  const test5: any = await User.findOne({ email: 'test5@pulse.com' });
+  const test6: any = await User.findOne({ email: 'test6@pulse.com' });
+  const test7: any = await User.findOne({ email: 'test7@pulse.com' });
+  const test8: any = await User.findOne({ email: 'test8@pulse.com' });
+  const inkuba: any = await User.findOne({ email: 'inkuba@pulse.com' });
+  const inkuba1: any = await User.findOne({ email: 'inkuba1@pulse.com' });
+  const inkuba2: any = await User.findOne({ email: 'inkuba2@pulse.com' });
+  const inkuba3: any = await User.findOne({ email: 'inkuba3@pulse.com' });
+  const inkuba4: any = await User.findOne({ email: 'inkuba4@pulse.com' });
+  const inkuba5: any = await User.findOne({ email: 'inkuba5@pulse.com' });
+  const inkuba6: any = await User.findOne({ email: 'inkuba6@pulse.com' });
+  const inkuba7: any = await User.findOne({ email: 'inkuba7@pulse.com' });
+  const dany: any = await User.findOne({ email: 'danydrink@pulse.com' });
+  const dany1: any = await User.findOne({ email: 'mikedany@pulse.com' });
+  const dany2: any = await User.findOne({ email: 'milestonedany@pulse.com' });
+  const dany3: any = await User.findOne({ email: 'davedany@gmail.com' });
+  const dany4: any = await User.findOne({ email: 'danydimtri@gmail.com' });
+  const dany5: any = await User.findOne({ email: 'danyhelper@gmail.com' });
+  const dany6: any = await User.findOne({ email: 'dannyclug@gmail.com' });
+  const dany7: any = await User.findOne({ email: 'danychang@gmail.com' });
+  const dany8: any = await User.findOne({ email: 'danychen@gmail.com' });
 
   const profiles = [
     {
@@ -314,17 +500,17 @@ const seedUsers = async () => {
       lastName: 'Byiringiro',
     },
     {
-      user: manager3.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
       user: managerMtn.id,
       firstName: 'Zaytzeff',
       lastName: 'Mtn',
     },
     {
       user: managerMtn2.id,
+      firstName: 'Manager',
+      lastName: 'MTN',
+    },
+    {
+      user: manager3.id,
       firstName: 'Manager',
       lastName: 'MTN',
     },
@@ -368,6 +554,23 @@ const seedUsers = async () => {
       firstName: 'coordinator',
       lastName: 'Org',
     },
+    //coordinator for organization3
+    {
+      user: coordinator4.id,
+      firstName: 'coordinator',
+      lastName: 'Org',
+    },
+    {
+      user: coordinator5.id,
+      firstName: 'coordinator',
+      lastName: 'Org',
+    },
+    {
+      user: coordinator6.id,
+      firstName: 'coordinator',
+      lastName: 'Org',
+    },
+    //end
     {
       user: trainee.id,
       firstName: 'John',
@@ -385,6 +588,11 @@ const seedUsers = async () => {
     },
     {
       user: trainee4.id,
+      firstName: 'Jimmy',
+      lastName: 'Obonyo',
+    },
+    {
+      user: trainee5.id,
       firstName: 'Jimmy',
       lastName: 'Obonyo',
     },
@@ -452,6 +660,124 @@ const seedUsers = async () => {
       user: john5.id,
       firstName: 'Oooo',
       lastName: 'Agarwal',
+    },
+    //organization 3
+    {
+      user: test3.id,
+      firstName: 'Mike',
+      lastName: 'Akello',
+    },
+    {
+      user: test4.id,
+      firstName: 'Steven',
+      lastName: 'Mugabo',
+    },
+    {
+      user: test5.id,
+      firstName: 'Charlotte',
+      lastName: 'Byiringiro',
+    },
+    {
+      user: test6.id,
+      firstName: 'Zaytzeff',
+      lastName: 'Amani',
+    },
+    {
+      user: test7.id,
+      firstName: 'Yvonne',
+      lastName: 'Mbabazi',
+    },
+    {
+      user: test8.id,
+      firstName: 'John',
+      lastName: 'Birungi',
+    },
+    {
+      user: inkuba.id,
+      firstName: 'Charlotte',
+      lastName: 'Byiringiro',
+    },
+    {
+      user: inkuba1.id,
+      firstName: 'Zaytzeff',
+      lastName: 'Amani',
+    },
+    {
+      user: inkuba2.id,
+      firstName: 'Yvonne',
+      lastName: 'Mbabazi',
+    },
+    {
+      user: inkuba3.id,
+      firstName: 'John',
+      lastName: 'Birungi',
+    },
+    {
+      user: inkuba4.id,
+      firstName: 'Peter',
+      lastName: 'Mbonyineza',
+    },
+    {
+      user: inkuba5.id,
+      firstName: 'Eric',
+      lastName: 'Mugisha',
+    },
+    {
+      user: inkuba6.id,
+      firstName: 'Jimmy',
+      lastName: 'Obonyo',
+    },
+    {
+      user: inkuba7.id,
+      firstName: 'James',
+      lastName: 'Kamana',
+    },
+
+    {
+      user: dany.id,
+      firstName: 'James',
+      lastName: 'Agarwal',
+    },
+    {
+      user: dany1.id,
+      firstName: 'James',
+      lastName: 'Agarwal',
+    },
+    {
+      user: dany2.id,
+      firstName: 'James',
+      lastName: 'Agarwal',
+    },
+    {
+      user: dany3.id,
+      firstName: 'James',
+      lastName: 'Agarwal',
+    },
+
+    {
+      user: dany4.id,
+      firstName: 'Peter',
+      lastName: 'Mbonyineza',
+    },
+    {
+      user: dany5.id,
+      firstName: 'Eric',
+      lastName: 'Mugisha',
+    },
+    {
+      user: dany6.id,
+      firstName: 'Jimmy',
+      lastName: 'Obonyo',
+    },
+    {
+      user: dany7.id,
+      firstName: 'James',
+      lastName: 'Kamana',
+    },
+    {
+      user: dany8.id,
+      firstName: 'Peter',
+      lastName: 'Okwadha',
     },
   ];
   await Profile.deleteMany({});
