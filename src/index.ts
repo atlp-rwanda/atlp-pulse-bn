@@ -16,6 +16,7 @@ import coordinatorSchema from './schema/coordinator.schema';
 import schema from './schema/index';
 import programSchema from './schema/program.schema';
 import replyResolver from './resolvers/reply.resolver';
+import { sendEmails } from './utils/sendEmails';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -50,8 +51,9 @@ export const server = new ApolloServer({
 
 const PORT: number = parseInt(process.env.PORT!) || 4000;
 
-connect().then(() => {
+connect().then (() => {
   console.log('Database Connected');
+ 
   server
     .listen({ port: PORT })
     .then(({ url }) => console.log(`Server ready at ${url}`));
