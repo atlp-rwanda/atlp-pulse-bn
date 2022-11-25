@@ -313,7 +313,7 @@ const resolvers: any = {
       const organization: any = await Organization.findOne({ name });
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
-          expiresIn: '2h',
+          expiresIn: '2w',
         });
         const data = {
           token: token,
