@@ -17,7 +17,7 @@ const manageStudentResolvers = {
   Query: {
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // get the organization if someone  logs in 
+        // get the organization if someone  logs in
         let org: InstanceType<typeof Organization>;
         org = await checkLoggedInOrganization(orgToken);
 
