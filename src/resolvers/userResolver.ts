@@ -352,7 +352,7 @@ const resolvers: any = {
       const superAdmin = await User.find({ role: 'superAdmin' });
 
       const content = registrationRequest(email, name, description);
-      const link: any = 'https://king-prawn-app-au5ls.ondigitalocean.app';
+      const link: any = 'https://devpulse-staging.herokuapp.com';
       return sendEmail(
         superAdmin[0].email,
         'Organisation registration request',
@@ -403,7 +403,7 @@ const resolvers: any = {
 
       // send the requester an email with his password
       const content = organizationCreatedTemplate(org.name, email, password);
-      const link: any = 'https://king-prawn-app-au5ls.ondigitalocean.app';
+      const link: any = 'https://devpulse-staging.herokuapp.com';
       // send an email to the user who desire the organization
       await sendEmail(
         email,

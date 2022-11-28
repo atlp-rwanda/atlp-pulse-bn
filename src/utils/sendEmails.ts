@@ -13,9 +13,10 @@ export const sendEmails = async (
 ) => {
   const transportOptions: any = {
     production: {
-      host: 'mail.privateemail.com',
-      port: 587,
-      secure: false,
+       host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        service: 'gmail',
       auth: {
         user: senderEmail,
         pass: senderPassword,
@@ -25,10 +26,10 @@ export const sendEmails = async (
       },
     },
     development: {
-      host: 'mail.privateemail.com',
-      port: 587,
-      secure: false, // use SSL
-      requireTLS: true,
+     host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        service: 'gmail',
       auth: {
         user: senderEmail,
         pass: senderPassword,

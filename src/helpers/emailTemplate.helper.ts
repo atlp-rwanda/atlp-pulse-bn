@@ -1,13 +1,13 @@
 export default function generateTemplate({
-  message,
-  title = 'Notification Email',
-  link = `${process.env.FRONTEND_LINK}`,
+    message,
+    title = 'Notification Email',
+    link = 'https://devpulse-staging.herokuapp.com',
 }: {
   message: string;
   title?: string;
   link?: string;
 }) {
-  return `
+    return `
 <!doctype html>
 <html lang="en-US">
 <head>
@@ -77,5 +77,5 @@ export default function generateTemplate({
     <!-- body table-->
 </body>
 </html>
-`;
+`
 }

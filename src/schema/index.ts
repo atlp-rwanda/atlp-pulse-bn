@@ -276,6 +276,7 @@ const Schema = gql`
     description: [String]!
     percentage: [String]!
     userId: String!
+    defaultGrading: Boolean
   }
   type Mutation {
     createRatingSystem(
@@ -285,7 +286,9 @@ const Schema = gql`
       percentage: [String]!
     ): ratingSystem!
     deleteRatingSystem(id: ID!): String!
+    makeRatingdefault(id: ID): String!
   }
+
   type Query {
     getRatingSystems: [ratingSystem]
     getRatingSystem(id: ID!): ratingSystem!

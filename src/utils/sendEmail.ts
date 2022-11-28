@@ -10,9 +10,10 @@ export const sendEmail = async (
   senderPassword: any
 ): Promise<any> => {
   const transport = nodemailer.createTransport({
-    host: 'mail.privateemail.com',
-    port: 587,
-    secure: false,
+    host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        service: 'gmail',
     auth: {
       user: senderEmail,
       pass: senderPassword,

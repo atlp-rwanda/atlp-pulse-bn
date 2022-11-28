@@ -1,5 +1,17 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { model, Schema } from 'mongoose';
+import {systemRating} from './ratingSystem';
+
+// const systemrating = async () => {
+//   const Id = (await systemRating.findOne({ name: name}))?.id;
+//   //  return Id
+//   console.log(Id)
+    
+  
+
+// }
+
+// const myId = systemrating()
 
 mongoose.set('toJSON', {
   virtuals: true,
@@ -124,6 +136,11 @@ const organizationSchema = new Schema({
     ref: 'User',
     required: true,
   },
+  // ratingSystem:{
+  //   type: mongoose.Types.ObjectId,
+  //   ref: 'systemRating',
+  //   default:[myId]
+  // }
 });
 
 const User = model('User', userSchema);

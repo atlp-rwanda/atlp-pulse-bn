@@ -22,8 +22,15 @@ const systemRating = mongoose.model(
     },
     percentage: {
       type: [String],
-      required: true,
+      required: false,
     },
+     defaultGrading: {
+      type: Boolean,
+      default: false,
+    },
+   
   })
 );
+
+
 export { systemRating };
