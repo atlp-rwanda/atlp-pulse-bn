@@ -23,6 +23,11 @@ const userSchema = new Schema({
     type: String,
     default: 'user',
   },
+  team: {
+    type: mongoose.Types.ObjectId,
+    required: false,
+    ref: 'Team',
+  },
   cohort: {
     type: mongoose.Types.ObjectId,
     required: false,
