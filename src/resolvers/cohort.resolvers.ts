@@ -5,6 +5,7 @@ import { checkLoggedInOrganization } from '../helpers/organization.helper';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
 import Cohort from '../models/cohort.model';
 import Program from '../models/program.model';
+import Phase from '../models/phase.model';
 import { Organization, User } from '../models/user';
 import { Context } from './../context';
 import { ProgramType } from './program.resolvers';
@@ -18,6 +19,9 @@ const resolvers = {
     async program(parent: any) {
       return await Program.findById(parent.program);
     },
+    async phase(parent: any) {
+      return await Phase.findById(parent.phase);
+    }
   },
   Query: {
     getAllCohorts: async (_: any, { orgToken }: any, context: Context) => {
@@ -67,7 +71,7 @@ const resolvers = {
       _: any,
       args: {
         name: string;
-        phase: string;
+        phaseName: string;
         coordinatorEmail: string;
         programName: string;
         startDate: Date;
@@ -79,7 +83,7 @@ const resolvers = {
         const {
           name,
           coordinatorEmail,
-          phase,
+          phaseName,
           programName,
           startDate,
           endDate,
@@ -91,11 +95,19 @@ const resolvers = {
           email: coordinatorEmail,
         });
         const program = await Program.findOne({ name: programName });
+        const phase = await Phase.findOne({ name: phaseName });
 
         // validate inputs
         if (await Cohort.findOne({ name })) {
           throw new ValidationError(`Cohort with name ${name} already exist`);
         }
+
+        if (!phase) {
+          throw new ValidationError(
+            `Phase with name ${phaseName} doesn't exist`
+          );
+        }
+
         if (!coordinator) {
           throw new ValidationError(
             `Coordinator with email ${coordinatorEmail} doesn't exist`
@@ -119,7 +131,7 @@ const resolvers = {
         const org = new Cohort({
           name,
           coordinator: coordinator.id,
-          phase,
+          phase: phase.id,
           program: program.id,
           startDate,
           endDate,
@@ -137,7 +149,7 @@ const resolvers = {
         id: any;
         orgToken: string;
         name: string;
-        phase: string;
+        phaseName: string;
         coordinatorEmail: string;
         programName: string;
         startDate: Date;
@@ -150,7 +162,7 @@ const resolvers = {
         orgToken,
         name,
         coordinatorEmail,
-        phase,
+        phaseName,
         programName,
         startDate,
         endDate,
@@ -166,6 +178,8 @@ const resolvers = {
         email: coordinatorEmail,
       });
       const program = await Program.findOne({ name: programName });
+      const phase = await Phase.findOne({ name: phaseName });
+
       const cohort = await Cohort.findById(id).populate({
         path: 'program',
         strictPopulate: false,
@@ -183,6 +197,11 @@ const resolvers = {
       if (!coordinator) {
         throw new ValidationError(
           `Coordinator with email ${coordinatorEmail} doesn't exist`
+        );
+      }
+      if (!phase) {
+        throw new ValidationError(
+          `Phase with name ${phaseName} doesn't exist`
         );
       }
       if (!program) {
@@ -240,7 +259,7 @@ const resolvers = {
       }
 
       name && (cohort.name = name);
-      phase && (cohort.phase = phase);
+      phaseName && (cohort.phase = phase.id);
       startDate && (cohort.startDate = startDate);
       endDate && (cohort.endDate = endDate);
       coordinatorEmail && (cohort.coordinator = coordinator.id);

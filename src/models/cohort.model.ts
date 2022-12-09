@@ -9,8 +9,9 @@ const cohortSchema = new Schema(
       required: true,
     },
     phase: {
-      type: String,
+      type: mongoose.Types.ObjectId,
       required: true,
+      ref: 'Phase', 
     },
     coordinator: {
       type: mongoose.Types.ObjectId,

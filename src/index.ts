@@ -17,6 +17,8 @@ import schema from './schema/index';
 import programSchema from './schema/program.schema';
 import replyResolver from './resolvers/reply.resolver';
 import { sendEmails } from './utils/sendEmails';
+import phaseResolver from './resolvers/phase.resolver';
+import phaseSchema from './schema/phase.schema';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -27,12 +29,14 @@ export const resolvers = mergeResolvers([
   manageStudentResolvers,
   ratingResolvers,
   replyResolver,
+  phaseResolver,
 ]);
 export const typeDefs = mergeTypeDefs([
   schema,
   cohortSchema,
   programSchema,
   coordinatorSchema,
+  phaseSchema
 ]);
 
 export const server = new ApolloServer({

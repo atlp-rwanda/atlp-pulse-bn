@@ -7,7 +7,7 @@ const Schema = gql`
     id: ID!
     name: String!
     coordinator: User!
-    phase: String!
+    phase: Phase!
     program: Program!
     members: [User]
     startDate: DateTime!
@@ -20,7 +20,7 @@ const Schema = gql`
   type Mutation {
     addCohort(
       name: String!
-      phase: String!
+      phaseName: String
       coordinatorEmail: String!
       programName: String!
       startDate: DateTime!
@@ -32,7 +32,7 @@ const Schema = gql`
       coordinatorEmail: String!
       programName: String!
       name: String
-      phase: String
+      phaseName: String
       startDate: DateTime
       endDate: DateTime
     ): Cohort
