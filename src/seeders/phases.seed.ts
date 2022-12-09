@@ -2,6 +2,7 @@ import Phase from '../models/phase.model';
 import { Organization, User } from '../models/user';
 
 const seedPhases = async () => {
+
   const phases = [
     {
       name: 'Phase I',

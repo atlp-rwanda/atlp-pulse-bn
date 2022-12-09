@@ -54,7 +54,7 @@ export const typeDefs = mergeTypeDefs([
   cohortSchema,
   programSchema,
   coordinatorSchema,
-  phaseSchema,
+  phaseSchema
 ]);
 
 (async function startApolloServer(typeDefs, resolvers) {

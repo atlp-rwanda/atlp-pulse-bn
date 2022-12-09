@@ -11,7 +11,7 @@ const cohortSchema = new Schema(
     phase: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Phase',
+      ref: 'Phase', 
     },
     coordinator: {
       type: mongoose.Types.ObjectId,

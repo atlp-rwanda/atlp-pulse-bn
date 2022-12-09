@@ -6,7 +6,7 @@ const Schema = gql`
   type Cohort {
     id: ID!
     name: String!
-    coordinator: User
+    coordinator: User!
     phase: Phase!
     program: Program!
     teams: String
