@@ -3,9 +3,10 @@ import { gql } from 'apollo-server';
 const Schema = gql`
   type Cohort {
     name: String
-    phase: String
+    phase: Phase
     coordinator: User
   }
+  
 
   type User {
     id: ID!
