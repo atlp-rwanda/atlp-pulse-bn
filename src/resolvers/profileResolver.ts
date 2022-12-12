@@ -1,8 +1,9 @@
-import { Context } from '../context';
-import { checkLoggedInOrganization } from '../helpers/organization.helper';
+import { Profile,Organization, User, UserRole } from '../models/user';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
-import { Profile, User, UserRole } from '../models/user';
+import { checkLoggedInOrganization } from '../helpers/organization.helper';
+import { Context } from './../context';
 
+let org: InstanceType<typeof Organization>;
 const profileResolvers: any = {
   Query: {
     getProfile: async (parent: any, args: any, context: any) => {
@@ -13,21 +14,27 @@ const profileResolvers: any = {
       const profile = await Profile.findOne({ user: userId });
       return profile;
     },
-    getAllUsers: async (
-      _: any,
-      args: {
-        orgToken: string;
-      },
-      context: Context
-    ) => {
-      (await checkUserLoggedIn(context))(['superAdmin', 'admin']);
-      const org = await checkLoggedInOrganization(args.orgToken);
-      const users = await User.find({
-        organizations: org?.name,
-        role: { $in: ['user', 'coordinator', 'manager', 'admin'] },
-      }).populate('cohort');
+    async getAllUsers() {
+      const users = await User.find({}).populate('cohort');
       return users;
     },
+
+    async getAllCoordinatorUsers(_: any, { orgToken }: any, context: Context) {
+
+      org = await checkLoggedInOrganization(orgToken);
+           (await checkUserLoggedIn(context))([
+            'superAdmin',
+            'admin',
+            'manager',
+        ]);
+      const Coordusers = await User.find({role: 'coordinator', organization: org}).populate('cohort');
+      return Coordusers;
+    },
+
+
+
+
+
     async getAllRoles() {
       const roles = await UserRole.find({});
       return roles;

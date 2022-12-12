@@ -1,58 +1,58 @@
-import nodemailer from 'nodemailer';
-import generateTemplate from '../helpers/emailForTrainee.helper';
+import nodemailer from 'nodemailer'
+import generateTemplate from '../helpers/emailForTrainee.helper'
 
-const mode = process.env.NODE_ENV || 'development';
+const mode = process.env.NODE_ENV || 'development'
 
 export const sendEmails = async (
-  senderEmail: any,
-  senderPassword: any,
-  receiver: any,
-  subject: any,
-  content: any,
-  title: any
+    senderEmail: any,
+    senderPassword: any,
+    receiver: any,
+    subject: any,
+    content: any,
+    title: any
 ) => {
-  const transportOptions: any = {
-    production: {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      service: 'gmail',
-      auth: {
-        user: senderEmail,
-        pass: senderPassword,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    },
-    development: {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      service: 'gmail',
-      auth: {
-        user: senderEmail,
-        pass: senderPassword,
-      },
-    },
-  };
-
-  const transport = nodemailer.createTransport(
-    transportOptions[mode] || transportOptions.development
-  );
-
-  const mailOptions = {
-    from: senderEmail,
-    to: receiver,
-    subject: subject,
-    html: generateTemplate(content, title),
-  };
-
-  transport.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return console.log(error);
+    const transportOptions: any = {
+        production: {
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            service: 'gmail',
+            auth: {
+                user: senderEmail,
+                pass: senderPassword,
+            },
+            tls: {
+                rejectUnauthorized: false,
+            },
+        },
+        development: {
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            service: 'gmail',
+            auth: {
+                user: senderEmail,
+                pass: senderPassword,
+            },
+        },
     }
-    console.log('Message sent: %s', info);
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-  });
-};
+
+    const transport = nodemailer.createTransport(
+        transportOptions[mode] || transportOptions.development
+    )
+
+    const mailOptions = {
+        from: senderEmail,
+        to: receiver,
+        subject: subject,
+        html: generateTemplate(content, title),
+    }
+
+    transport.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return console.log(error)
+        }
+        console.log('Message sent: %s', info)
+        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+    })
+}
