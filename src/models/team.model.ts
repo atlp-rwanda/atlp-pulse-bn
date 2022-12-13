@@ -21,6 +21,11 @@ const teamSchema = new Schema(
       required: true,
       default: true,
     },
+    organization: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
+    },
   },
   {
     statics: {

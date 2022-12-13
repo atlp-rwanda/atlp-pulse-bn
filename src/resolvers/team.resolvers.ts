@@ -36,7 +36,7 @@ const resolvers = {
         const adminMatch = { _id: org?.id, admin: userId };
 
         return (
-          await Team.find().populate({
+          await Team.find({ organization: org }).populate({
             path: 'cohort',
             match: role === 'manager' && managerMatch,
             model: Cohort,
@@ -83,7 +83,7 @@ const resolvers = {
         const adminMatch = { _id: org?.id, admin: userId };
 
         return (
-          await Team.find().populate({
+          await Team.find({ organization: org }).populate({
             path: 'cohort',
             match: role === 'manager' && managerMatch,
             model: Cohort,
@@ -182,18 +182,21 @@ const resolvers = {
       args: {
         name: string;
         cohortName: string;
+        orgToken: string;
       },
       context: Context
     ) => {
       try {
-        const { name, cohortName } = args;
+        const { name, cohortName, orgToken } = args;
 
         // some validations
         (await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager']);
         const cohort = await Cohort.findOne({ name: cohortName });
 
+        const organ = await checkLoggedInOrganization(orgToken);
+        
         // validate inputs
-        if (await Team.findOne({ name })) {
+        if (await Team.findOne({ name, organization: organ?.id })) {
           throw new ValidationError(`Team with name ${name} already exist`);
         }
         if (!cohort) {
@@ -205,6 +208,7 @@ const resolvers = {
         const org = new Team({
           name,
           cohort: cohort.id,
+          organization: organ?.id,
         });
         cohort.teams = cohort.teams + 1;
         cohort.save();
@@ -261,12 +265,14 @@ const resolvers = {
 
       const cohortProgram = team?.cohort?.program as ProgramType;
       const cohortOrg = cohortProgram.organization as OrganizationType;
+      const org = await checkLoggedInOrganization(orgToken);
+
 
       if (!team) {
         throw new ValidationError(`team with id "${id}" doesn't exist`);
       }
 
-      if (name && name !== team.name && (await Team.findOne({ name }))) {
+      if (name && name !== team.name && (await Team.findOne({ name, organization: org?.id }))) {
         throw new ValidationError(`Team with name ${name} already exist`);
       }
 

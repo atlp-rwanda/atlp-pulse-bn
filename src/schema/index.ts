@@ -279,7 +279,7 @@ const Schema = gql`
       confirmPassword: String!
       token: String!
     ): String!
-    addTeam(name: String!, cohortName: String!): Team!
+    addTeam(name: String!, cohortName: String!, orgToken: String!): Team!
   }
   type ratingSystem {
     id: ID!
@@ -296,15 +296,16 @@ const Schema = gql`
       grade: [String]!
       description: [String]!
       percentage: [String]!
+      orgToken: String!
     ): ratingSystem!
-    deleteRatingSystem(id: ID!): String!
+    deleteRatingSystem(id: ID!, orgToken: String): String!
     makeRatingdefault(id: ID): String!
   }
 
   type Query {
-    getRatingSystems: [ratingSystem]
+    getRatingSystems(orgToken: String!): [ratingSystem]
     getDefaultGrading: [ratingSystem]
-    getRatingSystem(id: ID!): ratingSystem!
+    getRatingSystem(id: ID!, orgToken: String!): ratingSystem!
   }
   type Notifications {
     id: ID!

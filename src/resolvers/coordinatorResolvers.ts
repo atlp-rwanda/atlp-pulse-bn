@@ -28,14 +28,9 @@ const manageStudentResolvers = {
           'manager',
           'coordinator',
         ]);
-        return (await User.find({ role: 'user' })).filter((user: any) => {
+        return (await User.find({ role: 'user',organizations:org?.name })).filter((user: any) => {
           return (
-            ((user.cohort == null &&
-              user.organizations.includes(org.name) &&
-              user.organizations.includes(org.name)) ||
-              (user.cohort == undefined &&
-                user.organizations.includes(org.name))) &&
-            user.organizations.includes(org.name)
+            ((user.cohort == null || user.cohort == undefined))
           );
         });
       } catch (error) {

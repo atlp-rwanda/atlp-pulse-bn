@@ -10,10 +10,10 @@ const seedsystemRatings = async () => {
       description: [
         'Exceed Expectation',
         'Met expectation',
-        'Below Expectation',
+        'Below Expectation'
       ],
       percentage: ['75-100', '50-75', '35-50'],
-      // organization: (await Organization.find())[0]?.id
+      organization: (await Organization.find())[0]?.id
     },
     {
       userId: '2',
@@ -22,9 +22,10 @@ const seedsystemRatings = async () => {
       description: [
         'Exceed Expectation',
         'Met expectation',
-        'Below Expectation',
+        'Below Expectation'
       ],
       percentage: ['75-100', '50-75', '35-50'],
+      organization: (await Organization.find())[1]?.id
     },
   ];
   await systemRating.deleteMany({});
