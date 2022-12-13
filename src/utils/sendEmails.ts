@@ -13,10 +13,10 @@ export const sendEmails = async (
 ) => {
   const transportOptions: any = {
     production: {
-       host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      service: 'gmail',
       auth: {
         user: senderEmail,
         pass: senderPassword,
@@ -26,10 +26,10 @@ export const sendEmails = async (
       },
     },
     development: {
-     host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      service: 'gmail',
       auth: {
         user: senderEmail,
         pass: senderPassword,

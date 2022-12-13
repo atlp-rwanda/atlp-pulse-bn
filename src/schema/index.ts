@@ -8,6 +8,11 @@ const Schema = gql`
   }
   
 
+  type Team {
+    id: ID!
+    name: String
+    cohort: Cohort
+  }
   type User {
     id: ID!
     role: String!
@@ -16,6 +21,7 @@ const Schema = gql`
     profile: Profile
     cohort: Cohort
     organizations: [String!]!
+    team: Team
   }
   input RegisterInput {
     email: String!
@@ -176,6 +182,8 @@ const Schema = gql`
     fetchAllRatings(orgToken: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
     verifyResetPasswordToken(token: String!): String
+    getAllTeams(orgToken: String): [Team!]
+    getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
   }
 
   type Mutation {
@@ -269,6 +277,7 @@ const Schema = gql`
       confirmPassword: String!
       token: String!
     ): String!
+    addTeam(name: String!, cohortName: String!): Team!
   }
   type ratingSystem {
     id: ID!
@@ -306,6 +315,7 @@ const Schema = gql`
   type Query {
     getReplies: [Notifications]
     getRepliesByUser(userId: String): [Notifications]
+    getTeamTrainees(orgToken: String, team: String): [User]
   }
 
   type Mutation {
@@ -316,6 +326,8 @@ const Schema = gql`
       bodyProfessional: String
     ): Notifications!
     deleteReply(id: ID): String!
+    deleteTeam(id: ID!): String!
+    updateTeam(id: ID!, orgToken: String, name: String): Team
   }
 `;
 export default Schema;

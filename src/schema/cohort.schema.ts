@@ -7,9 +7,9 @@ const Schema = gql`
     id: ID!
     name: String!
     coordinator: User!
-    phase: Phase
+    phase: Phase!
     program: Program!
-    members: [User]
+    teams: String
     startDate: DateTime!
     endDate: DateTime
   }

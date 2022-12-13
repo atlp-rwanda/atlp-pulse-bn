@@ -19,6 +19,7 @@ import replyResolver from './resolvers/reply.resolver';
 import { sendEmails } from './utils/sendEmails';
 import phaseResolver from './resolvers/phase.resolver';
 import phaseSchema from './schema/phase.schema';
+import teamResolver from './resolvers/team.resolvers';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -30,13 +31,14 @@ export const resolvers = mergeResolvers([
   ratingResolvers,
   replyResolver,
   phaseResolver,
+  teamResolver,
 ]);
 export const typeDefs = mergeTypeDefs([
   schema,
   cohortSchema,
   programSchema,
   coordinatorSchema,
-  phaseSchema
+  phaseSchema,
 ]);
 
 export const server = new ApolloServer({
@@ -55,9 +57,9 @@ export const server = new ApolloServer({
 
 const PORT: number = parseInt(process.env.PORT!) || 4000;
 
-connect().then (() => {
+connect().then(() => {
   console.log('Database Connected');
- 
+
   server
     .listen({ port: PORT })
     .then(({ url }) => console.log(`Server ready at ${url}`));

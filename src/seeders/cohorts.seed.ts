@@ -5,13 +5,14 @@ import { User } from '../models/user';
 
 const seedCohorts = async () => {
   const coordinatorId = (await User.findOne({ role: 'coordinator' }))?.id;
-  const phases=(await Phase.find())
+  const phases = await Phase.find();
   const cohorts = [
     {
       name: 'cohort 1',
       phase: phases[1]?.id,
       coordinator: coordinatorId,
       program: (await Program.find())[0].id,
+      teams: 2,
       active: true,
       startDate: new Date(),
       endDate: new Date(),
