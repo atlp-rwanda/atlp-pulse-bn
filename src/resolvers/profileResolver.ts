@@ -13,20 +13,25 @@ const profileResolvers: any = {
       const profile = await Profile.findOne({ user: userId });
       return profile;
     },
-    getAllUsers: async (
-      _: any,
-      args: {
-        orgToken: string;
-      },
-      context: Context
-    ) => {
-      (await checkUserLoggedIn(context))(['superAdmin', 'admin']);
-      const org = await checkLoggedInOrganization(args.orgToken);
-      const users = await User.find({
-        organizations: org?.name,
-        role: { $in: ['user', 'coordinator', 'manager', 'admin'] },
-      }).populate('cohort');
-      return users;
+    async getAllUsers() {
+       return (
+          await User.find({}).populate({
+            path: 'team',
+            strictPopulate: false,
+            populate: {
+              path: 'cohort',
+              strictPopulate: false,
+              populate: {
+                path: 'program',
+                strictPopulate: false,
+                populate: {
+                  path: 'organization',
+                  strictPopulate: false,
+                },
+              },
+            },
+          })
+        )
     },
     async getAllRoles() {
       const roles = await UserRole.find({});
