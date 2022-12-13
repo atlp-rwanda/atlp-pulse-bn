@@ -10,6 +10,7 @@ import inviteUserTemplate from '../utils/templates/inviteUserTemplate';
 import { sendEmail } from '../utils/sendEmail';
 import { Context } from './../context';
 import Program from '../models/program.model';
+import Team from '../models/team.model';
 
 const SECRET: string = process.env.SECRET || 'test_secret';
 
@@ -57,31 +58,34 @@ const manageStudentResolvers = {
 
         return (
           await User.find({ role: 'trainee' }).populate({
-            path: 'cohort',
+            path: 'team',
             strictPopulate: false,
             populate: {
-              path: 'program',
+              path: 'cohort',
               strictPopulate: false,
               populate: {
-                path: 'organization',
+                path: 'program',
                 strictPopulate: false,
+                populate: {
+                  path: 'organization',
+                  strictPopulate: false,
+                },
               },
             },
           })
         ).filter((user: any) => {
           if (role === 'admin') {
             return (
-              user.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(user.cohort?.program?.organization.admin).replace(
-                /['"]+/g,
-                ''
-              ) == userId
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(
+                user.team?.cohort?.program?.organization.admin
+              ).replace(/['"]+/g, '') == userId
             );
           }
           if (role === 'manager') {
             return (
-              user.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(user.cohort?.program?.manager).replace(
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.team?.cohort?.program?.manager).replace(
                 /['"]+/g,
                 ''
               ) == userId
@@ -89,9 +93,11 @@ const manageStudentResolvers = {
           }
           if (role === 'coordinator') {
             return (
-              user.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(user.cohort?.coordinator).replace(/['"]+/g, '') ==
-                userId
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.team?.cohort?.coordinator).replace(
+                /['"]+/g,
+                ''
+              ) == userId
             );
           }
         });
@@ -119,37 +125,41 @@ const manageStudentResolvers = {
 
         return (
           await User.find({ role: 'trainee' }).populate({
-            path: 'cohort',
+            path: 'team',
 
             strictPopulate: false,
-            //
             populate: {
-              path: 'program',
+              path: 'cohort',
+
               strictPopulate: false,
               //
               populate: {
-                path: 'organization',
-                //
+                path: 'program',
                 strictPopulate: false,
+                //
+                populate: {
+                  path: 'organization',
+                  //
+                  strictPopulate: false,
+                },
               },
             },
           })
         ).filter((user: any) => {
           if (role === 'admin') {
             return (
-              user.cohort.name == cohort &&
-              user.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(user.cohort?.program?.organization.admin).replace(
-                /['"]+/g,
-                ''
-              ) == userId
+              user.team?.cohort?.name == cohort &&
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(
+                user.team?.cohort?.program?.organization.admin
+              ).replace(/['"]+/g, '') == userId
             );
           }
           if (role === 'manager') {
             return (
-              user.cohort.name == cohort &&
-              user.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(user.cohort?.program?.manager).replace(
+              user.team?.cohort?.name == cohort &&
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.team?.cohort?.program?.manager).replace(
                 /['"]+/g,
                 ''
               ) == userId
@@ -157,10 +167,12 @@ const manageStudentResolvers = {
           }
           if (role === 'coordinator') {
             return (
-              user.cohort.name == cohort &&
-              user.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(user.cohort?.coordinator).replace(/['"]+/g, '') ==
-                userId
+              user.team?.cohort?.name == cohort &&
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.team?.cohort?.coordinator).replace(
+                /['"]+/g,
+                ''
+              ) == userId
             );
           }
         });
@@ -238,9 +250,9 @@ const manageStudentResolvers = {
     },
   },
   Mutation: {
-    async addMemberToCohort(
+    async addMemberToTeam(
       _: any,
-      { cohortName, email, orgToken }: any,
+      { teamName, email, orgToken }: any,
       context: any
     ) {
       // coordinator validation
@@ -254,18 +266,7 @@ const manageStudentResolvers = {
       let org: InstanceType<typeof Organization>;
       org = await checkLoggedInOrganization(orgToken);
 
-      const cohort: any = await Cohort.findOne({ name: cohortName }).populate({
-        path: 'program',
-        model: Program,
-        strictPopulate: false,
-        populate: {
-          path: 'organization',
-          model: Organization,
-          strictPopulate: false,
-        },
-      });
-
-      const user: any = await User.findOne({ email }).populate({
+      const team: any = await Team.findOne({ name: teamName }).populate({
         path: 'cohort',
         model: Cohort,
         strictPopulate: false,
@@ -281,32 +282,58 @@ const manageStudentResolvers = {
         },
       });
 
-      if (cohort && user) {
-        if (cohort.program.organization.name !== org?.name) {
-          throw new Error(
-            " You logged into an organization that doesn't have such a cohort"
-          );
-        }
-        const programId = cohort.program.id;
-
-        const checkCohort = await Cohort.find({}).populate({
-          path: 'program',
-          model: 'Program',
+      const user: any = await User.findOne({ email }).populate({
+        path: 'team',
+        model: Team,
+        strictPopulate: false,
+        populate: {
+          path: 'cohort',
+          model: Cohort,
           strictPopulate: false,
           populate: {
-            path: 'organization',
-            model: Organization,
+            path: 'program',
+            model: Program,
             strictPopulate: false,
+            populate: {
+              path: 'organization',
+              model: Organization,
+              strictPopulate: false,
+            },
+          },
+        },
+      });
+
+      if (team && user) {
+        if (team.cohort.program.organization.name !== org?.name) {
+          throw new Error(
+            " You logged into an organization that doesn't have such a team"
+          );
+        }
+        const programId = team.cohort.program.id;
+
+        const checkTeam = await Team.find({}).populate({
+          path: 'cohort',
+          model: Cohort,
+          strictPopulate: false,
+          populate: {
+            path: 'program',
+            model: Program,
+            strictPopulate: false,
+            populate: {
+              path: 'organization',
+              model: Organization,
+              strictPopulate: false,
+            },
           },
         });
-        const results: any[] = checkCohort.filter((cohort: any) => {
+        const results: any[] = checkTeam.filter((team: any) => {
           return (
-            cohort.program?.id === programId &&
-            cohort.program?.organization?.name === org?.name
+            team.cohort.program?.id === programId &&
+            team.cohort.program?.organization?.name === org?.name
           );
         });
 
-        const checkCohortMember = results.reduce((prev: any, next: any) => {
+        const checkTeamMember = results.reduce((prev: any, next: any) => {
           const members = next.members?.filter((member: any) => {
             return member.toString() === user.id.toString();
           });
@@ -316,13 +343,14 @@ const manageStudentResolvers = {
           }
           return prev;
         }, []);
-        if (checkCohortMember.length > 0) {
+
+        if (checkTeamMember.length > 0) {
           throw new Error(
-            `This member is already added to '${checkCohortMember[0].name}' cohort`
+            `This member is already added to '${checkTeamMember[0].name}' cohort`
           );
         }
-        if (!user.cohort) {
-          if (user.cohort === undefined) {
+        if (!user.team) {
+          if (user.team === undefined) {
             if (role === 'admin') {
               const organization: any = await Organization.findOne({
                 _id: org.id,
@@ -395,13 +423,14 @@ const manageStudentResolvers = {
             }
           }
 
-          user.cohort = cohort.id;
+          user.team = team.id;
+          user.cohort = team.cohort.id;
           user.role = 'trainee';
           await user.save();
-          await cohort.members.push(user.id);
-          await cohort.save();
+          await team.members.push(user.id);
+          await team.save();
 
-          return `member with email ${email} is successfully added to cohort '${cohort.name}'`;
+          return `member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`;
         }
         if (user.cohort) {
           if (
@@ -409,7 +438,7 @@ const manageStudentResolvers = {
             user.cohort.program.organization.name === org?.name
           ) {
             throw new Error(
-              ` This user is already part of another cohort  '${user.cohort.name}' in program '${cohort.program.name}'`
+              ` This user is already part of another team '${user.team.cohort.name}' in program '${team.cohort.program.name}'`
             );
           }
           if (
@@ -512,7 +541,7 @@ const manageStudentResolvers = {
 
     async editMember(
       _: any,
-      { removedFromcohortName, addedTocohortName, email, orgToken }: any,
+      { removedFromTeamName, addedToTeamName, email, orgToken }: any,
       context: any
     ) {
       // coordinator validation
@@ -527,6 +556,29 @@ const manageStudentResolvers = {
       org = await checkLoggedInOrganization(orgToken);
 
       const checkMember: any = await User.findOne({ email }).populate({
+        path: 'team',
+        model: Team,
+        strictPopulate: false,
+        populate: {
+          path: 'cohort',
+          model: Cohort,
+          strictPopulate: false,
+          populate: {
+            path: 'program',
+            model: Program,
+            strictPopulate: false,
+            populate: {
+              path: 'organization',
+              model: Organization,
+              strictPopulate: false,
+            },
+          },
+        },
+      });
+
+      const addedToTeam: any = await Team.findOne({
+        name: addedToTeamName,
+      }).populate({
         path: 'cohort',
         model: Cohort,
         strictPopulate: false,
@@ -542,77 +594,74 @@ const manageStudentResolvers = {
         },
       });
 
-      const addedToCohort: any = await Cohort.findOne({
-        name: addedTocohortName,
-      }).populate({
-        path: 'program',
-        model: Program,
-        strictPopulate: false,
-        populate: {
-          path: 'organization',
-          model: Organization,
-          strictPopulate: false,
-        },
-      });
-
-      if (checkMember && addedToCohort) {
+      if (checkMember && addedToTeam) {
         if (
-          (checkMember.cohort?.program.organization.admin._id.toString() ==
-            userId?.toString() &&
-            checkMember.cohort?.program?.organization?.name == org?.name &&
-            checkMember.cohort?.name == removedFromcohortName) ||
-          (checkMember.cohort?.program.manager._id.toString() ==
-            userId?.toString() &&
-            checkMember.cohort?.program?.organization?.name == org?.name &&
-            checkMember.cohort?.name == removedFromcohortName) ||
-          (checkMember.cohort?.coordinator._id.toString() ==
-            userId?.toString() &&
-            checkMember.cohort?.program?.organization?.name == org?.name &&
-            checkMember.cohort?.name == removedFromcohortName)
+          (checkMember.team?.cohort?.program.organization.admin?._id
+            .toString()
+            .replace(/ObjectId\("(.*)"\)/, '$1') == userId?.toString() &&
+            checkMember.team?.cohort?.program?.organization?.name ==
+              org?.name &&
+            checkMember.team?.name == removedFromTeamName) ||
+          (checkMember.team?.cohort?.program.manager?._id
+            .toString()
+            .replace(/ObjectId\("(.*)"\)/, '$1') == userId?.toString() &&
+            checkMember.team?.cohort?.program?.organization?.name ==
+              org?.name &&
+            checkMember.team?.name == removedFromTeamName) ||
+          (checkMember.cohort?.coordinator?._id
+            .toString()
+            .replace(/ObjectId\("(.*)"\)/, '$1') == userId?.toString() &&
+            checkMember.team?.cohort?.program?.organization?.name ==
+              org?.name &&
+            checkMember.team?.name == removedFromTeamName)
         ) {
-          const memberCheck = checkMember.cohort?.members.filter(
+          const memberCheck = checkMember.team?.members.filter(
             (member: any) => {
               return member.toString() == checkMember.id.toString();
             }
           );
 
           if (memberCheck[0].toString() == checkMember.id.toString()) {
-            (checkMember.cohort.members = checkMember.cohort?.members.filter(
+            (checkMember.team.members = checkMember.team?.members.filter(
               (member: any) => {
                 return member.toString() !== checkMember.id.toString();
               }
             )),
-              await checkMember.cohort.save();
+              await checkMember.team.save();
           }
         } else {
           throw new Error('This member is not in this cohort');
         }
 
-        if (addedToCohort.program.organization.name !== org?.name) {
+        if (addedToTeam.cohort?.program.organization.name !== org?.name) {
           throw new Error(
             " You logged into an organization that doesn't have such a cohort"
           );
         }
-        const programId = addedToCohort.program.id;
+        const programId = addedToTeam.cohort?.program.id;
 
-        const checkCohort = await Cohort.find({}).populate({
-          path: 'program',
-          model: 'Program',
+        const checkTeam = await Team.find({}).populate({
+          path: 'cohort',
+          model: 'Cohort',
           strictPopulate: false,
           populate: {
-            path: 'organization',
-            model: Organization,
+            path: 'program',
+            model: Program,
             strictPopulate: false,
+            populate: {
+              path: 'organization',
+              model: Organization,
+              strictPopulate: false,
+            },
           },
         });
-        const results: any[] = checkCohort.filter((cohort: any) => {
+        const results: any[] = checkTeam.filter((team: any) => {
           return (
-            cohort.program?.id === programId &&
-            cohort.program?.organization?.name === org?.name
+            team.cohort?.program?.id === programId &&
+            team.cohort?.program?.organization?.name === org?.name
           );
         });
-
-        const checkCohortMember = results.reduce((prev: any, next: any) => {
+        const checkTeamMember = results.reduce((prev: any, next: any) => {
           const members = next.members?.filter((member: any) => {
             return member.toString() === checkMember.id.toString();
           });
@@ -622,17 +671,17 @@ const manageStudentResolvers = {
           }
           return prev;
         }, []);
-        if (checkCohortMember.length > 0) {
+        if (checkTeamMember.length > 0) {
           throw new Error(
-            `This member is already added to '${checkCohortMember[0].name}' cohort`
+            `This member is already added to '${checkTeamMember[0].name}' cohort`
           );
         }
-        if (checkMember.cohort) {
-          checkMember.cohort = addedToCohort.id;
+        if (checkMember.team) {
+          checkMember.team = addedToTeam.id;
           await checkMember.save();
-          await addedToCohort.members.push(checkMember.id);
-          await addedToCohort.save();
-          return `member with email ${email} is successfully added to cohort '${addedToCohort.name}'`;
+          await addedToTeam.members.push(checkMember.id);
+          await addedToTeam.save();
+          return `member with email ${email} is successfully added to cohort '${addedToTeam.name}'`;
         }
         if (!checkMember.cohort) {
           throw new Error(
