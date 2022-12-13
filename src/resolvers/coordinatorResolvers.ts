@@ -18,7 +18,7 @@ const manageStudentResolvers = {
   Query: {
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // get the organization if someone  logs in
+        // get the organization if someone  logs in 
         let org: InstanceType<typeof Organization>;
         org = await checkLoggedInOrganization(orgToken);
 
@@ -364,7 +364,7 @@ const manageStudentResolvers = {
               ) {
                 const content = getOrganizationTemplate(org.name);
                 const link: any =
-                  'https://devpulse-staging.herokuapp.com/login/org';
+                  'https://metron-devpulse.vercel.app/login/org';
                 await sendEmail(
                   user.email,
                   'Organization membership notice',
@@ -385,7 +385,7 @@ const manageStudentResolvers = {
               if (program.organization._id.toString() == org?.id.toString()) {
                 const content = getOrganizationTemplate(org.name);
                 const link: any =
-                  'https://devpulse-staging.herokuapp.com/login/org';
+                  'https://metron-devpulse.vercel.app//login/org';
                 await sendEmail(
                   user.email,
                   'Organization membership notice',

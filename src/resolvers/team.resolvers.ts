@@ -67,6 +67,7 @@ const resolvers = {
         const { userId, role } = (await checkUserLoggedIn(context))([
           'superAdmin',
           'admin',
+          'coordinator',
           'manager',
         ]);
 

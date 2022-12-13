@@ -17,8 +17,8 @@ const seedOrganizations = async () => {
       admin: admin[1]._id,
     },
   ];
-  await Organization.deleteMany({});
 
+  await Organization.deleteMany({});
   await Organization.insertMany(organizations);
   return null;
 };

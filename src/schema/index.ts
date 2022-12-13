@@ -82,7 +82,6 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
-    reply: [Notifications]
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -95,12 +94,13 @@ const Schema = gql`
     approved: Boolean!
     coordinator: String!
     cohort: Cohort!
+    average: String
   }
 
   type AddRating {
     user: User!
     sprint: Int!
-    reply: [Notifications]
+    cohort: Cohort!
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -110,6 +110,7 @@ const Schema = gql`
     professional_Skills: String!
     professionalRemark: String
     bodyProfessional: String
+    average: String
     approved: Boolean!
     coordinator: String!
   }
@@ -179,6 +180,7 @@ const Schema = gql`
     fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
     fetchRatingsTrainee: [Rating]
     fetchAllRatings(orgToken: String): [Rating]
+    fetchRatingByCohort(CohortName: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
     verifyResetPasswordToken(token: String!): String
     getAllTeams(orgToken: String): [Team!]
@@ -234,6 +236,7 @@ const Schema = gql`
       quantity: String!
       quantityRemark: String
       quality: String!
+      cohort: String!
       bodyQuality: String
       qualityRemark: String
       professional_Skills: String!
@@ -285,6 +288,7 @@ const Schema = gql`
     description: [String]!
     percentage: [String]!
     userId: String!
+    defaultGrading: Boolean
   }
   type Mutation {
     createRatingSystem(
@@ -294,9 +298,12 @@ const Schema = gql`
       percentage: [String]!
     ): ratingSystem!
     deleteRatingSystem(id: ID!): String!
+    makeRatingdefault(id: ID): String!
   }
+
   type Query {
     getRatingSystems: [ratingSystem]
+    getDefaultGrading: [ratingSystem]
     getRatingSystem(id: ID!): ratingSystem!
   }
   type Notifications {
@@ -324,9 +331,9 @@ const Schema = gql`
       bodyQuality: String
       bodyProfessional: String
     ): Notifications!
-    deleteReply(id: ID): String!
     deleteTeam(id: ID!): String!
     updateTeam(id: ID!, orgToken: String, name: String): Team
+    deleteReply: String!
   }
 `;
 export default Schema;

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { model, Schema } from 'mongoose';
-
+import {systemRating} from './ratingSystem';
 mongoose.set('toJSON', {
   virtuals: true,
   versionKey: false,
