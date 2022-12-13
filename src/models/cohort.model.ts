@@ -11,7 +11,7 @@ const cohortSchema = new Schema(
     phase: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Phase', 
+      ref: 'Phase',
     },
     coordinator: {
       type: mongoose.Types.ObjectId,
@@ -23,9 +23,9 @@ const cohortSchema = new Schema(
       required: true,
       ref: 'Program',
     },
-    members: {
-      type: [mongoose.Types.ObjectId],
-      ref: 'User',
+    teams: {
+      type: Number,
+      default: 0,
     },
     active: {
       type: Boolean,
