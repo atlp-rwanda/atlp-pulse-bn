@@ -12,8 +12,8 @@ const Schema = gql`
     message: String
   }
   type Mutation {
-    addMemberToCohort(
-      cohortName: String!
+    addMemberToTeam(
+      teamName: String!
       email: String!
       orgToken: String!
     ): String
@@ -25,8 +25,8 @@ const Schema = gql`
     ): String
 
     editMember(
-      removedFromcohortName: String!
-      addedTocohortName: String!
+      removedFromTeamName: String!
+      addedToTeamName: String!
       email: String!
       orgToken: String!
     ): String
