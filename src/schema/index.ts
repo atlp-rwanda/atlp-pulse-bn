@@ -6,7 +6,6 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  
 
   type Team {
     id: ID!
