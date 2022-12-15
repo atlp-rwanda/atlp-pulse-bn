@@ -78,15 +78,6 @@ const replyResolver = {
         throw new ApolloError(message.toString(), '500');
       }
     },
-
-    async deleteReply(parent: any, args: any, context: Context) {
-      (await checkUserLoggedIn(context))(['coordinator', 'trainee']);
-      const findComment = await Notifications.findById(args.id);
-      if (!findComment)
-        throw new Error('The reply you want to delete does not exist');
-      const deleteComment = await Notifications.deleteOne({ id: args.id });
-      return 'The reply has been deleted successfully';
-    },
   },
 };
 
