@@ -18,6 +18,10 @@ const cohortSchema = new Schema(
       ref: 'User',
       required: true,
     },
+    members: {
+      type: [mongoose.Types.ObjectId],
+      ref: 'User',
+    },
     program: {
       type: mongoose.Types.ObjectId,
       required: true,

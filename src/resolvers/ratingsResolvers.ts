@@ -2,7 +2,10 @@ import mongoose from 'mongoose';
 import { Rating, TempData } from '../models/ratings';
 import { Organization, User } from '../models/user';
 import { sendEmails } from '../utils/sendEmails';
+import { Context } from './../context';
 import Cohort from '../models/cohort.model';
+import { systemRating } from '../models/ratingSystem';
+import { checkUserLoggedIn } from '../helpers/user.helpers';
 import { authenticated, validateRole } from '../utils/validate-role';
 import { checkLoggedInOrganization } from '../helpers/organization.helper';
 
@@ -65,6 +68,29 @@ const ratingResolvers = {
       return trainees;
     },
 
+
+
+
+
+    async fetchRatingByCohort(
+      _: any,
+      {CohortName}: any,
+      context: Context
+    )  {
+      // (await checkUserLoggedIn(context))(['admin']);
+      (await checkUserLoggedIn(context))(['coordinator', 'admin', 'trainee']);
+      return (
+        await Rating.find({})
+        .populate('cohort')
+        .populate('user')
+      ).filter((rating: any) => {
+        return (
+          rating.cohort.name == CohortName
+        )
+      }
+      )
+    },
+
     async fetchCohortsCoordinator(
       _: any,
       args: any,
@@ -76,6 +102,7 @@ const ratingResolvers = {
         coordinator: id,
         name: args.cohortName,
       }).populate({
+        
         path: 'members',
         populate: {
           path: 'program',
@@ -96,7 +123,7 @@ const ratingResolvers = {
       context: { role: string; userId: string }
     ) {
       const loggedId = context.userId;
-      const findRatings = Rating.find({ user: loggedId }).populate('user');
+      const findRatings = Rating.find({ user: loggedId }).populate('user').populate('cohort');
       return findRatings;
     },
   },
@@ -111,12 +138,14 @@ const ratingResolvers = {
             quantity,
             quantityRemark,
             quality,
+            cohort,
             qualityRemark,
             professional_Skills,
             professionalRemark,
             bodyQuality,
             bodyQuantity,
             bodyProfessional,
+            average,
             orgToken,
           },
           context: { userId: string }
@@ -125,25 +154,35 @@ const ratingResolvers = {
           org = await checkLoggedInOrganization(orgToken);
           const userExists = await User.findOne({ _id: user });
           if (!userExists) throw new Error('User does not exist!');
-          const findSprint = await Rating.find({ sprint: sprint, user: user });
+          const Kohort = await Cohort.findOne({_id: cohort});
+          if (!Kohort) throw new Error('User does not exist!');
+          const findSprint = await Rating.find({ sprint: sprint, user: user});
           if (findSprint.length !== 0)
             throw new Error('The sprint has recorded ratings');
+
+         
+          //  average generating
+            
+          average=(parseInt(quality)+parseInt(quantity)+parseInt(professional_Skills))/3;
+         
+
           if (!mongoose.isValidObjectId(user))
             throw new Error('Invalid user id');
           const saveUserRating = await Rating.create({
-            user,
+            user: userExists,
             sprint,
             quantity,
             quantityRemark,
             quality,
+            cohort: Kohort,
             qualityRemark,
             bodyQuality,
             bodyQuantity,
             bodyProfessional,
             professional_Skills,
             professionalRemark,
+            average,
             coordinator: context.userId,
-            cohort: userExists?.cohort,
             organization: org,
           });
           await sendEmails(
@@ -158,7 +197,10 @@ const ratingResolvers = {
         }
       )
     ),
-
+    async deleteReply(parent: any, args: any) {
+      const deleteComment = await Rating.deleteMany({});
+      return 'The rating table has been deleted successfully';
+    },
     updateRating: authenticated(
       validateRole('coordinator')(
         async (
@@ -169,9 +211,11 @@ const ratingResolvers = {
             quantity,
             quantityRemark,
             quality,
+            cohort,
             qualityRemark,
             professional_Skills,
             professionalRemark,
+            average,
             orgToken,
           },
           context: { userId: string }
@@ -273,6 +317,7 @@ const ratingResolvers = {
                     ],
               coordinator: context.userId,
               cohort: oldData[0]?.cohort,
+              average: oldData[0].average,
               approved: false,
               organization: org,
             });
