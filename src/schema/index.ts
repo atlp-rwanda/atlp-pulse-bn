@@ -6,6 +6,19 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
+  type Subscription {
+    newRating(receiver:String!): Notification!
+    newReply: Notification!
+  }
+
+  type Notification {
+    id: ID!
+    receiver: ID!
+    message: String!
+    sender: User!
+    createdAt: String!
+    read: String!
+  }
 
   type Team {
     id: ID!
@@ -185,6 +198,7 @@ const Schema = gql`
     verifyResetPasswordToken(token: String!): String
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
+    getAllNotification: [Notification]
   }
 
   type Mutation {
@@ -322,6 +336,32 @@ const Schema = gql`
     getReplies: [Notifications]
     getRepliesByUser(userId: String): [Notifications]
     getTeamTrainees(orgToken: String, team: String): [User]
+  }
+  type Mutation {
+    addNotifications(
+      id: ID!
+      user: String!
+      message: String!
+      coordinator: String!
+      createdAt: String!
+      read: String!
+    ): Notification!
+    deleteNotifications(id: ID!):String
+    markAsRead(id: ID!):String
+    markAllAsRead:String
+  }
+  type Mutation {
+    addNotifications(
+      id: ID!
+      user: String!
+      message: String!
+      coordinator: String!
+      createdAt: String!
+      read: String!
+    ): Notification!
+    deleteNotifications(id: ID!):String
+    markAsRead(id: ID!):String
+    markAllAsRead:String
   }
 
   type Mutation {
