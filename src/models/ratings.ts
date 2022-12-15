@@ -65,8 +65,8 @@ const Rating = mongoose.model(
       required: false,
     },
     average: {
-      type: String,
-      required: false,
+    type: String,
+    required: false
     },
     organization: {
       type: mongoose.Types.ObjectId,
@@ -129,7 +129,7 @@ const TempData = mongoose.model(
     average: {
       type: String,
       required: false,
-    },
+      },
     organization: {
       type: mongoose.Types.ObjectId,
       ref: 'Organization',

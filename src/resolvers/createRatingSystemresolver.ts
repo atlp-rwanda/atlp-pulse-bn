@@ -35,25 +35,32 @@ const createRatingSystemresolver = {
     ) {
       if (context.role === 'admin' || 'superAdmin' || 'manager') {
         const ratingSystemExists = await systemRating.findOne({
-        name: name,
-      });
-      const org = await checkLoggedInOrganization(orgToken);
+          name: name,
+        });
 
-      if (ratingSystemExists) throw new Error('Rating system already exists');
-      const newRatingSystem = await systemRating.create({
-        name,
-        grade,
-        description,
-        percentage,
-        userId: context.userId,
-        organization: org?.id
-      });
-      return newRatingSystem;
-    }else {
+        if (ratingSystemExists) throw new Error('Rating system already exists');
+        const newRatingSystem = await systemRating.create({
+          name,
+          grade,
+          description,
+          percentage,
+          userId: context.userId,
+        });
+        return newRatingSystem;
+      } else {
         throw new Error('You are not allowed to perform this action');
       }
     },
     async makeRatingdefault(parent: any, args: any, context: { role: string }) {
+      // const findRatingSystem = await systemRating.findById(args.id);
+      // if (!findRatingSystem) throw new Error('rating system does not exist');
+      // const ratingSystems = await systemRating.find({});
+      // const gradings = ratingSystems.map((ratings) =>
+      //   ratings.defaultGrading
+      //     ? { ...ratings.toObject(), defaultGrading: false }
+      //     : ratings
+      // );
+      // console.log(args.id, '=== theseare');
       const alreadySetGrading = systemRating
         .updateMany({ defaultGrading: true }, { defaultGrading: false })
         .then(() =>

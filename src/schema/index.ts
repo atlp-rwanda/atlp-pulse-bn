@@ -309,14 +309,14 @@ const Schema = gql`
       percentage: [String]!
       orgToken: String!
     ): ratingSystem!
-    deleteRatingSystem(id: ID!, orgToken: String): String!
+    deleteRatingSystem(id: ID!): String!
     makeRatingdefault(id: ID): String!
   }
 
   type Query {
-    getRatingSystems(orgToken: String!): [ratingSystem]
+    getRatingSystems: [ratingSystem]
     getDefaultGrading: [ratingSystem]
-    getRatingSystem(id: ID!, orgToken: String!): ratingSystem!
+    getRatingSystem(id: ID!): ratingSystem!
   }
   type Notifications {
     id: ID!

@@ -28,11 +28,6 @@ const systemRating = mongoose.model(
       type: Boolean,
       default: false,
     },
-    organization: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Organization',
-      required: true,
-    },
    
   })
 );
