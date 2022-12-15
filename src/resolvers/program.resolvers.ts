@@ -91,7 +91,7 @@ const resolvers = {
       { id, name, description, orgToken, managerEmail }: any,
       context: Context
     ) => {
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'manager',
@@ -124,7 +124,7 @@ const resolvers = {
             `Program with id "${program?.id}" doesn't exist in this organization`
           );
         }
-        if (role === 'admin' && programOrg.admin.toString() !== userId) {
+        if (role === 'admin' && !programOrg.admin.includes(userId)) {
           throw new ValidationError(
             `Program with id "${program?.id}" doesn't exist in your organization`
           );
