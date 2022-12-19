@@ -95,40 +95,11 @@ const ratingResolvers: any = {
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
       // (await checkUserLoggedIn(context))(['admin']);
       (await checkUserLoggedIn(context))(['coordinator', 'admin', 'trainee']);
-      return (
-        await Rating.find({})
-        .populate('cohort')
-        .populate('user')
-      ).filter((rating: any) => {
-        return (
-          rating?.cohort?.name == CohortName
-        )
-      }
-      )
-    },
-
-
-
-
-
-// Not sure which one to pick between this and the above so I underscored the second. (Sam while rebasing)
-    async fetchRatingByCohort_(
-      _: any,
-      {CohortName}: any,
-      context: Context
-    )  {
-      // (await checkUserLoggedIn(context))(['admin']);
-      (await checkUserLoggedIn(context))(['coordinator', 'admin', 'trainee']);
-      return (
-        await Rating.find({})
-        .populate('cohort')
-        .populate('user')
-      ).filter((rating: any) => {
-        return (
-          rating.cohort.name == CohortName
-        )
-      }
-      )
+      return (await Rating.find({}).populate('cohort').populate('user')).filter(
+        (rating: any) => {
+          return rating.cohort.name == CohortName;
+        }
+      );
     },
 
     async fetchCohortsCoordinator(
@@ -142,7 +113,6 @@ const ratingResolvers: any = {
         coordinator: id,
         name: args.cohortName,
       }).populate({
-        
         path: 'members',
         populate: {
           path: 'program',
@@ -163,7 +133,9 @@ const ratingResolvers: any = {
       context: { role: string; userId: string }
     ) {
       const loggedId = context.userId;
-      const findRatings = Rating.find({ user: loggedId }).populate('user').populate('cohort');
+      const findRatings = Rating.find({ user: loggedId })
+        .populate('user')
+        .populate('cohort');
       return findRatings;
     },
     async getAllNotification(
@@ -203,17 +175,19 @@ const ratingResolvers: any = {
           org = await checkLoggedInOrganization(orgToken);
           const userExists = await User.findOne({ _id: user });
           if (!userExists) throw new Error('User does not exist!');
-          const Kohort = await Cohort.findOne({_id: cohort});
+          const Kohort = await Cohort.findOne({ _id: cohort });
           if (!Kohort) throw new Error('User does not exist!');
-          const findSprint = await Rating.find({ sprint: sprint, user: user});
+          const findSprint = await Rating.find({ sprint: sprint, user: user });
           if (findSprint.length !== 0)
             throw new Error('The sprint has recorded ratings');
 
-         
           //  average generating
-            
-          average=(parseInt(quality)+parseInt(quantity)+parseInt(professional_Skills))/3;
-         
+
+          average =
+            (parseInt(quality) +
+              parseInt(quantity) +
+              parseInt(professional_Skills)) /
+            3;
 
           if (!mongoose.isValidObjectId(user))
             throw new Error('Invalid user id');
