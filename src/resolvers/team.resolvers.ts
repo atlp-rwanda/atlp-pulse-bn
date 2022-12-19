@@ -23,6 +23,7 @@ const resolvers = {
           'superAdmin',
           'admin',
           'manager',
+          'coordinator',
         ]);
 
         // get the organization if a superAdmin logs in
@@ -69,6 +70,7 @@ const resolvers = {
           'admin',
           'coordinator',
           'manager',
+          'coordinator',
         ]);
 
         // get the organization if a superAdmin logs in
@@ -111,7 +113,7 @@ const resolvers = {
     ) => {
       try {
         // coordinator validation
-        const { userId, role } = (await checkUserLoggedIn(context))([
+        const { userId, role }: any = (await checkUserLoggedIn(context))([
           'admin',
           'manager',
           'coordinator',
@@ -144,9 +146,7 @@ const resolvers = {
             return (
               user.team?.name == team &&
               user.team?.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(
-                user.team?.cohort?.program?.organization.admin
-              ).replace(/['"]+/g, '') == userId
+              user.team?.cohort?.program?.organization.admin.includes(userId)
             );
           }
           if (role === 'manager') {
@@ -239,7 +239,7 @@ const resolvers = {
     ) => {
       const { id, name, orgToken } = args;
 
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'manager',
@@ -278,10 +278,7 @@ const resolvers = {
             `Team with id "${team?.id}" doesn't exist in this organization`
           );
         }
-        if (
-          role === 'admin' &&
-          cohortOrg.admin.toString() !== userId?.toString()
-        ) {
+        if (role === 'admin' && !cohortOrg.admin.includes(userId)) {
           throw new ValidationError(
             `Team with id "${id}" doesn't exist in your organization`
           );

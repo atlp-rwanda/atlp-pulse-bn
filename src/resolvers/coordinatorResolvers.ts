@@ -18,7 +18,7 @@ const manageStudentResolvers = {
   Query: {
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // get the organization if someone  logs in 
+        // get the organization if someone  logs in
         let org: InstanceType<typeof Organization>;
         org = await checkLoggedInOrganization(orgToken);
 
@@ -46,7 +46,7 @@ const manageStudentResolvers = {
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // coordinator validation
-        const { userId, role } = (await checkUserLoggedIn(context))([
+        const { userId, role }: any = (await checkUserLoggedIn(context))([
           'admin',
           'manager',
           'coordinator',
@@ -77,9 +77,7 @@ const manageStudentResolvers = {
           if (role === 'admin') {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(
-                user.team?.cohort?.program?.organization.admin
-              ).replace(/['"]+/g, '') == userId
+              user.team?.cohort?.program?.organization.admin.includes(userId)
             );
           }
           if (role === 'manager') {
@@ -150,9 +148,7 @@ const manageStudentResolvers = {
             return (
               user.team?.cohort?.name == cohort &&
               user.team?.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(
-                user.team?.cohort?.program?.organization.admin
-              ).replace(/['"]+/g, '') == userId
+              user.team?.cohort?.program?.organization.admin.includes(userId)
             );
           }
           if (role === 'manager') {
@@ -227,10 +223,7 @@ const manageStudentResolvers = {
         if (role === 'admin') {
           return (
             cohort.program?.organization.name == org?.name &&
-            JSON.stringify(cohort.program?.organization?.admin).replace(
-              /['"]+/g,
-              ''
-            ) == userId
+            cohort.program?.organization?.admin.includes(userId)
           );
         }
         if (role === 'manager') {
@@ -359,7 +352,7 @@ const manageStudentResolvers = {
                 throw new Error("You don't have an organization yet");
               }
               if (
-                organization.admin._id.toString() === userId?.toString() &&
+                organization.admin.includes(userId) &&
                 organization.name == org.name
               ) {
                 const content = getOrganizationTemplate(org.name);
@@ -466,7 +459,7 @@ const manageStudentResolvers = {
     },
     async removeMemberFromCohort(
       _: any,
-      { cohortName, email, orgToken }: any,
+      { teamName, email, orgToken }: any,
       context: any
     ) {
       // coordinator validation
@@ -481,18 +474,23 @@ const manageStudentResolvers = {
       org = await checkLoggedInOrganization(orgToken);
 
       const checkMember: any = await User.findOne({ email }).populate({
-        path: 'cohort',
-        model: Cohort,
+        path: 'team',
+        model: Team,
 
         strictPopulate: false,
         populate: {
-          path: 'program',
-          model: Program,
+          path: 'cohort',
+          model: Cohort,
           strictPopulate: false,
           populate: {
-            path: 'organization',
-            model: Organization,
+            path: 'program',
+            model: Program,
             strictPopulate: false,
+            populate: {
+              path: 'organization',
+              model: Organization,
+              strictPopulate: false,
+            },
           },
         },
       });
@@ -500,34 +498,32 @@ const manageStudentResolvers = {
       if (!checkMember) {
         throw new Error('This member does not exist ');
       }
-
       if (
-        (checkMember.cohort?.program.organization.admin._id.toString() ===
+        (checkMember.team.cohort?.program?.organization?.admin.includes(
+          userId
+        ) &&
+          checkMember.team.cohort?.program?.organization?.name == org?.name &&
+          checkMember.team?.name == teamName) ||
+        (checkMember.team.cohort?.program?.manager?._id.toString() ===
           userId?.toString() &&
-          checkMember.cohort?.program?.organization?.name == org?.name &&
-          checkMember.cohort?.name == cohortName) ||
-        (checkMember.cohort?.program.manager._id.toString() ===
+          checkMember.team.cohort?.program?.organization?.name == org?.name &&
+          checkMember.team?.name == teamName) ||
+        (checkMember.team?.cohort?.coordinator._id.toString() ===
           userId?.toString() &&
-          checkMember.cohort?.program?.organization?.name == org?.name &&
-          checkMember.cohort?.name == cohortName) ||
-        (checkMember.cohort?.coordinator._id.toString() ===
-          userId?.toString() &&
-          checkMember.cohort?.program?.organization?.name == org?.name &&
-          checkMember.cohort?.name == cohortName)
+          checkMember.team.cohort?.program?.organization?.name == org?.name &&
+          checkMember.team?.name == teamName)
       ) {
-        const memberCheck = checkMember.cohort?.members.filter(
-          (member: any) => {
-            return member.toString() == checkMember.id.toString();
-          }
-        );
+        const memberCheck = checkMember.team?.members.filter((member: any) => {
+          return member.toString() == checkMember.id.toString();
+        });
 
         if (memberCheck[0].toString() == checkMember.id.toString()) {
-          (checkMember.cohort.members = checkMember.cohort?.members.filter(
+          (checkMember.team.members = checkMember.team?.members.filter(
             (member: any) => {
               return member.toString() !== checkMember.id.toString();
             }
           )),
-            await checkMember.cohort.save();
+            await checkMember.team.save();
           checkMember.role = 'user';
           checkMember.coordinator = null;
           checkMember.cohort = null;
@@ -545,7 +541,7 @@ const manageStudentResolvers = {
       context: any
     ) {
       // coordinator validation
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
         'coordinator',
@@ -596,9 +592,9 @@ const manageStudentResolvers = {
 
       if (checkMember && addedToTeam) {
         if (
-          (checkMember.team?.cohort?.program.organization.admin?._id
-            .toString()
-            .replace(/ObjectId\("(.*)"\)/, '$1') == userId?.toString() &&
+          (checkMember.team?.cohort?.program.organization.admin?.includes(
+            userId
+          ) &&
             checkMember.team?.cohort?.program?.organization?.name ==
               org?.name &&
             checkMember.team?.name == removedFromTeamName) ||

@@ -167,7 +167,7 @@ const Schema = gql`
   }
 
   type Query {
-    getAllUsers: [User]
+    getAllUsers(orgToken: String): [User]
     getUsers(orgToken: String): [User]
     getProfile: Profile
     getAllRoles: [UserRole]
@@ -228,7 +228,7 @@ const Schema = gql`
     ): Profile
     updateAvatar(avatar: String): Profile
     updateCoverImage(cover: String): Profile
-    updateUserRole(id: ID!, name: String): User!
+    updateUserRole(id: ID!, name: String, orgToken: String): User!
     deleteOrganization(id: ID!): Organization
     addRatings(
       user: String!

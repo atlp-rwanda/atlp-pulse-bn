@@ -222,7 +222,7 @@ const resolvers: any = {
             };
             return managerData;
           } else {
-            throw new Error('You logged into a different organization');
+            throw new Error('You are not assigned to any program yet.');
           }
         } else if (user?.role === 'coordinator') {
           const cohort: any = await Cohort.find({
@@ -259,9 +259,7 @@ const resolvers: any = {
             };
             return coordinatorData;
           } else {
-            throw new Error(
-              'You are not part of the organization you logged in.'
-            );
+            throw new Error('You are not assigned to any cohort yet.');
           }
         } else if (user?.role === 'superAdmin') {
           const superAdminToken = jwt.sign(
@@ -286,11 +284,60 @@ const resolvers: any = {
       }
     },
 
-    async updateUserRole(_: any, { id, name }: any) {
-      // Checking user privilege
-
-      const roleExists = await UserRole.findOne({ name: name });
+    async updateUserRole(_: any, { id, name, orgToken }: any) {
+      const allRoles = [
+        'trainee',
+        'coordinator',
+        'manager',
+        'admin',
+        'superAdmin',
+      ];
+      const org = await checkLoggedInOrganization(orgToken);
+      const roleExists = allRoles.includes(name);
       if (!roleExists) throw new Error("This role doesn't exist");
+      const userExists = await User.findById(id);
+      if (!userExists) throw new Error("User doesn't exist");
+
+      if (userExists.role == 'coordinator') {
+        let userCohort: any = await Cohort.find({
+          coordinator: userExists?.id,
+        });
+        if (userCohort) {
+          await Cohort.updateMany(
+            { coordinator: userExists?.id },
+            {
+              $set: {
+                coordinator: null,
+              },
+            }
+          );
+        }
+      } else if (userExists.role == 'manager') {
+        let userProgram: any = await Program.find({ manager: userExists?.id });
+        if (userProgram) {
+          await Program.updateMany(
+            { manager: userExists?.id },
+            {
+              $set: {
+                manager: null,
+              },
+            }
+          );
+        }
+      } else if (userExists.role == 'admin') {
+        let userOrg: any = await Organization.find({ admin: userExists?.id });
+        if (userOrg) {
+          await Organization.findByIdAndUpdate(userOrg.id, {
+            admin: userOrg[0].admin.filter(
+              (item: any) => item != userExists.id
+            ),
+          });
+        }
+      }
+      if (name == 'admin') {
+        org?.admin?.push(id);
+        org.save();
+      }
       const updatedUser = await User.findOneAndUpdate(
         {
           _id: id,

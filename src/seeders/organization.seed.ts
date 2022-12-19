@@ -9,12 +9,12 @@ const seedOrganizations = async () => {
       name: 'Andela',
       description:
         'Master the professional and technical skills needed to accelerate your career and use technology to change the world.',
-      admin: admin[0]._id,
+      admin: [admin[0]._id],
     },
     {
       name: 'organization 2',
       description: 'Organization 2 description',
-      admin: admin[1]._id,
+      admin: [admin[1]._id],
     },
   ];
 
