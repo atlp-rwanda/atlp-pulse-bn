@@ -7,7 +7,7 @@ const Schema = gql`
     id: ID!
     name: String!
     description: String
-    manager: User!
+    manager: User
     organization: Organization!
     cohorts: [Cohort!]!
   }

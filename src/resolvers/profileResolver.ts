@@ -1,3 +1,6 @@
+import { Context } from '../context';
+import { checkLoggedInOrganization } from '../helpers/organization.helper';
+import { checkUserLoggedIn } from '../helpers/user.helpers';
 import { Profile, User, UserRole } from '../models/user';
 
 const profileResolvers: any = {
@@ -10,8 +13,19 @@ const profileResolvers: any = {
       const profile = await Profile.findOne({ user: userId });
       return profile;
     },
-    async getAllUsers() {
-      const users = await User.find({}).populate('cohort');
+    getAllUsers: async (
+      _: any,
+      args: {
+        orgToken: string;
+      },
+      context: Context
+    ) => {
+      (await checkUserLoggedIn(context))(['superAdmin', 'admin']);
+      const org = await checkLoggedInOrganization(args.orgToken);
+      const users = await User.find({
+        organizations: org?.name,
+        role: { $in: ['user', 'coordinator', 'manager', 'admin'] },
+      }).populate('cohort');
       return users;
     },
     async getAllRoles() {

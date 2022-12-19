@@ -55,7 +55,7 @@ const phaseResolver = {
       { id, name, description, orgToken }: any,
       context: Context
     ) => {
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'manager',
@@ -83,7 +83,7 @@ const phaseResolver = {
             `Phase with id "${phase?.id}" doesn't exist in this organization`
           );
         }
-        if (role === 'admin' && phaseOrg.admin.toString() !== userId) {
+        if (role === 'admin' && !phaseOrg.admin.includes(userId)) {
           throw new ValidationError(
             `Phase with id "${phase?.id}" doesn't exist in your organization`
           );

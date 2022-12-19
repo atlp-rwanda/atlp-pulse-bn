@@ -29,7 +29,7 @@ const resolvers = {
     getAllCohorts: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // some validations
-        const { userId, role } = (await checkUserLoggedIn(context))([
+        const { userId, role }: any = (await checkUserLoggedIn(context))([
           'superAdmin',
           'admin',
           'manager',
@@ -170,7 +170,7 @@ const resolvers = {
         endDate,
       } = args;
 
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'manager',
@@ -234,10 +234,7 @@ const resolvers = {
             `Cohort with id "${cohort?.id}" doesn't exist in this organization`
           );
         }
-        if (
-          role === 'admin' &&
-          cohortOrg.admin.toString() !== userId?.toString()
-        ) {
+        if (role === 'admin' && !cohortOrg?.admin?.includes(userId)) {
           throw new ValidationError(
             `Cohort with id "${id}" doesn't exist in your organization`
           );
