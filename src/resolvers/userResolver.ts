@@ -360,7 +360,7 @@ const resolvers: any = {
       const organization: any = await Organization.findOne({ name });
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
-          expiresIn: '2w',
+          expiresIn: '336h',
         });
         const data = {
           token: token,
