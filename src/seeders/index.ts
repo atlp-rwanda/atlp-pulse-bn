@@ -6,6 +6,7 @@ import seedsystemRatings from './ratingSystem';
 import seedUsers from './users.seed';
 import seedPhases from './phases.seed';
 import seedTeams from './teams.seed';
+import seedNotification from './notification.seed';
 
 connect().then(async () => {
   try {
@@ -16,6 +17,7 @@ connect().then(async () => {
     await seedCohorts();
     await seedTeams();
     await seedsystemRatings();
+    await seedNotification();
 
     process.exit();
   } catch (error) {
