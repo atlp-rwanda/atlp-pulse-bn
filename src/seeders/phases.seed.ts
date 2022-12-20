@@ -11,6 +11,16 @@ const seedPhases = async () => {
     {
       name: 'Phase II',
       description: 'Team project',
+      organization: (await Organization.find())[0]?.id,
+    },
+    {
+      name: 'Phase I',
+      description: 'Core Concept phase',
+      organization: (await Organization.find())[1]?.id,
+    },
+    {
+      name: 'Phase II',
+      description: 'Team project phase',
       organization: (await Organization.find())[1]?.id,
     },
   ];
