@@ -109,12 +109,6 @@ const resolvers = {
           );
         }
 
-        if (!phase) {
-          throw new ValidationError(
-            `Phase with name ${phaseName} doesn't exist`
-          );
-        }
-
         if (!coordinator) {
           throw new ValidationError(
             `Coordinator with email ${coordinatorEmail} doesn't exist`
