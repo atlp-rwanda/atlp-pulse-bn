@@ -78,6 +78,7 @@ const resolvers = {
         programName: string;
         startDate: Date;
         endDate?: Date;
+        orgToken: string;
       },
       context: Context
     ) => {
@@ -89,6 +90,7 @@ const resolvers = {
           programName,
           startDate,
           endDate,
+          orgToken 
         } = args;
 
         // some validations
@@ -96,14 +98,11 @@ const resolvers = {
         const coordinator = await User.findOne({
           email: coordinatorEmail,
         });
+        const organ = await checkLoggedInOrganization(orgToken);
         const program = await Program.findOne({ name: programName });
         const phase = await Phase.findOne({ name: phaseName });
 
         // validate inputs
-        if (await Cohort.findOne({ name })) {
-          throw new ValidationError(`Cohort with name ${name} already exist`);
-        }
-
         if (!phase) {
           throw new ValidationError(
             `Phase with name ${phaseName} doesn't exist`
@@ -130,6 +129,11 @@ const resolvers = {
           throw new ValidationError("End Date can't be before Start Date");
         }
 
+        const findCohort = await Cohort.find({ name, organization: organ?.id });
+        if (findCohort.length) {
+          throw new ValidationError(`Cohort with name ${name} already exist`);
+        }
+
         const org = new Cohort({
           name,
           coordinator: coordinator.id,
@@ -137,6 +141,7 @@ const resolvers = {
           program: program.id,
           startDate,
           endDate,
+          organization: organ?.id
         });
 
         return org.save();
@@ -179,6 +184,8 @@ const resolvers = {
       const coordinator = await User.findOne({
         email: coordinatorEmail,
       });
+
+      const organ = await checkLoggedInOrganization(orgToken);
       const program = await Program.findOne({ name: programName });
       const phase = await Phase.findOne({ name: phaseName });
 
@@ -209,9 +216,10 @@ const resolvers = {
           `Program with name ${programName} doesn't exist`
         );
       }
-      if (name && name !== cohort.name && (await Cohort.findOne({ name }))) {
-        throw new ValidationError(`Cohort with name ${name} already exist`);
+      if (name && name !== cohort.name && (await Cohort.findOne({ name, organization: organ?.id }))) {
+        throw new ValidationError(`Phase with name ${name} already exist`);
       }
+
       if (startDate && differenceInDays(new Date(startDate), Date.now()) < 0) {
         throw new ValidationError("Start Date can't be in the past");
       }

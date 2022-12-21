@@ -1,11 +1,19 @@
 /* eslint-disable */
 import { info, log } from 'console';
 import { systemRating } from '../models/ratingSystem';
+import { Context } from "./../context";
+import { checkUserLoggedIn } from "../helpers/user.helpers";
+import { checkLoggedInOrganization } from "../helpers/organization.helper";
+
 
 const createRatingSystemresolver = {
   Query: {
-    async getRatingSystems() {
-      const ratingSystems = await systemRating.find({});
+    async getRatingSystems(_: any, { orgToken }: any, context: Context) {
+    const  org = await checkLoggedInOrganization(orgToken);
+
+    (await checkUserLoggedIn(context))(['admin', 'superAdmin', 'manager']);
+
+      const ratingSystems = await systemRating.find({organization: org});
       return ratingSystems;
     },
     async getRatingSystem(parent: any, args: any) {
@@ -22,37 +30,30 @@ const createRatingSystemresolver = {
   Mutation: {
     async createRatingSystem(
       _: any,
-      { name, grade, description, percentage }: any,
+      { name, grade, description, percentage, orgToken }: any,
       context: { role: string; userId: string }
     ) {
       if (context.role === 'admin' || 'superAdmin' || 'manager') {
         const ratingSystemExists = await systemRating.findOne({
-          name: name,
-        });
+        name: name,
+      });
+      const org = await checkLoggedInOrganization(orgToken);
 
-        if (ratingSystemExists) throw new Error('Rating system already exists');
-        const newRatingSystem = await systemRating.create({
-          name,
-          grade,
-          description,
-          percentage,
-          userId: context.userId,
-        });
-        return newRatingSystem;
-      } else {
+      if (ratingSystemExists) throw new Error('Rating system already exists');
+      const newRatingSystem = await systemRating.create({
+        name,
+        grade,
+        description,
+        percentage,
+        userId: context.userId,
+        organization: org?.id
+      });
+      return newRatingSystem;
+    }else {
         throw new Error('You are not allowed to perform this action');
       }
     },
     async makeRatingdefault(parent: any, args: any, context: { role: string }) {
-      // const findRatingSystem = await systemRating.findById(args.id);
-      // if (!findRatingSystem) throw new Error('rating system does not exist');
-      // const ratingSystems = await systemRating.find({});
-      // const gradings = ratingSystems.map((ratings) =>
-      //   ratings.defaultGrading
-      //     ? { ...ratings.toObject(), defaultGrading: false }
-      //     : ratings
-      // );
-      // console.log(args.id, '=== theseare');
       const alreadySetGrading = systemRating
         .updateMany({ defaultGrading: true }, { defaultGrading: false })
         .then(() =>
@@ -60,8 +61,6 @@ const createRatingSystemresolver = {
         )
         .then(() => systemRating.findOne({ _id: args.id }))
         .then((doc) => console.log(doc, '==='));
-      // console.log(alreadySetGrading, 'tttrtrt');
-
       const ratingSystems = await systemRating.find({});
       ratingSystems.map((ratingSystems) => {
         if (ratingSystems.defaultGrading) {

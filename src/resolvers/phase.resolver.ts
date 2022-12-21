@@ -62,19 +62,19 @@ const phaseResolver = {
       ]);
 
       // get the phase and its organization from the id and checks if it exists
+      const organ = await checkLoggedInOrganization(orgToken);
       const phase = await Phase.findById(id).populate('organization');
+
       if (!phase) {
         throw new ValidationError(`Phase with id "${id}" doesn't exist`);
       }
 
+      if (name && name !== phase.name && (await Phase.findOne({ name, organization: organ?.id }))) {
+        throw new ValidationError(`Phase with name ${name} already exist`);
+      }
+
       const phaseOrg = phase?.organization as OrganizationType;
       const org = await checkLoggedInOrganization(orgToken);
-
-      const findPhase = await Phase.find({ name, organization: org?.id });
-
-      if (findPhase.length) {
-        throw new ValidationError(`a phase with name ${name} already exist`);
-      }
 
       // check if a given user have priviledges to update this phase
       if (role !== 'superAdmin') {
