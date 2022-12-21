@@ -43,6 +43,11 @@ const cohortSchema = new Schema(
     endDate: {
       type: Date,
     },
+    organization: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
+    },
   },
   {
     statics: {

@@ -25,6 +25,7 @@ const Schema = gql`
       programName: String!
       startDate: DateTime!
       endDate: DateTime
+      orgToken: String!
     ): Cohort!
     updateCohort(
       id: ID!
