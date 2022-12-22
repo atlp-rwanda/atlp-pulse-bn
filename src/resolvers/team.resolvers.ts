@@ -23,6 +23,7 @@ const resolvers = {
           'superAdmin',
           'admin',
           'manager',
+          'coordinator',
         ]);
 
         // get the organization if a superAdmin logs in
@@ -35,7 +36,7 @@ const resolvers = {
         const adminMatch = { _id: org?.id, admin: userId };
 
         return (
-          await Team.find().populate({
+          await Team.find({ organization: org }).populate({
             path: 'cohort',
             match: role === 'manager' && managerMatch,
             model: Cohort,
@@ -67,7 +68,9 @@ const resolvers = {
         const { userId, role } = (await checkUserLoggedIn(context))([
           'superAdmin',
           'admin',
+          'coordinator',
           'manager',
+          'coordinator',
         ]);
 
         // get the organization if a superAdmin logs in
@@ -80,7 +83,7 @@ const resolvers = {
         const adminMatch = { _id: org?.id, admin: userId };
 
         return (
-          await Team.find().populate({
+          await Team.find({ organization: org }).populate({
             path: 'cohort',
             match: role === 'manager' && managerMatch,
             model: Cohort,
@@ -110,7 +113,7 @@ const resolvers = {
     ) => {
       try {
         // coordinator validation
-        const { userId, role } = (await checkUserLoggedIn(context))([
+        const { userId, role }: any = (await checkUserLoggedIn(context))([
           'admin',
           'manager',
           'coordinator',
@@ -143,9 +146,7 @@ const resolvers = {
             return (
               user.team?.name == team &&
               user.team?.cohort?.program?.organization.name == org?.name &&
-              JSON.stringify(
-                user.team?.cohort?.program?.organization.admin
-              ).replace(/['"]+/g, '') == userId
+              user.team?.cohort?.program?.organization.admin.includes(userId)
             );
           }
           if (role === 'manager') {
@@ -181,18 +182,21 @@ const resolvers = {
       args: {
         name: string;
         cohortName: string;
+        orgToken: string;
       },
       context: Context
     ) => {
       try {
-        const { name, cohortName } = args;
+        const { name, cohortName, orgToken } = args;
 
         // some validations
         (await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager']);
         const cohort = await Cohort.findOne({ name: cohortName });
 
+        const organ = await checkLoggedInOrganization(orgToken);
+        
         // validate inputs
-        if (await Team.findOne({ name })) {
+        if (await Team.findOne({ name, organization: organ?.id })) {
           throw new ValidationError(`Team with name ${name} already exist`);
         }
         if (!cohort) {
@@ -204,6 +208,7 @@ const resolvers = {
         const org = new Team({
           name,
           cohort: cohort.id,
+          organization: organ?.id,
         });
         cohort.teams = cohort.teams + 1;
         cohort.save();
@@ -238,7 +243,7 @@ const resolvers = {
     ) => {
       const { id, name, orgToken } = args;
 
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'manager',
@@ -260,12 +265,14 @@ const resolvers = {
 
       const cohortProgram = team?.cohort?.program as ProgramType;
       const cohortOrg = cohortProgram.organization as OrganizationType;
+      const org = await checkLoggedInOrganization(orgToken);
+
 
       if (!team) {
         throw new ValidationError(`team with id "${id}" doesn't exist`);
       }
 
-      if (name && name !== team.name && (await Team.findOne({ name }))) {
+      if (name && name !== team.name && (await Team.findOne({ name, organization: org?.id }))) {
         throw new ValidationError(`Team with name ${name} already exist`);
       }
 
@@ -277,10 +284,7 @@ const resolvers = {
             `Team with id "${team?.id}" doesn't exist in this organization`
           );
         }
-        if (
-          role === 'admin' &&
-          cohortOrg.admin.toString() !== userId?.toString()
-        ) {
+        if (role === 'admin' && !cohortOrg.admin.includes(userId)) {
           throw new ValidationError(
             `Team with id "${id}" doesn't exist in your organization`
           );

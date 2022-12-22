@@ -28,12 +28,11 @@ export interface Context {
   role?: string;
 }
 
-export const context = ({ req }: { req: Request }): Context => {
+export const context = ({ req }: { req: Request },): Context => {
   const token =
     req && req.headers.authorization
       ? decodeAuthHeader(req.headers.authorization)
       : null;
-
   return {
     userId: token?.userId,
     role: token?.role,

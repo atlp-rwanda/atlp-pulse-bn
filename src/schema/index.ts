@@ -6,6 +6,19 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
+  type Subscription {
+    newRating(receiver:String!): Notification!
+    newReply: Notification!
+  }
+
+  type Notification {
+    id: ID!
+    receiver: ID!
+    message: String!
+    sender: User!
+    createdAt: String!
+    read: String!
+  }
 
   type Team {
     id: ID!
@@ -82,7 +95,6 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
-    reply: [Notifications]
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -95,12 +107,13 @@ const Schema = gql`
     approved: Boolean!
     coordinator: String!
     cohort: Cohort!
+    average: String
   }
 
   type AddRating {
     user: User!
     sprint: Int!
-    reply: [Notifications]
+    cohort: Cohort!
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -110,6 +123,7 @@ const Schema = gql`
     professional_Skills: String!
     professionalRemark: String
     bodyProfessional: String
+    average: String
     approved: Boolean!
     coordinator: String!
   }
@@ -166,7 +180,7 @@ const Schema = gql`
   }
 
   type Query {
-    getAllUsers: [User]
+    getAllUsers(orgToken: String): [User]
     getUsers(orgToken: String): [User]
     getProfile: Profile
     getAllRoles: [UserRole]
@@ -179,10 +193,12 @@ const Schema = gql`
     fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
     fetchRatingsTrainee: [Rating]
     fetchAllRatings(orgToken: String): [Rating]
+    fetchRatingByCohort(CohortName: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
     verifyResetPasswordToken(token: String!): String
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
+    getAllNotification: [Notification]
   }
 
   type Mutation {
@@ -226,7 +242,7 @@ const Schema = gql`
     ): Profile
     updateAvatar(avatar: String): Profile
     updateCoverImage(cover: String): Profile
-    updateUserRole(id: ID!, name: String): User!
+    updateUserRole(id: ID!, name: String, orgToken: String): User!
     deleteOrganization(id: ID!): Organization
     addRatings(
       user: String!
@@ -234,6 +250,7 @@ const Schema = gql`
       quantity: String!
       quantityRemark: String
       quality: String!
+      cohort: String!
       bodyQuality: String
       qualityRemark: String
       professional_Skills: String!
@@ -276,7 +293,7 @@ const Schema = gql`
       confirmPassword: String!
       token: String!
     ): String!
-    addTeam(name: String!, cohortName: String!): Team!
+    addTeam(name: String!, cohortName: String!, orgToken: String!): Team!
   }
   type ratingSystem {
     id: ID!
@@ -285,6 +302,7 @@ const Schema = gql`
     description: [String]!
     percentage: [String]!
     userId: String!
+    defaultGrading: Boolean
   }
   type Mutation {
     createRatingSystem(
@@ -292,12 +310,16 @@ const Schema = gql`
       grade: [String]!
       description: [String]!
       percentage: [String]!
+      orgToken: String!
     ): ratingSystem!
-    deleteRatingSystem(id: ID!): String!
+    deleteRatingSystem(id: ID!, orgToken: String): String!
+    makeRatingdefault(id: ID): String!
   }
+
   type Query {
-    getRatingSystems: [ratingSystem]
-    getRatingSystem(id: ID!): ratingSystem!
+    getRatingSystems(orgToken: String!): [ratingSystem]
+    getDefaultGrading: [ratingSystem]
+    getRatingSystem(id: ID!, orgToken: String!): ratingSystem!
   }
   type Notifications {
     id: ID!
@@ -316,6 +338,32 @@ const Schema = gql`
     getRepliesByUser(userId: String): [Notifications]
     getTeamTrainees(orgToken: String, team: String): [User]
   }
+  type Mutation {
+    addNotifications(
+      id: ID!
+      user: String!
+      message: String!
+      coordinator: String!
+      createdAt: String!
+      read: String!
+    ): Notification!
+    deleteNotifications(id: ID!):String
+    markAsRead(id: ID!):String
+    markAllAsRead:String
+  }
+  type Mutation {
+    addNotifications(
+      id: ID!
+      user: String!
+      message: String!
+      coordinator: String!
+      createdAt: String!
+      read: String!
+    ): Notification!
+    deleteNotifications(id: ID!):String
+    markAsRead(id: ID!):String
+    markAllAsRead:String
+  }
 
   type Mutation {
     addReply(
@@ -324,9 +372,9 @@ const Schema = gql`
       bodyQuality: String
       bodyProfessional: String
     ): Notifications!
-    deleteReply(id: ID): String!
     deleteTeam(id: ID!): String!
     updateTeam(id: ID!, orgToken: String, name: String): Team
+    deleteReply: String!
   }
 `;
 export default Schema;

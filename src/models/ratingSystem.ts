@@ -22,8 +22,20 @@ const systemRating = mongoose.model(
     },
     percentage: {
       type: [String],
+      required: false,
+    },
+     defaultGrading: {
+      type: Boolean,
+      default: false,
+    },
+    organization: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Organization',
       required: true,
     },
+   
   })
 );
+
+
 export { systemRating };
