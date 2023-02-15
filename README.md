@@ -6,8 +6,8 @@ ATLP Devpulse backend
 
 ## Introduction
 
-This is backend system for the devpulse project. A project that is built to help players in the edu-tech sector manage students/trainees at ease. \
-This project is built using modern technologies that make it more scalable. Check the tech stack section.
+This is backend system for the devpulse project. A project that is built to help players in the Ed-tech sector manage students/trainees at ease. \
+This project is built using modern technologies that makes it easy to scale. Check the tech stack section.
 
 ## How to get started
 
@@ -30,7 +30,7 @@ npm run dev
 
 // open the link printed at the end of the command
 ```
-
+Make sure to get the `.env` values from a contributor.  
 If you already have the project. Open a terminal from the project directory and be sure to update your local copy before proceeding using this command
 
 ```git
@@ -41,7 +41,7 @@ npm run dev
 
 ### Getting started using docker
 
-Docker still remain our recommended to test our application. It is fast and ensures that all user have the same environment to test which guarantes the reliability of our application in the production environment. We have two ways to start with docker
+Docker still remains our recommended way to test our application. It is fast and ensures that all user have the same environment to test which guarantes the reliability of our application in the production environment. We have two ways to start with docker
 
 #### Using docker compose
 
@@ -64,7 +64,7 @@ Recommended if you are comfortable using docker. The container will run in detac
 // change into project directory
 docker build . -t devpulse_bn
 docker run -p 4000:4000 -d devpulse_bn
-// check the url that will be printed after the completion of the commad
+// App available at 4000 port
 ```
 
 ### Tech Stack
