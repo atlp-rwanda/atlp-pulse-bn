@@ -14,7 +14,24 @@ const resolvers = {
     },
     async getAllUsers(_: any, _args: any, context: { userId: any }) {
       if (!context.userId) throw new Error('Unauthorized');
-      return User.find({}).populate('profile');
+      return (
+          await User.find({}).populate({
+            path: 'team',
+            strictPopulate: false,
+            populate: {
+              path: 'cohort',
+              strictPopulate: false,
+              populate: {
+                path: 'program',
+                strictPopulate: false,
+                populate: {
+                  path: 'organization',
+                  strictPopulate: false,
+                },
+              },
+            },
+          })
+        )
     },
   },
   Mutation: {
