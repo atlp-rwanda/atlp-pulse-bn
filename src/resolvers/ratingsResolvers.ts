@@ -14,28 +14,24 @@ import { isTypeExtensionNode } from 'graphql';
 import { formatError } from '../ErrorMsg';
 import { forEachDefaultValue } from '@graphql-tools/utils';
 const pubsub = new PubSub();
-let message:any;
-
+let message: any;
 
 let org: InstanceType<typeof Organization>;
 const ratingResolvers: any = {
-
   Subscription: {
     newRating: {
       subscribe: withFilter(
-        (_: any, __: any) => pubsub.asyncIterator("NEW_RATING"),
+        (_: any, __: any) => pubsub.asyncIterator('NEW_RATING'),
         (payload, variables) => {
           // Only push an update if the comment is on
           // the correct repository for this operation
-          return (
-            payload.newRating.receiver === variables.receiver
-          );
-
-        }),
+          return payload.newRating.receiver === variables.receiver;
+        }
+      ),
     },
     newReply: {
-      subscribe:(_: any,__: any)=>pubsub.asyncIterator("NEW_REPLY"),
-    }
+      subscribe: (_: any, __: any) => pubsub.asyncIterator('NEW_REPLY'),
+    },
   },
   Query: {
     async fetchRatings(
@@ -144,9 +140,11 @@ const ratingResolvers: any = {
       context: { role: string; userId: string }
     ) {
       const loggedId = context.userId;
-      const findNotification = await Notification.find({ receiver: loggedId }).sort({createdAt:-1}).populate('sender');
+      const findNotification = await Notification.find({ receiver: loggedId })
+        .sort({ createdAt: -1 })
+        .populate('sender');
       return findNotification;
-    }
+    },
   },
   Mutation: {
     addRatings: authenticated(
@@ -169,7 +167,7 @@ const ratingResolvers: any = {
             average,
             orgToken,
           },
-          context: { userId: string },
+          context: { userId: string }
         ) => {
           // get the organization if someone  logs in
           org = await checkLoggedInOrganization(orgToken);
@@ -210,23 +208,22 @@ const ratingResolvers: any = {
           });
           const coordinator = await User.findOne({ _id: context.userId });
           const addNotifications = await Notification.create({
-            receiver:user,
-            message:"Have rated you; check your scores.",
-            sender:coordinator,
+            receiver: user,
+            message: 'Have rated you; check your scores.',
+            sender: coordinator,
             read: false,
             createdAt: new Date(),
-
           });
 
-          pubsub.publish("NEW_RATING", {
+          pubsub.publish('NEW_RATING', {
             newRating: {
               id: addNotifications._id,
-              receiver:user,
-              message:"Have rated you; check your scores.",
-              sender:coordinator,
+              receiver: user,
+              message: 'Have rated you; check your scores.',
+              sender: coordinator,
               read: false,
               createdAt: addNotifications.createdAt,
-            }
+            },
           });
           await sendEmails(
             process.env.COORDINATOR_EMAIL,
@@ -285,7 +282,7 @@ const ratingResolvers: any = {
             oldData[0]?.quality == quality[0].toString() &&
             oldData[0]?.qualityRemark == qualityRemark[0].toString() &&
             oldData[0]?.professional_Skills ==
-            professional_Skills[0].toString() &&
+              professional_Skills[0].toString() &&
             oldData[0]?.professionalRemark == professionalRemark[0].toString()
           ) {
             throw new Error('No changes to update!');
@@ -293,11 +290,11 @@ const ratingResolvers: any = {
             oldData[0]?.quantity == quantity[0].toString() &&
             oldData[0]?.quality == quality[0].toString() &&
             oldData[0]?.professional_Skills ==
-            professional_Skills[0].toString() &&
+              professional_Skills[0].toString() &&
             (oldData[0]?.quantityRemark !== quantityRemark[0].toString() ||
               oldData[0]?.qualityRemark !== qualityRemark[0].toString() ||
               oldData[0]?.professionalRemark !==
-              professionalRemark[0].toString())
+                professionalRemark[0].toString())
           ) {
             try {
               const ratingsUpdates = await Rating.findOneAndUpdate(
@@ -328,9 +325,9 @@ const ratingResolvers: any = {
                 oldData[0]?.quantityRemark == quantityRemark[0].toString()
                   ? oldData[0]?.quantityRemark
                   : [
-                    oldData[0]?.quantityRemark + '->',
-                    quantityRemark?.toString(),
-                  ],
+                      oldData[0]?.quantityRemark + '->',
+                      quantityRemark?.toString(),
+                    ],
               quality:
                 oldData[0]?.quality == quality[0].toString()
                   ? oldData[0]?.quality
@@ -339,25 +336,25 @@ const ratingResolvers: any = {
                 oldData[0]?.qualityRemark == qualityRemark[0].toString()
                   ? oldData[0]?.qualityRemark
                   : [
-                    oldData[0]?.qualityRemark + '->',
-                    qualityRemark?.toString(),
-                  ],
+                      oldData[0]?.qualityRemark + '->',
+                      qualityRemark?.toString(),
+                    ],
               professional_Skills:
                 oldData[0]?.professional_Skills ==
-                  professional_Skills[0].toString()
+                professional_Skills[0].toString()
                   ? oldData[0]?.professional_Skills
                   : [
-                    oldData[0]?.professional_Skills + '->',
-                    professional_Skills?.toString(),
-                  ],
+                      oldData[0]?.professional_Skills + '->',
+                      professional_Skills?.toString(),
+                    ],
               professionalRemark:
                 oldData[0]?.professionalRemark ==
-                  professionalRemark[0].toString()
+                professionalRemark[0].toString()
                   ? oldData[0]?.professionalRemark
                   : [
-                    oldData[0]?.professionalRemark + '->',
-                    professionalRemark?.toString(),
-                  ],
+                      oldData[0]?.professionalRemark + '->',
+                      professionalRemark?.toString(),
+                    ],
               coordinator: context.userId,
               cohort: oldData[0]?.cohort,
               average: oldData[0].average,
@@ -469,29 +466,32 @@ const ratingResolvers: any = {
             { new: true }
           );
 
-          const traineee = await User.findOne({ _id:  context.userId });
+          const traineee = await User.findOne({ _id: context.userId });
           const rate = await Rating.findOne({
             user: user,
             sprint: sprint,
           });
           const addNotifications = await Notification.create({
-            receiver:rate?.coordinator.toString().replace(/ObjectId\("(.*)"\)/, "$1"),
-            message:"Have replied you on your remark",
-            sender:traineee,
+            receiver: rate?.coordinator
+              .toString()
+              .replace(/ObjectId\("(.*)"\)/, '$1'),
+            message: 'Have replied you on your remark',
+            sender: traineee,
             read: false,
             createdAt: new Date(),
-
           });
 
-          pubsub.publish("NEW_RATING", {
+          pubsub.publish('NEW_RATING', {
             newRating: {
               id: addNotifications._id,
-              receiver:rate?.coordinator.toString().replace(/ObjectId\("(.*)"\)/, "$1"),
-              message:"Have replied you on your remark",
-              sender:traineee,
+              receiver: rate?.coordinator
+                .toString()
+                .replace(/ObjectId\("(.*)"\)/, '$1'),
+              message: 'Have replied you on your remark',
+              sender: traineee,
               read: false,
               createdAt: addNotifications.createdAt,
-            }
+            },
           });
           return [updateReply];
         }

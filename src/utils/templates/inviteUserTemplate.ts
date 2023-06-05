@@ -1,7 +1,8 @@
 export default function Template(
   orgName: string,
   requesterEmail: string,
-  requesterRole: string
+  requesterRole: string,
+  link: string
 ) {
   return `
     <table style="text-align: left;">
@@ -23,6 +24,7 @@ export default function Template(
         </p>
         <p style="font-size: 14px; font-family: 'Rubik'; margin-top: 10px">The link below will take you to the registration page where you can create an account</p>
         <br />
+        <a href=${link} style="display: inline-block; backgroundColor: blue; font-size: 18px; font-family: 'Rubik';text-align: center;">Join Us</a>
       </td>
     </tr>
 

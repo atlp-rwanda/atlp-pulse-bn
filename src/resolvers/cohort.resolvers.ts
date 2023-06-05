@@ -23,7 +23,7 @@ const resolvers = {
     },
     async phase(parent: any) {
       return await Phase.findById(parent.phase);
-    }
+    },
   },
   Query: {
     getAllCohorts: async (_: any, { orgToken }: any, context: Context) => {
@@ -90,7 +90,7 @@ const resolvers = {
           programName,
           startDate,
           endDate,
-          orgToken 
+          orgToken,
         } = args;
 
         // some validations
@@ -141,7 +141,7 @@ const resolvers = {
           program: program.id,
           startDate,
           endDate,
-          organization: organ?.id
+          organization: organ?.id,
         });
 
         return org.save();
@@ -209,16 +209,18 @@ const resolvers = {
         );
       }
       if (!phase) {
-        throw new ValidationError(
-          `Phase with name ${phaseName} doesn't exist`
-        );
+        throw new ValidationError(`Phase with name ${phaseName} doesn't exist`);
       }
       if (!program) {
         throw new ValidationError(
           `Program with name ${programName} doesn't exist`
         );
       }
-      if (name && name !== cohort.name && (await Cohort.findOne({ name, organization: organ?.id }))) {
+      if (
+        name &&
+        name !== cohort.name &&
+        (await Cohort.findOne({ name, organization: organ?.id }))
+      ) {
         throw new ValidationError(`Phase with name ${name} already exist`);
       }
 

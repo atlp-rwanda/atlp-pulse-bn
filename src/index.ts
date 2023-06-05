@@ -4,6 +4,7 @@ Created: Wed Feb 02 2022 00:13:13 GMT+0530 (India Standard Time)
 
 Copyright (c) geekofia 2022 and beyond
 */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 import { formatError } from './ErrorMsg';
 const { ApolloServer } = require('apollo-server-express');
@@ -33,7 +34,7 @@ import phaseSchema from './schema/phase.schema';
 import teamResolver from './resolvers/team.resolvers';
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 import { connect } from './database/db.config';
-import {context} from './context';
+import { context } from './context';
 import notificationResolver from './resolvers/notification.resolvers';
 
 export const resolvers = mergeResolvers([
@@ -54,79 +55,81 @@ export const typeDefs = mergeTypeDefs([
   cohortSchema,
   programSchema,
   coordinatorSchema,
-  phaseSchema
+  phaseSchema,
 ]);
 
 (async function startApolloServer(typeDefs, resolvers) {
-    // Required logic for integrating with Express
-    const app = express();
-    const httpServer = http.createServer(app);
-    const schema = makeExecutableSchema({ typeDefs, resolvers });
-    const pubsub = new PubSub();
-    // Same ApolloServer initialization as before, plus the drain plugin.
-    const server = new ApolloServer({
-        schema,
-        introspection: true,
-        // context: ({ req , res }:any) => ({ req, res, pubsub }),
-        plugins: [ApolloServerPluginDrainHttpServer({ httpServer }), {
-            async serverWillStart() {
-                return {
-                    async drainServer() {
-                        subscriptionServer.close();
-                    }
-                };
-            }
-        }],
-        cache: 'bounded',
-        formatError: formatError,
-        context:context,
-        csrfPrevention: true,
-    });
-
-    const subscriptionServer = SubscriptionServer.create({
-        // This is the `schema` we just created.
-        schema,
-        // These are imported from `graphql`.
-        execute,
-        subscribe,
-        async onConnect(
-            connectionParams:any,
-            webSocket:any,
-            context:any,
-        ) {
-            console.log('Connected!');
-            // If an object is returned here, it will be passed as the `context`
-            // argument to your subscription resolvers.
-            return {
-                pubsub
-            }
+  // Required logic for integrating with Express
+  const app = express();
+  const httpServer = http.createServer(app);
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+  const pubsub = new PubSub();
+  // Same ApolloServer initialization as before, plus the drain plugin.
+  const server = new ApolloServer({
+    schema,
+    introspection: true,
+    // context: ({ req , res }:any) => ({ req, res, pubsub }),
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              subscriptionServer.close();
+            },
+          };
         },
-        onDisconnect(webSocket:any, context:any) {
-            console.log('Disconnected!')
-        },
-    }, {
-        // This is the `httpServer` we created in a previous step.
-        server: httpServer,
-        // This `server` is the instance returned from `new ApolloServer`.
-        path: "/",
-    });
+      },
+    ],
+    cache: 'bounded',
+    formatError: formatError,
+    context: context,
+    csrfPrevention: true,
+  });
 
-    // More required logic for integrating with Express
-    await server.start();
-    server.applyMiddleware({
-        app,
-        path:"/",
-    });
+  const subscriptionServer = SubscriptionServer.create(
+    {
+      // This is the `schema` we just created.
+      schema,
+      // These are imported from `graphql`.
+      execute,
+      subscribe,
+      async onConnect(connectionParams: any, webSocket: any, context: any) {
+        console.log('Connected!');
+        // If an object is returned here, it will be passed as the `context`
+        // argument to your subscription resolvers.
+        return {
+          pubsub,
+        };
+      },
+      onDisconnect(webSocket: any, context: any) {
+        console.log('Disconnected!');
+      },
+    },
+    {
+      // This is the `httpServer` we created in a previous step.
+      server: httpServer,
+      // This `server` is the instance returned from `new ApolloServer`.
+      path: '/',
+    }
+  );
 
-    // Modified server startup
-    const PORT: number = parseInt(process.env.PORT!) || 4000;
+  // More required logic for integrating with Express
+  await server.start();
+  server.applyMiddleware({
+    app,
+    path: '/',
+  });
 
-    connect().then(() => {
-      console.log('Database Connected');
-      httpServer.listen({ port: PORT }, () =>
-        console.log(
-          `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-        )
-      );
-    });
+  // Modified server startup
+  const PORT: number = parseInt(process.env.PORT!) || 4000;
+
+  connect().then(() => {
+    console.log('Database Connected');
+    httpServer.listen({ port: PORT }, () =>
+      console.log(
+        `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
+      )
+    );
+  });
 })(typeDefs, resolvers);

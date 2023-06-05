@@ -348,9 +348,9 @@ const Schema = gql`
       createdAt: String!
       read: String!
     ): Notification!
-    deleteNotifications(id: ID!):String
-    markAsRead(id: ID!):String
-    markAllAsRead:String
+    deleteNotifications(id: ID!): String
+    markAsRead(id: ID!): String
+    markAllAsRead: String
   }
   type Mutation {
     addNotifications(
@@ -361,9 +361,9 @@ const Schema = gql`
       createdAt: String!
       read: String!
     ): Notification!
-    deleteNotifications(id: ID!):String
-    markAsRead(id: ID!):String
-    markAllAsRead:String
+    deleteNotifications(id: ID!): String
+    markAsRead(id: ID!): String
+    markAllAsRead: String
   }
 
   type Mutation {
