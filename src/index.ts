@@ -1,20 +1,12 @@
-/*
-Author: chankruze (chankruze@geekofia.in)
-Created: Wed Feb 02 2022 00:13:13 GMT+0530 (India Standard Time)
-
-Copyright (c) geekofia 2022 and beyond
-*/
-
 import { formatError } from './ErrorMsg';
 const { ApolloServer } = require('apollo-server-express');
 const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
-const { execute, subscribe } = require('graphql');
-const { SubscriptionServer } = require('subscriptions-transport-ws');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const gql = require('graphql-tag');
-const express = require('express');
-const http = require('http');
-const { PubSub } = require('graphql-subscriptions');
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
+import { makeExecutableSchema }  from '@graphql-tools/schema'
+import express  from 'express'
+import http from 'http' ;
+import { PubSub }  from 'graphql-subscriptions'
 import cohortResolvers from './resolvers/cohort.resolvers';
 import manageStudentResolvers from './resolvers/coordinatorResolvers';
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver';

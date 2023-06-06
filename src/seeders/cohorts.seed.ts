@@ -53,27 +53,20 @@ const seedCohorts = async () => {
       organization: (await Organization.find())[1]?.id
     },
     {
-      name: 'cohort 4',
-      phase: '2',
-      coordinator: coordinatorId,
-      program: (await Program.find())[2].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-    },
-    {
       name: 'cohort 5',
       phase: '3',
-      coordinator: coordinatorId,
+      coordinator: users[6]?.id,
       program: (await Program.find())[2].id,
+      teams: 2,
       active: true,
       startDate: new Date(),
       endDate: new Date(),
+      organization: (await Organization.find())[1]?.id
     },
     {
       name: 'cohort 6',
       phase: '1',
-      coordinator: coordinatorId,
+      coordinator: users[5]?.id,
       program: (await Program.find())[2].id,
       active: true,
       startDate: new Date(),
