@@ -46,6 +46,36 @@ const seedUsers = async () => {
       organizations: ['organization 2'],
     },
     {
+      email: 'coordinator@irembo.com',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['Irembo']
+    },
+    {
+      email: 'coordinator2@irembo.com',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['Irembo']
+    },
+    {
+      email: 'coordinator3@irembo.com',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['Irembo']
+    },
+    {
+      email: 'coordinator4@irembo.com',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['Irembo']
+    },
+    {
+      email: 'coordinator@mtn.com',
+      password: hashSync('Andela123'),
+      role: 'coordinator',
+      organizations: ['MTN']
+    },
+    {
       email: 'trainee@devpulse.com',
       password: hashSync('Andela123'),
       role: 'user',

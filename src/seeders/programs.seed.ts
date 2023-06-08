@@ -37,7 +37,30 @@ const seedPrograms = async () => {
       manager: managers[2].id,
       organization: (await Organization.find())[2]?.id,
     },
-
+      {
+            name: 'MTN',
+            description: 'this is mtn program',
+            manager: managers[2].id,
+            organization: (await Organization.find())[2]?.id,
+        },
+        {
+            name: 'Atlp 3',
+            description: 'this is program at org 3',
+            manager: managers[3].id,
+            organization: (await Organization.find())[3]?.id,
+        },
+        {
+            name: 'program 1 Irembo',
+            description: 'this is program at Irembo',
+            manager: managers[3]?.id,
+            organization: (await Organization.find())[4]?.id,
+        },
+        {
+            name: 'program 2 Irembo ',
+            description: 'this is second program at Irembo',
+            manager: managers[3]?.id,
+            organization: (await Organization.find())[4]?.id,
+        },
 
   ];
 
