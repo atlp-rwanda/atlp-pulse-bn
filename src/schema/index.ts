@@ -6,9 +6,9 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  
+
   type Subscription {
-    newRating(receiver:String!): Notification!
+    newRating(receiver: String!): Notification!
     newReply: Notification!
   }
 
@@ -179,7 +179,6 @@ const Schema = gql`
     professionalRemark: String
     approved: Boolean!
   }
-
   type Query {
     getAllUsers(orgToken: String): [User]
     getUsers(orgToken: String): [User]
@@ -376,6 +375,29 @@ const Schema = gql`
     deleteTeam(id: ID!): String!
     updateTeam(id: ID!, orgToken: String, name: String): Team
     deleteReply: String!
+  }
+  type Event {
+    title: String!
+    hostName: String!
+    start: String!
+    end: String!
+    timeToStart: String!
+    timeToEnd: String!
+  }
+  type Mutation {
+    createEvent(
+      title: String!
+      hostName: String!
+      start: String!
+      end: String!
+      guests: String!
+      timeToStart: String!
+      timeToEnd: String!
+      authToken: String
+    ): Event!
+  }
+  type Query {
+    getEvents(authToken: String): [Event]
   }
 `;
 export default Schema;

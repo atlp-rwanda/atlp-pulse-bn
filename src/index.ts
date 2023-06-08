@@ -36,6 +36,7 @@ import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 import { connect } from './database/db.config';
 import { context } from './context';
 import notificationResolver from './resolvers/notification.resolvers';
+import eventResolvers from './resolvers/eventResolver';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -49,6 +50,7 @@ export const resolvers = mergeResolvers([
   phaseResolver,
   teamResolver,
   notificationResolver,
+  eventResolvers,
 ]);
 export const typeDefs = mergeTypeDefs([
   schemas,

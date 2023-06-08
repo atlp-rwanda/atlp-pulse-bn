@@ -1,19 +1,18 @@
 /* eslint-disable */
 import { info, log } from 'console';
 import { systemRating } from '../models/ratingSystem';
-import { Context } from "./../context";
-import { checkUserLoggedIn } from "../helpers/user.helpers";
-import { checkLoggedInOrganization } from "../helpers/organization.helper";
-
+import { Context } from './../context';
+import { checkUserLoggedIn } from '../helpers/user.helpers';
+import { checkLoggedInOrganization } from '../helpers/organization.helper';
 
 const createRatingSystemresolver = {
   Query: {
     async getRatingSystems(_: any, { orgToken }: any, context: Context) {
-    const  org = await checkLoggedInOrganization(orgToken);
+      const org = await checkLoggedInOrganization(orgToken);
 
-    (await checkUserLoggedIn(context))(['admin', 'superAdmin', 'manager']);
+      (await checkUserLoggedIn(context))(['admin', 'superAdmin', 'manager']);
 
-      const ratingSystems = await systemRating.find({organization: org});
+      const ratingSystems = await systemRating.find({ organization: org });
       return ratingSystems;
     },
     async getRatingSystem(parent: any, args: any) {
@@ -21,10 +20,12 @@ const createRatingSystemresolver = {
       if (!ratingSystem) throw new Error("This rating system doesn't exist");
       return ratingSystem;
     },
-   async getDefaultGrading () {
-     const defaultGradingSystem = await systemRating.find({defaultGrading: true})
-     return defaultGradingSystem;
-   }
+    async getDefaultGrading() {
+      const defaultGradingSystem = await systemRating.find({
+        defaultGrading: true,
+      });
+      return defaultGradingSystem;
+    },
   },
 
   Mutation: {
@@ -35,21 +36,21 @@ const createRatingSystemresolver = {
     ) {
       if (context.role === 'admin' || 'superAdmin' || 'manager') {
         const ratingSystemExists = await systemRating.findOne({
-        name: name,
-      });
-      const org = await checkLoggedInOrganization(orgToken);
+          name: name,
+        });
+        const org = await checkLoggedInOrganization(orgToken);
 
-      if (ratingSystemExists) throw new Error('Rating system already exists');
-      const newRatingSystem = await systemRating.create({
-        name,
-        grade,
-        description,
-        percentage,
-        userId: context.userId,
-        organization: org?.id
-      });
-      return newRatingSystem;
-    }else {
+        if (ratingSystemExists) throw new Error('Rating system already exists');
+        const newRatingSystem = await systemRating.create({
+          name,
+          grade,
+          description,
+          percentage,
+          userId: context.userId,
+          organization: org?.id,
+        });
+        return newRatingSystem;
+      } else {
         throw new Error('You are not allowed to perform this action');
       }
     },
