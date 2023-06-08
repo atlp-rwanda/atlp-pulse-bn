@@ -23,7 +23,7 @@ const resolvers = {
     },
     async phase(parent: any) {
       return await Phase.findById(parent.phase);
-    },
+    }
   },
   Query: {
     getAllCohorts: async (_: any, { orgToken }: any, context: Context) => {
@@ -209,7 +209,9 @@ const resolvers = {
         );
       }
       if (!phase) {
-        throw new ValidationError(`Phase with name ${phaseName} doesn't exist`);
+        throw new ValidationError(
+          `Phase with name ${phaseName} doesn't exist`
+        );
       }
       if (!program) {
         throw new ValidationError(

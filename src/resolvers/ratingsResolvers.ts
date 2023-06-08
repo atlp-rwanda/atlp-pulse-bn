@@ -95,16 +95,11 @@ const ratingResolvers: any = {
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
       // (await checkUserLoggedIn(context))(['admin']);
       (await checkUserLoggedIn(context))(['coordinator', 'admin', 'trainee']);
-      return (
-        await Rating.find({})
-        .populate('cohort')
-        .populate('user')
-      ).filter((rating: any) => {
-        return (
-          rating?.cohort?.name == CohortName
-        )
-      }
-      )
+      return (await Rating.find({}).populate('cohort').populate('user')).filter(
+        (rating: any) => {
+          return rating.cohort.name == CohortName;
+        }
+      );
     },
 
     async fetchCohortsCoordinator(

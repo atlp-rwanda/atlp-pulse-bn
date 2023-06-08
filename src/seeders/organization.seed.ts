@@ -21,6 +21,39 @@ const seedOrganizations = async () => {
       description: 'Organization 3 description for testing',
       admin: admin[2]._id,
     },
+
+    {
+      name: 'Brainly',
+      description: 'Brainly description for testing',
+      admin: admin[3]._id,
+    },
+
+
+    {
+      name: 'Kigalihub',
+      description: 'this organization is kigali hub organization',
+      admin: admin[2]._id,
+    },
+      {
+      name: 'MTN',
+      description: 'testing MTN',
+      admin: admin[2]._id,
+    },
+    {
+      name: 'organization 3',
+      description: 'Organization 3 description',
+      admin: admin[3]._id,
+    },
+    {
+      name: 'Irembo',
+      description: 'Irembo description',
+      admin: admin[3]._id,
+    },
+    {
+    name: 'Kist',
+    description: 'Kist Organization description',
+    admin: admin[4]._id,
+    },
   ];
 
   await Organization.deleteMany({});

@@ -17,7 +17,6 @@ connect().then(async () => {
     await seedCohorts();
     await seedTeams();
     await seedsystemRatings();
-    await seedNotification();
 
     process.exit();
   } catch (error) {

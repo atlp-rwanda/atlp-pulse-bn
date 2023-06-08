@@ -1,7 +1,7 @@
 import { gql } from 'apollo-server';
 
 const phaseSchema = gql`
-  type Phase {
+ type Phase {
     id: ID!
     name: String!
     description: String
@@ -12,7 +12,11 @@ const phaseSchema = gql`
   }
 
   type Mutation {
-    addPhase(name: String!, description: String!, orgToken: String!): Phase!
+    addPhase(
+      name: String!
+      description: String!
+      orgToken: String!
+    ): Phase!
     deletePhase(id: ID!, orgToken: String): Phase
     updatePhase(
       id: ID!
