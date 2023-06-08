@@ -20,6 +20,7 @@ connect().then(async () => {
 
     process.exit();
   } catch (error) {
+    console.log('database seed errors ', { error });
     process.exit();
   }
 });

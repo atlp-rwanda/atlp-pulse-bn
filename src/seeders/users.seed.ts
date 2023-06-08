@@ -100,12 +100,6 @@ const seedUsers = async () => {
       organizations: ['organization 2'],
     },
     {
-      email: 'james@brainly.tech',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['Andela'],
-    },
-    {
       email: 'peter@pulse.com',
       password: hashSync('Andela123'),
       role: 'user',
@@ -116,13 +110,6 @@ const seedUsers = async () => {
       password: hashSync('Andela123'),
       role: 'user',
       organizations: ['organization 2'],
-    },
-
-    {
-      email: 'test1@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
     },
     {
       email: 'admin4@devpulse.co',
@@ -219,6 +206,12 @@ const seedUsers = async () => {
       password: hashSync('Organization123'),
       role: 'coordinator',
       organizations: ['organization 3'],
+    },
+    {
+      email: 'test1@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
     },
     {
       email: 'test2@pulse.com',
@@ -1575,12 +1568,6 @@ const seedUsers = async () => {
       organizations: ['Kigalihub'],
     },
     {
-      email: 'sanomcange@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
       email: 'sanomcangelos1@gmail.com',
       password: hashSync('Kigalihub123'),
       role: 'trainee',
@@ -1600,6 +1587,12 @@ const seedUsers = async () => {
     },
     {
       email: 'sanomcange@gmail.com',
+      password: hashSync('Kigalihub123'),
+      role: 'trainee',
+      organizations: ['Kigalihub'],
+    },
+    {
+      email: 'sanomcange2@gmail.com',
       password: hashSync('Kigalihub123'),
       role: 'trainee',
       organizations: ['Kigalihub'],
@@ -2048,7 +2041,7 @@ const seedUsers = async () => {
   const trainee2: any = await User.findOne({ email: 'trainee1@pulse.com' });
   const trainee3: any = await User.findOne({ email: 'trainee2@pulse.com' });
   const trainee4: any = await User.findOne({ email: 'trainee3@pulse.com' });
-  const james: any = await User.findOne({ email: 'james@gmail.com' });
+  const james: any = await User.findOne({ email: 'james@brainly.tech' });
   const peter: any = await User.findOne({ email: 'peter@pulse.com' });
   const john: any = await User.findOne({ email: 'john@pulse.com' });
 
@@ -2262,10 +2255,10 @@ const seedUsers = async () => {
     email: 'bonnieclyde2@gmail.com',
   });
   const managerFive: any = await User.findOne({
-    email: 'bonnieclyde3 @gmail.com',
+    email: 'bonnieclyde3@gmail.com',
   });
   const managerSix: any = await User.findOne({
-    email: 'bonnieclyde3 @gmail.com',
+    email: 'bonnieclyde4@gmail.com',
   });
   const coordinatorThree: any = await User.findOne({
     email: 'bonnieclyde5@gmail.com',
@@ -2309,7 +2302,7 @@ const seedUsers = async () => {
     email: 'sanomc@gmail.com',
   });
   const macAngelos5: any = await User.findOne({
-    email: 'sanomcange@gmail.com',
+    email: 'sanomcange2@gmail.com',
   });
   const macAngelos6: any = await User.findOne({
     email: 'sanomcangeloss1@gmail.com',
