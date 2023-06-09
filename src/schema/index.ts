@@ -6,7 +6,10 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  
+  type Subscription {
+    newRating(receiver:String!): Notification!
+    newReply: Notification!
+  }
 
   type Notification {
     id: ID!
