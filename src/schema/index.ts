@@ -7,6 +7,10 @@ const Schema = gql`
     coordinator: User
   }
   
+  type Subscription {
+    newRating(receiver:String!): Notification!
+    newReply: Notification!
+  }
 
   type Notification {
     id: ID!

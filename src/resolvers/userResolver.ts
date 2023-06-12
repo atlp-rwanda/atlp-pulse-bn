@@ -298,6 +298,22 @@ const resolvers: any = {
       const userExists = await User.findById(id);
       if (!userExists) throw new Error("User doesn't exist");
 
+      const getAllUsers = await User.find({
+        role: 'admin',
+      });
+
+      let checkUserOrganization = 0;
+    
+      getAllUsers.forEach((user) => {
+        if(user.organizations.includes(org.name)){
+          checkUserOrganization++;
+        }
+      });
+  
+      if (checkUserOrganization == 1 && userExists.role == 'admin') {
+        throw new Error('There must be at least one admin in the organization');
+      }
+
       if (userExists.role == 'coordinator') {
         let userCohort: any = await Cohort.find({
           coordinator: userExists?.id,
