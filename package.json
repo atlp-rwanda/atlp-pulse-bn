@@ -4,7 +4,7 @@
   "description": "ATLP app backend",
   "main": "src/index.ts",
   "scripts": {
-    "start": "tsc && node dist/index",
+    "start": "npm run seed & tsc && node dist/index",
     "seed": "ts-node-dev --transpile-only --no-notify --exit-child src/seeders/index.ts",
     "dev": "ts-node-dev --transpile-only --no-notify --exit-child src/index.ts",
     "build": "tsc",
