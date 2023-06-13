@@ -13,18 +13,18 @@ const Notification = mongoose.model(
       required: true,
     },
     sender: {
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     createdAt: {
-        type: String,
-        required: true, 
+      type: String,
+      required: true,
     },
     read: {
-        type: Boolean,
-        required: true,  
-    }
+      type: Boolean,
+      required: true,
+    },
   })
 );
 

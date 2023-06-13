@@ -49,31 +49,31 @@ const seedUsers = async () => {
       email: 'coordinator@irembo.com',
       password: hashSync('Andela123'),
       role: 'coordinator',
-      organizations: ['Irembo']
+      organizations: ['Irembo'],
     },
     {
       email: 'coordinator2@irembo.com',
       password: hashSync('Andela123'),
       role: 'coordinator',
-      organizations: ['Irembo']
+      organizations: ['Irembo'],
     },
     {
       email: 'coordinator3@irembo.com',
       password: hashSync('Andela123'),
       role: 'coordinator',
-      organizations: ['Irembo']
+      organizations: ['Irembo'],
     },
     {
       email: 'coordinator4@irembo.com',
       password: hashSync('Andela123'),
       role: 'coordinator',
-      organizations: ['Irembo']
+      organizations: ['Irembo'],
     },
     {
       email: 'coordinator@mtn.com',
       password: hashSync('Andela123'),
       role: 'coordinator',
-      organizations: ['MTN']
+      organizations: ['MTN'],
     },
     {
       email: 'trainee@devpulse.com',
@@ -118,8 +118,6 @@ const seedUsers = async () => {
       organizations: ['organization 2'],
     },
 
-
-
     {
       email: 'test1@pulse.com',
       password: hashSync('Organization123'),
@@ -143,7 +141,8 @@ const seedUsers = async () => {
       password: hashSync('Organization123'),
       role: 'admin',
       organizations: ['Organization 3'],
-    },    {
+    },
+    {
       email: 'admin6@devpulse.co',
       password: hashSync('Organization123'),
       role: 'admin',
@@ -190,7 +189,7 @@ const seedUsers = async () => {
       password: hashSync('Organization123'),
       role: 'coordinator',
       organizations: ['organization 3'],
-    },   
+    },
     {
       email: 'coordinator6@devpulse.co',
       password: hashSync('Organization123'),
@@ -262,7 +261,8 @@ const seedUsers = async () => {
       password: hashSync('Organization123'),
       role: 'trainee',
       organizations: ['organization 3'],
-    },{
+    },
+    {
       email: 'test9@pulse.com',
       password: hashSync('Organization123'),
       role: 'trainee',
@@ -372,367 +372,363 @@ const seedUsers = async () => {
     },
 
     {
-    email: 'karimba@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'karimbavianney@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'karimba1@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'karimbajean@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'karimbafiston@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'karimbajohn12@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
+      email: 'karimba@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
     {
-    email: 'karimbafiston12@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'karimbajohn1@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
+      email: 'karimbavianney@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'karimba1@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'karimbajean@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'karimbafiston@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'karimbajohn12@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'karimbafiston12@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'karimbajohn1@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
 
+    {
+      email: 'inkuba@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba1@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba2@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba3@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba4@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba5@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba6@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkuba7@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkubajean@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'inkubajohn@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'wilson@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'wilsonjohn@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'generator@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'generato.r@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'generat.or@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'generat.o.r@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'genera.tor@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'genera.to.r@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'genera.t.or@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'genera.t.o.r@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'gener.ator@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
 
+    {
+      email: 'danydrink@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'mikedany@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'milestonedany@pulse.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'davedany@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'danydimtri@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'danyhelper@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'dannyclug@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'danychang@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'danychen@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'alanwalker@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'alanphilip@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'alanjames@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'alanclavin@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'dimalan@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'alandest@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'alanpulg@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
 
-  {
-    email: 'inkuba@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'inkuba1@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },  {
-    email: 'inkuba2@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'inkuba3@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },  {
-    email: 'inkuba4@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'inkuba5@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  }, 
-   {
-    email: 'inkuba6@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'inkuba7@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  }, 
-   {
-    email: 'inkubajean@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'inkubajohn@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-   {
-    email: 'wilson@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'wilsonjohn@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'generator@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'generato.r@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'generat.or@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'generat.o.r@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'genera.tor@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'genera.to.r@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'genera.t.or@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'genera.t.o.r@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'gener.ator@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
+    {
+      email: 'hakizimanaaline@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanaalain@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanastani@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanawilson@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanadestin@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanaphilip@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanadio123@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanadivin@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanaclara@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanadenys@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'hakizimanaquerry@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'cyanzayire@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'cyanzayiredeus@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
+    {
+      email: 'theophilehakizumwami@gmail.com',
+      password: hashSync('Organization123'),
+      role: 'trainee',
+      organizations: ['Organization 3'],
+    },
 
-  
-  
-  {
-    email: 'danydrink@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-   {
-    email: 'mikedany@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'milestonedany@pulse.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'davedany@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'danydimtri@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'danyhelper@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'dannyclug@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'danychang@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'danychen@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'alanwalker@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'alanphilip@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'alanjames@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'alanclavin@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'dimalan@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'alandest@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'alanpulg@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-
-
-  {
-    email: 'hakizimanaaline@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanaalain@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanastani@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanawilson@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanadestin@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanaphilip@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanadio123@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanadivin@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanaclara@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanadenys@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'hakizimanaquerry@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'cyanzayire@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'cyanzayiredeus@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-  {
-    email: 'theophilehakizumwami@gmail.com',
-    password: hashSync('Organization123'),
-    role: 'trainee',
-    organizations: ['Organization 3'],
-  },
-
-    
     {
       email: 'admin@brainly.co',
       password: hashSync('Brainly123'),
@@ -1422,10 +1418,6 @@ const seedUsers = async () => {
       organizations: ['Brainly'],
     },
 
-  
-  
-
-
     {
       email: 'coise@gmail.com',
       password: hashSync('Kigalihub123'),
@@ -2038,7 +2030,6 @@ const seedUsers = async () => {
     },
   ];
 
-  
   await User.deleteMany({});
   await User.insertMany(users);
 
@@ -2049,7 +2040,9 @@ const seedUsers = async () => {
   const admin2: any = await User.findOne({ email: 'admin2@devpulse.co' });
   const manager: any = await User.findOne({ email: 'manager@devpulse.co' });
   const manager2: any = await User.findOne({ email: 'manager2@devpulse.co' });
-  const coordinator: any = await User.findOne({ email: 'coordinator@devpulse.co' });
+  const coordinator: any = await User.findOne({
+    email: 'coordinator@devpulse.co',
+  });
 
   const trainee: any = await User.findOne({ email: 'trainee@devpulse.com' });
   const trainee2: any = await User.findOne({ email: 'trainee1@pulse.com' });
@@ -2059,23 +2052,30 @@ const seedUsers = async () => {
   const peter: any = await User.findOne({ email: 'peter@pulse.com' });
   const john: any = await User.findOne({ email: 'john@pulse.com' });
 
-
   const test1: any = await User.findOne({ email: 'fanny@gmail.com' });
   const admin4: any = await User.findOne({ email: 'delice@brainly.tech' });
   const admin3: any = await User.findOne({ email: 'abijuru@brainly.tech' });
   const admin5: any = await User.findOne({ email: 'sam123@brainly.tech' });
   const admin6: any = await User.findOne({ email: 'samusoni@brainly.tech' });
   const manager3: any = await User.findOne({ email: 'samusoni1@brainly.tech' });
-  const manager4: any = await User.findOne({ email: 'samusoni10@brainly.tech' });
+  const manager4: any = await User.findOne({
+    email: 'samusoni10@brainly.tech',
+  });
   const manager5: any = await User.findOne({ email: 'sonia10@brainly.tech' });
   const manager6: any = await User.findOne({ email: 'sonia1@brainly.tech' });
-  const coordinator3: any = await User.findOne({ email: 'sonia001@brainly.tech' });
+  const coordinator3: any = await User.findOne({
+    email: 'sonia001@brainly.tech',
+  });
   const coordinator4: any = await User.findOne({ email: 'sonyy@brainly.tech' });
   const coordinator5: any = await User.findOne({
     email: 'sonyy1234@brainly.tech',
   });
-  const coordinator6: any = await User.findOne({ email: 'sinaaa@brainly.tech' });
-  const coordinator7: any = await User.findOne({ email: 'sinaapia@brainly.tech' });
+  const coordinator6: any = await User.findOne({
+    email: 'sinaaa@brainly.tech',
+  });
+  const coordinator7: any = await User.findOne({
+    email: 'sinaapia@brainly.tech',
+  });
   const coordinator8: any = await User.findOne({
     email: 'susanapia@brainly.tech',
   });
@@ -2095,14 +2095,18 @@ const seedUsers = async () => {
   const test9: any = await User.findOne({ email: 'tessaoya@brainly.tech' });
   const test10: any = await User.findOne({ email: 'tesaoya@brainly.tech' });
   const fabrice: any = await User.findOne({ email: 'teta@brainly.tech' });
-  const fabricerug: any = await User.findOne({ email: 'tetabella@brainly.tech' });
+  const fabricerug: any = await User.findOne({
+    email: 'tetabella@brainly.tech',
+  });
   const fabricenkuku: any = await User.findOne({
     email: 'tetabella01@brainly.tech',
   });
   const fabricekayi: any = await User.findOne({
     email: 'tetabella1@brainly.tech',
   });
-  const rugfabrice: any = await User.findOne({ email: 'tetabetty@brainly.tech' });
+  const rugfabrice: any = await User.findOne({
+    email: 'tetabetty@brainly.tech',
+  });
   const fabricenziranziza: any = await User.findOne({
     email: 'tetabetty1@brainly.tech',
   });
@@ -2112,7 +2116,9 @@ const seedUsers = async () => {
   const shemankubito: any = await User.findOne({
     email: 'sistetabetty@brainly.tech',
   });
-  const shemalucie: any = await User.findOne({ email: 'sisbetty@brainly.tech' });
+  const shemalucie: any = await User.findOne({
+    email: 'sisbetty@brainly.tech',
+  });
   const shema: any = await User.findOne({ email: 'betty@brainly.tech' });
   const shemakanyandekwe: any = await User.findOne({
     email: 'betty1@brainly.tech',
@@ -2125,7 +2131,9 @@ const seedUsers = async () => {
   const karimbavianne: any = await User.findOne({
     email: 'Kalisamayoo@brainly.tech',
   });
-  const karimba1: any = await User.findOne({ email: 'Kalisamay9oo@brainly.tech' });
+  const karimba1: any = await User.findOne({
+    email: 'Kalisamay9oo@brainly.tech',
+  });
   const karimbajean: any = await User.findOne({
     email: 'Kalisamayo09@brainly.tech',
   });
@@ -2135,7 +2143,9 @@ const seedUsers = async () => {
   const karimbajohn12: any = await User.findOne({
     email: 'Kalisam09@brainly.tech',
   });
-  const karimbajohn1: any = await User.findOne({ email: 'Kalim00@brainly.tech' });
+  const karimbajohn1: any = await User.findOne({
+    email: 'Kalim00@brainly.tech',
+  });
   const karimbafiston12: any = await User.findOne({
     email: 'Kalisam00@brainly.tech',
   });
@@ -2158,7 +2168,9 @@ const seedUsers = async () => {
     email: 'pepperallasiyaa@brainly.tech',
   });
   const pepper3: any = await User.findOne({ email: 'pallilon@brainly.tech' });
-  const pepper4: any = await User.findOne({ email: 'pallilon.on@brainly.tech' });
+  const pepper4: any = await User.findOne({
+    email: 'pallilon.on@brainly.tech',
+  });
   const pepper5: any = await User.findOne({
     email: 'pallilon.on.oi@brainly.tech',
   });
@@ -2183,7 +2195,9 @@ const seedUsers = async () => {
   const dieudone5: any = await User.findOne({
     email: 'dieudonehelper@brainly.tech',
   });
-  const dieudone6: any = await User.findOne({ email: 'dannyclug@brainly.tech' });
+  const dieudone6: any = await User.findOne({
+    email: 'dannyclug@brainly.tech',
+  });
   const dieudone7: any = await User.findOne({
     email: 'dieudonechang@brainly.tech',
   });
@@ -2198,8 +2212,12 @@ const seedUsers = async () => {
   const elio5: any = await User.findOne({ email: 'eliodest@brainly.tech' });
   const elio6: any = await User.findOne({ email: 'eliopulg@brainly.tech' });
   const mugabo: any = await User.findOne({ email: 'mugaboaline@brainly.tech' });
-  const mugabo1: any = await User.findOne({ email: 'mugaboalain@brainly.tech' });
-  const mugabo2: any = await User.findOne({ email: 'mugabostani@brainly.tech' });
+  const mugabo1: any = await User.findOne({
+    email: 'mugaboalain@brainly.tech',
+  });
+  const mugabo2: any = await User.findOne({
+    email: 'mugabostani@brainly.tech',
+  });
   const mugabo3: any = await User.findOne({
     email: 'mugaboMusoni@brainly.tech',
   });
@@ -2212,9 +2230,15 @@ const seedUsers = async () => {
   const mugabo6: any = await User.findOne({
     email: 'mugabodio123@brainly.tech',
   });
-  const mugabo7: any = await User.findOne({ email: 'mugabodivin@brainly.tech' });
-  const mugabo8: any = await User.findOne({ email: 'mugaboclara@brainly.tech' });
-  const mugabo9: any = await User.findOne({ email: 'mugabodenys@brainly.tech' });
+  const mugabo7: any = await User.findOne({
+    email: 'mugabodivin@brainly.tech',
+  });
+  const mugabo8: any = await User.findOne({
+    email: 'mugaboclara@brainly.tech',
+  });
+  const mugabo9: any = await User.findOne({
+    email: 'mugabodenys@brainly.tech',
+  });
   const mugabo10: any = await User.findOne({
     email: 'mugaboquerry@brainly.tech',
   });
@@ -2226,23 +2250,36 @@ const seedUsers = async () => {
     email: 'kezaaabelitrie@brainly.tech',
   });
 
-
   const done1: any = await User.findOne({ email: 'coise@gmail.com' });
   const adminThree: any = await User.findOne({ email: 'klay@gmail.com' });
   const adminFour: any = await User.findOne({ email: 'curry@gmail.com' });
   const adminFive: any = await User.findOne({ email: 'greendray@gmail.com' });
   const adminSix: any = await User.findOne({ email: 'bonnieclyde@gmail.com' });
-  const managerThree: any = await User.findOne({ email: 'bonnieclyde1@gmail.com' });
-  const managerFour: any = await User.findOne({ email: 'bonnieclyde2@gmail.com' });
-  const managerFive: any = await User.findOne({ email: 'bonnieclyde3 @gmail.com' });
-  const managerSix: any = await User.findOne({ email: 'bonnieclyde3 @gmail.com' });
-  const coordinatorThree: any = await User.findOne({ email: 'bonnieclyde5@gmail.com' });
+  const managerThree: any = await User.findOne({
+    email: 'bonnieclyde1@gmail.com',
+  });
+  const managerFour: any = await User.findOne({
+    email: 'bonnieclyde2@gmail.com',
+  });
+  const managerFive: any = await User.findOne({
+    email: 'bonnieclyde3 @gmail.com',
+  });
+  const managerSix: any = await User.findOne({
+    email: 'bonnieclyde3 @gmail.com',
+  });
+  const coordinatorThree: any = await User.findOne({
+    email: 'bonnieclyde5@gmail.com',
+  });
   const coordinatorFour: any = await User.findOne({ email: 'byuma@gmail.com' });
   const coordinatorFive: any = await User.findOne({
     email: 'byuma01@gmail.com',
   });
-  const coordinatorSix: any = await User.findOne({ email: 'byuma02@gmail.com' });
-  const coordinatorSev: any = await User.findOne({ email: 'kanyami@gmail.com' });
+  const coordinatorSix: any = await User.findOne({
+    email: 'byuma02@gmail.com',
+  });
+  const coordinatorSev: any = await User.findOne({
+    email: 'kanyami@gmail.com',
+  });
   const coordinatorEig: any = await User.findOne({
     email: 'kanyami1@gmail.com',
   });
@@ -2262,14 +2299,18 @@ const seedUsers = async () => {
   const done9: any = await User.findOne({ email: 'kanyamico@gmail.com' });
   const done10: any = await User.findOne({ email: 'kanyamico1@gmail.com' });
   const macAngelos: any = await User.findOne({ email: 'sanomcange@gmail.com' });
-  const macAngelos2: any = await User.findOne({ email: 'sanomcangelos1@gmail.com' });
+  const macAngelos2: any = await User.findOne({
+    email: 'sanomcangelos1@gmail.com',
+  });
   const macAngelos3: any = await User.findOne({
     email: 'sanomcangelos@gmail.com',
   });
   const macAngelos4: any = await User.findOne({
     email: 'sanomc@gmail.com',
   });
-  const macAngelos5: any = await User.findOne({ email: 'sanomcange@gmail.com' });
+  const macAngelos5: any = await User.findOne({
+    email: 'sanomcange@gmail.com',
+  });
   const macAngelos6: any = await User.findOne({
     email: 'sanomcangeloss1@gmail.com',
   });
@@ -2302,7 +2343,9 @@ const seedUsers = async () => {
   const greatkaka: any = await User.findOne({
     email: 'jordanpoole1@gmail.com',
   });
-  const greatkaka1: any = await User.findOne({ email: 'jordanpoole3@gmail.com' });
+  const greatkaka1: any = await User.findOne({
+    email: 'jordanpoole3@gmail.com',
+  });
   const greatkakas: any = await User.findOne({
     email: 'jordanpoole2@gmail.com',
   });
@@ -2315,7 +2358,9 @@ const seedUsers = async () => {
   const gunners4: any = await User.findOne({ email: 'gunners4@pulse.com' });
   const gunners5: any = await User.findOne({ email: 'gunners5@pulse.com' });
   const bencurso: any = await User.findOne({ email: 'bencurso@pulse.com' });
-  const bjayzirijohn: any = await User.findOne({ email: 'greatkings@gmail.com' });
+  const bjayzirijohn: any = await User.findOne({
+    email: 'greatkings@gmail.com',
+  });
   const rwegoyve: any = await User.findOne({ email: 'rwegoyve@pulse.com' });
   const rwegoyves: any = await User.findOne({ email: 'rwegoyves@pulse.com' });
   const rwego: any = await User.findOne({ email: 'rwego@pulse.com' });
@@ -2330,7 +2375,9 @@ const seedUsers = async () => {
     email: 'pato.ui.ux@gmail.com',
   });
   const sucres6: any = await User.findOne({ email: 'chrissucres@gmail.com' });
-  const sucres7: any = await User.findOne({ email: 'chrissucremugani@gmail.com' });
+  const sucres7: any = await User.findOne({
+    email: 'chrissucremugani@gmail.com',
+  });
   const sucres8: any = await User.findOne({ email: 'chrissucre@gmail.com' });
   const princeniby: any = await User.findOne({
     email: 'chrisswalker@pulse.com',
@@ -2459,7 +2506,6 @@ const seedUsers = async () => {
       firstName: 'James',
       lastName: 'Kwanda',
     },
-    
 
     {
       user: done1.id,
@@ -2973,7 +3019,7 @@ const seedUsers = async () => {
       firstName: 'wardell',
       lastName: 'Dev',
     },
-{
+    {
       user: admin4.id,
       firstName: 'Mike',
       lastName: 'Akello',
@@ -3480,8 +3526,6 @@ const seedUsers = async () => {
       firstName: 'karekezi',
       lastName: 'Dev',
     },
-
-    
   ];
   await Profile.deleteMany({});
   await Profile.insertMany(profiles);
