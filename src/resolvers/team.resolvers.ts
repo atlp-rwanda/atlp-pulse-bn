@@ -194,7 +194,7 @@ const resolvers = {
         const cohort = await Cohort.findOne({ name: cohortName });
 
         const organ = await checkLoggedInOrganization(orgToken);
-        
+
         // validate inputs
         if (await Team.findOne({ name, organization: organ?.id })) {
           throw new ValidationError(`Team with name ${name} already exist`);
@@ -271,7 +271,6 @@ const resolvers = {
       const cohortProgram = team?.cohort?.program as ProgramType;
       const cohortOrg = cohortProgram.organization as OrganizationType;
       const org = await checkLoggedInOrganization(orgToken);
-
 
       if (!team) {
         throw new ValidationError(`team with id "${id}" doesn't exist`);

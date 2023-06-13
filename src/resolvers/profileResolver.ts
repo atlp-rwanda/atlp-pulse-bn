@@ -20,27 +20,34 @@ const profileResolvers: any = {
       },
       context: Context
     ) => {
-      (await checkUserLoggedIn(context))(['superAdmin', 'admin','trainee','coordinator']);
+      (await checkUserLoggedIn(context))([
+        'superAdmin',
+        'admin',
+        'trainee',
+        'coordinator',
+      ]);
       const org = await checkLoggedInOrganization(args.orgToken);
       const users = await User.find({
         organizations: org?.name,
-        role: { $in: ['user', 'coordinator', 'manager', 'admin','trainee','user'] },
+        role: {
+          $in: ['user', 'coordinator', 'manager', 'admin', 'trainee', 'user'],
+        },
       }).populate({
-            path: 'team',
+        path: 'team',
+        strictPopulate: false,
+        populate: {
+          path: 'cohort',
+          strictPopulate: false,
+          populate: {
+            path: 'program',
             strictPopulate: false,
             populate: {
-              path: 'cohort',
+              path: 'organization',
               strictPopulate: false,
-              populate: {
-                path: 'program',
-                strictPopulate: false,
-                populate: {
-                  path: 'organization',
-                  strictPopulate: false,
-                },
-              },
             },
-          });
+          },
+        },
+      });
       return users;
     },
     async getAllRoles() {

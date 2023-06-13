@@ -28,10 +28,10 @@ const manageStudentResolvers = {
           'manager',
           'coordinator',
         ]);
-        return (await User.find({ role: 'user',organizations:org?.name })).filter((user: any) => {
-          return (
-            ((user.cohort == null || user.cohort == undefined))
-          );
+        return (
+          await User.find({ role: 'user', organizations: org?.name })
+        ).filter((user: any) => {
+          return user.cohort == null || user.cohort == undefined;
         });
       } catch (error) {
         const { message } = error as { message: any };
@@ -705,13 +705,19 @@ const manageStudentResolvers = {
           expiresIn: '2d',
         });
         const newToken: any = token.replaceAll('.', '*');
-        const content = inviteUserTemplate(org.name, user.email, user.role);
         const link = `${process.env.REGISTER_FRONTEND_URL}/${newToken}`;
+        const content = inviteUserTemplate(
+          org.name,
+          user.email,
+          user.role,
+          link
+        );
+        const someSpace = ' ';
         await sendEmail(
           email,
           'Invitation',
           content,
-          link,
+          someSpace,
           role === 'manager'
             ? process.env.MANAGER_EMAIL
             : process.env.ADMIN_EMAIL,
