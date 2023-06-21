@@ -254,7 +254,7 @@ const manageStudentResolvers = {
       let org: InstanceType<typeof Organization>;
       org = await checkLoggedInOrganization(orgToken);
 
-      const team: any = await Team.findOne({ name: teamName }).populate({
+      const team: any = await Team.findOne({ organization: org?.id,name:teamName }).populate({
         path: 'cohort',
         model: Cohort,
         strictPopulate: false,
@@ -292,6 +292,8 @@ const manageStudentResolvers = {
       });
 
       if (team && user) {
+        console.log(team.cohort.program.organization.name);
+        console.log(org?.name);
         if (team.cohort.program.organization.name !== org?.name) {
           throw new Error(
             " You logged into an organization that doesn't have such a team"
@@ -522,6 +524,7 @@ const manageStudentResolvers = {
           checkMember.role = 'user';
           checkMember.coordinator = null;
           checkMember.cohort = null;
+          checkMember.team = null;
           await checkMember.save();
           return `member with email ${email} is successfully removed from cohort`;
         } else {
@@ -535,6 +538,7 @@ const manageStudentResolvers = {
       { removedFromTeamName, addedToTeamName, email, orgToken }: any,
       context: any
     ) {
+      console.log(removedFromTeamName, addedToTeamName, email, orgToken);
       // coordinator validation
       const { userId, role }: any = (await checkUserLoggedIn(context))([
         'admin',
@@ -568,7 +572,7 @@ const manageStudentResolvers = {
       });
 
       const addedToTeam: any = await Team.findOne({
-        name: addedToTeamName,
+        organization: org?.id,
       }).populate({
         path: 'cohort',
         model: Cohort,
@@ -585,11 +589,10 @@ const manageStudentResolvers = {
         },
       });
 
+
       if (checkMember && addedToTeam) {
         if (
-          (checkMember.team?.cohort?.program.organization.admin?.includes(
-            userId
-          ) &&
+          (
             checkMember.team?.cohort?.program?.organization?.name ==
               org?.name &&
             checkMember.team?.name == removedFromTeamName) ||
@@ -611,6 +614,7 @@ const manageStudentResolvers = {
               return member.toString() == checkMember.id.toString();
             }
           );
+
 
           if (memberCheck[0].toString() == checkMember.id.toString()) {
             (checkMember.team.members = checkMember.team?.members.filter(
@@ -654,6 +658,7 @@ const manageStudentResolvers = {
         });
         const checkTeamMember = results.reduce((prev: any, next: any) => {
           const members = next.members?.filter((member: any) => {
+            console.log(member.toString(), checkMember.id.toString());
             return member.toString() === checkMember.id.toString();
           });
           if (members.length > 0) {
@@ -668,9 +673,18 @@ const manageStudentResolvers = {
           );
         }
         if (checkMember.team) {
-          checkMember.team = addedToTeam.id;
+          const checkTeam = await Team.findOne({
+            name: addedToTeamName,
+            organization: org?.id,
+          })
+
+          checkMember.team = checkTeam?.id;
           await checkMember.save();
-          await addedToTeam.members.push(checkMember.id);
+          checkTeam?.members.push(checkMember.id);
+          await checkTeam?.save();
+          addedToTeam.members=addedToTeam.members.filter((member:any)=>{
+            return member.toString()!==checkMember.id.toString()
+          });
           await addedToTeam.save();
           return `member with email ${email} is successfully added to cohort '${addedToTeam.name}'`;
         }
@@ -685,7 +699,7 @@ const manageStudentResolvers = {
         );
       }
     },
-    async inviteUser(_: any, { email, orgToken }: any, context: any) {
+    async inviteUser(_: any, { email, orgToken,type }: any, context: any) {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
@@ -704,8 +718,8 @@ const manageStudentResolvers = {
         const token: any = jwt.sign({ name: org.name }, SECRET, {
           expiresIn: '2d',
         });
-        const newToken: any = token.replaceAll('.', '*');
-        const link = `${process.env.REGISTER_FRONTEND_URL}/${newToken}`;
+        const newToken: any = token.replace(/\./g, '*');
+        const link = type=='user' ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`:`${process.env.REGISTER_ORG_FRONTEND_URL}`;
         const content = inviteUserTemplate(
           org.name,
           user.email,
@@ -713,6 +727,7 @@ const manageStudentResolvers = {
           link
         );
         const someSpace = ' ';
+
         await sendEmail(
           email,
           'Invitation',

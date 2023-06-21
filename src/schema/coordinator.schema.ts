@@ -31,7 +31,7 @@ const Schema = gql`
       orgToken: String!
     ): String
 
-    inviteUser(email: String!, orgToken: String!): String!
+    inviteUser(email: String!, orgToken: String!,type:String!): String!
   }
 `;
 export default Schema;
