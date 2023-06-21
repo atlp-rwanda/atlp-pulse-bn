@@ -23,16 +23,11 @@ export default function organizationCreatedTemplate(
 								<td><p>Email:    </p></td>
 								<td><p>${email}</p></td>
 							</tr>
-							${
-                password
-                  ? `<tr>
+				<tr>
 									<td><p>Password:    </p></td>
 									<td><p>${password}</p></td>
 								</tr>
-								`
-                  : ''
-              }
-
+							
 						</tbody>
 					</table>
         </td>

@@ -292,8 +292,6 @@ const manageStudentResolvers = {
       });
 
       if (team && user) {
-        console.log(team.cohort.program.organization.name);
-        console.log(org?.name);
         if (team.cohort.program.organization.name !== org?.name) {
           throw new Error(
             " You logged into an organization that doesn't have such a team"
@@ -538,7 +536,6 @@ const manageStudentResolvers = {
       { removedFromTeamName, addedToTeamName, email, orgToken }: any,
       context: any
     ) {
-      console.log(removedFromTeamName, addedToTeamName, email, orgToken);
       // coordinator validation
       const { userId, role }: any = (await checkUserLoggedIn(context))([
         'admin',
@@ -550,153 +547,39 @@ const manageStudentResolvers = {
       let org: InstanceType<typeof Organization>;
       org = await checkLoggedInOrganization(orgToken);
 
-      const checkMember: any = await User.findOne({ email }).populate({
+      if(!org.name){
+        throw new Error('You are not logged into an organization');
+      }
+
+      const teamToChange= await Team.findOne({
+        organization: org?.id,
+        name: removedFromTeamName,
+      });
+
+      const newTeam= await Team.findOne({
+        organization: org?.id,
+        name: addedToTeamName,
+      });
+
+      const member = await User.findOne({email}).populate({
         path: 'team',
         model: Team,
         strictPopulate: false,
-        populate: {
-          path: 'cohort',
-          model: Cohort,
-          strictPopulate: false,
-          populate: {
-            path: 'program',
-            model: Program,
-            strictPopulate: false,
-            populate: {
-              path: 'organization',
-              model: Organization,
-              strictPopulate: false,
-            },
-          },
-        },
       });
 
-      const addedToTeam: any = await Team.findOne({
-        organization: org?.id,
-      }).populate({
-        path: 'cohort',
-        model: Cohort,
-        strictPopulate: false,
-        populate: {
-          path: 'program',
-          model: Program,
-          strictPopulate: false,
-          populate: {
-            path: 'organization',
-            model: Organization,
-            strictPopulate: false,
-          },
-        },
-      });
-
-
-      if (checkMember && addedToTeam) {
-        if (
-          (
-            checkMember.team?.cohort?.program?.organization?.name ==
-              org?.name &&
-            checkMember.team?.name == removedFromTeamName) ||
-          (checkMember.team?.cohort?.program.manager?._id
-            .toString()
-            .replace(/ObjectId\("(.*)"\)/, '$1') == userId?.toString() &&
-            checkMember.team?.cohort?.program?.organization?.name ==
-              org?.name &&
-            checkMember.team?.name == removedFromTeamName) ||
-          (checkMember.cohort?.coordinator?._id
-            .toString()
-            .replace(/ObjectId\("(.*)"\)/, '$1') == userId?.toString() &&
-            checkMember.team?.cohort?.program?.organization?.name ==
-              org?.name &&
-            checkMember.team?.name == removedFromTeamName)
-        ) {
-          const memberCheck = checkMember.team?.members.filter(
-            (member: any) => {
-              return member.toString() == checkMember.id.toString();
-            }
-          );
-
-
-          if (memberCheck[0].toString() == checkMember.id.toString()) {
-            (checkMember.team.members = checkMember.team?.members.filter(
-              (member: any) => {
-                return member.toString() !== checkMember.id.toString();
-              }
-            )),
-              await checkMember.team.save();
-          }
-        } else {
-          throw new Error('This member is not in this cohort');
-        }
-
-        if (addedToTeam.cohort?.program.organization.name !== org?.name) {
-          throw new Error(
-            " You logged into an organization that doesn't have such a cohort"
-          );
-        }
-        const programId = addedToTeam.cohort?.program.id;
-
-        const checkTeam = await Team.find({}).populate({
-          path: 'cohort',
-          model: 'Cohort',
-          strictPopulate: false,
-          populate: {
-            path: 'program',
-            model: Program,
-            strictPopulate: false,
-            populate: {
-              path: 'organization',
-              model: Organization,
-              strictPopulate: false,
-            },
-          },
+      if(member && teamToChange && newTeam){
+        member.team= newTeam?.id;
+        member.cohort= newTeam?.cohort;
+        await member.save();
+        teamToChange.members=teamToChange?.members.filter((user: any) => {
+          return user.toString() !== member?.id.toString();
         });
-        const results: any[] = checkTeam.filter((team: any) => {
-          return (
-            team.cohort?.program?.id === programId &&
-            team.cohort?.program?.organization?.name === org?.name
-          );
-        });
-        const checkTeamMember = results.reduce((prev: any, next: any) => {
-          const members = next.members?.filter((member: any) => {
-            console.log(member.toString(), checkMember.id.toString());
-            return member.toString() === checkMember.id.toString();
-          });
-          if (members.length > 0) {
-            next.members = members;
-            prev.push(next);
-          }
-          return prev;
-        }, []);
-        if (checkTeamMember.length > 0) {
-          throw new Error(
-            `This member is already added to '${checkTeamMember[0].name}' cohort`
-          );
-        }
-        if (checkMember.team) {
-          const checkTeam = await Team.findOne({
-            name: addedToTeamName,
-            organization: org?.id,
-          })
-
-          checkMember.team = checkTeam?.id;
-          await checkMember.save();
-          checkTeam?.members.push(checkMember.id);
-          await checkTeam?.save();
-          addedToTeam.members=addedToTeam.members.filter((member:any)=>{
-            return member.toString()!==checkMember.id.toString()
-          });
-          await addedToTeam.save();
-          return `member with email ${email} is successfully added to cohort '${addedToTeam.name}'`;
-        }
-        if (!checkMember.cohort) {
-          throw new Error(
-            'This member is not having a cohort, hence can not be edited'
-          );
-        }
-      } else {
-        throw new Error(
-          'This user does not exist or the cohort is not in existance'
-        );
+        await teamToChange?.save();
+        newTeam?.members.push(member?.id);
+        await newTeam?.save();
+        return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`;
+      }else{
+        throw new Error('This member does not exist');
       }
     },
     async inviteUser(_: any, { email, orgToken,type }: any, context: any) {
