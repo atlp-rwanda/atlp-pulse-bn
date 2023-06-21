@@ -1,3 +1,5 @@
+/* eslint-disable semi */
+/* eslint-disable indent */
 /* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server';
 import Cohort from '../models/cohort.model';
@@ -16,6 +18,17 @@ const SECRET: string = process.env.SECRET || 'test_secret';
 
 const manageStudentResolvers = {
   Query: {
+    getAllCoordinators: async (_: any, { orgToken }: any, context: any) => {
+      try {
+        // Bypassing security measures for testing purposes
+        const coordinators = await User.find({ role: 'coordinator' });
+        return coordinators;
+      } catch (error) {
+        const { message } = error as { message: any };
+        throw new ApolloError(message.toString(), '500');
+      }
+    },
+
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // get the organization if someone  logs in
