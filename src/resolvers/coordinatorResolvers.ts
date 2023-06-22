@@ -18,16 +18,17 @@ const SECRET: string = process.env.SECRET || 'test_secret';
 
 const manageStudentResolvers = {
   Query: {
-    getAllCoordinators: async (_: any, { orgToken }: any, context: any) => {
+    getAllCoordinators: async (_: any, __: any, context: any) => {
       try {
-        // Bypassing security measures for testing purposes
+
         const coordinators = await User.find({ role: 'coordinator' });
-        return coordinators;
+        return coordinators || [];
       } catch (error) {
         const { message } = error as { message: any };
         throw new ApolloError(message.toString(), '500');
       }
     },
+
 
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
