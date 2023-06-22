@@ -91,7 +91,7 @@ const profileResolvers: any = {
           { new: true, upsert: true }
         );
         return updatedProfile;
-      } catch (error: any) {
+      } catch (error) {
         throw error;
       }
     },
@@ -111,7 +111,7 @@ const profileResolvers: any = {
           { new: true, upsert: true }
         );
         return newAvatar;
-      } catch (error: any) {
+      } catch (error) {
         throw error;
       }
     },
@@ -131,7 +131,7 @@ const profileResolvers: any = {
           { new: true, upsert: true }
         );
         return newCoverImage;
-      } catch (error: any) {
+      } catch (error) {
         throw error;
       }
     },
