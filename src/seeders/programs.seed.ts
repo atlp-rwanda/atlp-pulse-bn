@@ -2,64 +2,93 @@ import Program from '../models/program.model';
 import { Organization, User } from '../models/user';
 
 const seedPrograms = async () => {
-  const managers = await User.find({ role: 'manager' });
+  const andelaManagers = await User.find({
+    role: 'manager',
+    organizations: { $in: ['Andela'] },
+  });
+
+  const IremboManagers = await User.find({
+    role: 'manager',
+    organizations: { $in: ['Irembo'] },
+  });
+
+  const KLabManagers = await User.find({
+    role: 'manager',
+    organizations: { $in: ['KLab'] },
+  });
+
+  const BkManagers = await User.find({
+    role: 'manager',
+    organizations: { $in: ['BK'] },
+  });
+
+  const andelaOrg = await Organization.find({ name: 'Andela' });
+  const iremboOrg = await Organization.find({ name: 'Irembo' });
+  const KlabOrg = await Organization.find({ name: 'KLab' });
+  const BkOrg = await Organization.find({ name: 'BK' });
 
   const programs = [
+    // Andela
     {
       name: 'Atlp 1',
       description: 'none',
-      manager: managers[0].id,
-      organization: (await Organization.find())[0]?.id,
+      manager: andelaManagers[0]._id.toHexString(),
+      organization: andelaOrg[0]._id.toHexString(),
     },
     {
       name: 'Atlp 2',
       description: 'none',
-      manager: managers[1].id,
-      organization: (await Organization.find())[1]?.id,
+      manager: andelaManagers[1]._id.toHexString(),
+      organization: andelaOrg[0]._id.toHexString(),
     },
     {
       name: 'Atlp 3',
       description: 'This belong to cohort 3',
-      manager: managers[2].id,
-      organization: (await Organization.find())[2]?.id,
+      manager: andelaManagers[2]._id.toHexString(),
+      organization: andelaOrg[0]._id.toHexString(),
     },
 
+    // Irembo
     {
       name: 'Brainly Developers Program',
       description: 'This belong to cohort 7',
-      manager: managers[2].id,
-      organization: (await Organization.find())[3]?.id,
+      manager: IremboManagers[0]._id.toHexString(),
+      organization: iremboOrg[0]._id.toHexString(),
     },
 
     {
       name: 'Rwema',
       description: 'none',
-      manager: managers[2].id,
-      organization: (await Organization.find())[2]?.id,
+      manager: IremboManagers[1]._id.toHexString(),
+      organization: iremboOrg[0]._id.toHexString(),
     },
+
+    // BK
     {
-      name: 'MTN',
-      description: 'this is mtn program',
-      manager: managers[2].id,
-      organization: (await Organization.find())[2]?.id,
-    },
-    {
-      name: 'Atlp 3',
-      description: 'this is program at org 3',
-      manager: managers[3].id,
-      organization: (await Organization.find())[3]?.id,
-    },
-    {
-      name: 'program 1 Irembo',
+      name: 'program 1 BK',
       description: 'this is program at Irembo',
-      manager: managers[3]?.id,
-      organization: (await Organization.find())[4]?.id,
+      manager: BkManagers[0]._id.toHexString(),
+      organization: BkOrg[0]._id.toHexString(),
     },
     {
-      name: 'program 2 Irembo ',
-      description: 'this is second program at Irembo',
-      manager: managers[3]?.id,
-      organization: (await Organization.find())[4]?.id,
+      name: 'program 2 BK',
+      description: 'this is second program at BK',
+      manager: BkManagers[1]._id.toHexString(),
+      organization: BkOrg[0]._id.toHexString(),
+    },
+
+    // KLab
+    {
+      name: 'Robotics',
+      description: 'this is Klab program',
+      manager: KLabManagers[0]._id.toHexString(),
+      organization: KlabOrg[0]._id.toHexString(),
+    },
+    {
+      name: 'IoT',
+      description: 'this is program at Klab',
+      manager: KLabManagers[1]._id.toHexString(),
+      organization: KlabOrg[0]._id.toHexString(),
     },
   ];
 

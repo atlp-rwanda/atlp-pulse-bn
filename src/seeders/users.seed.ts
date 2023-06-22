@@ -1,3528 +1,1629 @@
 import { hashSync } from 'bcryptjs';
 import { User, Profile } from '../models/user';
 
+const generateUserEmail = (user) => {
+  return `${user.firstName.toLowerCase()}.${user.lastName.toLowerCase()}@devpulse.com`;
+};
+
+const organizations: any = {
+  Andela: [],
+  Irembo: [],
+  KLab: [],
+  BK: [],
+};
+
 const seedUsers = async () => {
-  const users = [
+  // Random Users
+  let users: Array<any> = [
     {
-      email: 'superadmin@devpulse.co',
-      password: hashSync('Brainly123'),
-      role: 'superAdmin',
-      organizations: ['Andela'],
+      firstName: 'Emily',
+      lastName: 'Wallace',
+      email: 'emilywallace@digigene.com',
     },
     {
-      email: 'admin@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'admin',
-      organizations: ['Andela'],
+      firstName: 'Pierce',
+      lastName: 'Cotton',
+      email: 'piercecotton@digigene.com',
     },
     {
-      email: 'admin2@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'admin',
-      organizations: ['organization 2'],
+      firstName: 'Irma',
+      lastName: 'Hewitt',
+      email: 'irmahewitt@digigene.com',
     },
     {
-      email: 'manager@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'manager',
-      organizations: ['Andela'],
+      firstName: 'Miranda',
+      lastName: 'Vaughan',
+      email: 'mirandavaughan@digigene.com',
     },
     {
-      email: 'manager2@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'manager',
-      organizations: ['organization 2'],
+      firstName: 'Moss',
+      lastName: 'Pope',
+      email: 'mosspope@digigene.com',
     },
     {
-      email: 'coordinator@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['Andela'],
+      firstName: 'Erma',
+      lastName: 'Camacho',
+      email: 'ermacamacho@digigene.com',
     },
     {
-      email: 'coordinator1@devpulse.co',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['organization 2'],
+      firstName: 'Latoya',
+      lastName: 'Watkins',
+      email: 'latoyawatkins@digigene.com',
     },
     {
-      email: 'coordinator@irembo.com',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['Irembo'],
+      firstName: 'Georgia',
+      lastName: 'Gonzales',
+      email: 'georgiagonzales@digigene.com',
     },
     {
-      email: 'coordinator2@irembo.com',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['Irembo'],
+      firstName: 'Whitney',
+      lastName: 'Alford',
+      email: 'whitneyalford@digigene.com',
     },
     {
-      email: 'coordinator3@irembo.com',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['Irembo'],
+      firstName: 'Greta',
+      lastName: 'Fernandez',
+      email: 'gretafernandez@digigene.com',
     },
     {
-      email: 'coordinator4@irembo.com',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['Irembo'],
+      firstName: 'Jordan',
+      lastName: 'Mcleod',
+      email: 'jordanmcleod@digigene.com',
     },
     {
-      email: 'coordinator@mtn.com',
-      password: hashSync('Andela123'),
-      role: 'coordinator',
-      organizations: ['MTN'],
+      firstName: 'Cynthia',
+      lastName: 'Hale',
+      email: 'cynthiahale@digigene.com',
     },
     {
-      email: 'trainee@devpulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['Andela'],
+      firstName: 'Rich',
+      lastName: 'Douglas',
+      email: 'richdouglas@digigene.com',
     },
     {
-      email: 'trainee1@pulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['Andela'],
+      firstName: 'Simone',
+      lastName: 'Kelley',
+      email: 'simonekelley@digigene.com',
     },
     {
-      email: 'trainee2@pulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['organization 2'],
+      firstName: 'Sargent',
+      lastName: 'Dickerson',
+      email: 'sargentdickerson@digigene.com',
     },
     {
-      email: 'trainee3@pulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['organization 2'],
+      firstName: 'Gibson',
+      lastName: 'Cameron',
+      email: 'gibsoncameron@digigene.com',
     },
     {
-      email: 'peter@pulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['Andela'],
+      firstName: 'Mae',
+      lastName: 'Weber',
+      email: 'maeweber@digigene.com',
     },
     {
-      email: 'john@pulse.com',
-      password: hashSync('Andela123'),
-      role: 'user',
-      organizations: ['organization 2'],
+      firstName: 'Garcia',
+      lastName: 'Hull',
+      email: 'garciahull@digigene.com',
     },
     {
-      email: 'admin4@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'admin',
-      organizations: ['Organization 3'],
+      firstName: 'Young',
+      lastName: 'Newman',
+      email: 'youngnewman@digigene.com',
     },
     {
-      email: 'admin3@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'admin',
-      organizations: ['organization 3'],
+      firstName: 'Althea',
+      lastName: 'Estrada',
+      email: 'altheaestrada@digigene.com',
     },
     {
-      email: 'admin5@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'admin',
-      organizations: ['Organization 3'],
+      firstName: 'Anna',
+      lastName: 'Bush',
+      email: 'annabush@digigene.com',
     },
     {
-      email: 'admin6@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'admin',
-      organizations: ['Organization 3'],
+      firstName: 'Kristie',
+      lastName: 'Durham',
+      email: 'kristiedurham@digigene.com',
     },
     {
-      email: 'manager3@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'manager',
-      organizations: ['Organization 3'],
+      firstName: 'Jennings',
+      lastName: 'Peterson',
+      email: 'jenningspeterson@digigene.com',
     },
     {
-      email: 'manager4@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'manager',
-      organizations: ['Organization 3'],
+      firstName: 'Kay',
+      lastName: 'Randall',
+      email: 'kayrandall@digigene.com',
     },
     {
-      email: 'manager5@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'manager',
-      organizations: ['Organization 3'],
+      firstName: 'Cathleen',
+      lastName: 'Waller',
+      email: 'cathleenwaller@digigene.com',
     },
     {
-      email: 'manager6@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'manager',
-      organizations: ['organization 3'],
+      firstName: 'Lynne',
+      lastName: 'Wooten',
+      email: 'lynnewooten@digigene.com',
     },
     {
-      email: 'coordinator3@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['Organization 3'],
+      firstName: 'Maxwell',
+      lastName: 'Gibbs',
+      email: 'maxwellgibbs@digigene.com',
     },
     {
-      email: 'coordinator4@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Petersen',
+      lastName: 'Townsend',
+      email: 'petersentownsend@digigene.com',
     },
     {
-      email: 'coordinator5@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Wong',
+      lastName: 'Booker',
+      email: 'wongbooker@digigene.com',
     },
     {
-      email: 'coordinator6@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Pena',
+      lastName: 'Dudley',
+      email: 'penadudley@digigene.com',
     },
     {
-      email: 'coordinator7@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Wendi',
+      lastName: 'Rice',
+      email: 'wendirice@digigene.com',
     },
     {
-      email: 'coordinator8@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Tabatha',
+      lastName: 'Dominguez',
+      email: 'tabathadominguez@digigene.com',
     },
     {
-      email: 'coordinator9@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Brandie',
+      lastName: 'Thornton',
+      email: 'brandiethornton@digigene.com',
     },
     {
-      email: 'coordinator10@devpulse.co',
-      password: hashSync('Organization123'),
-      role: 'coordinator',
-      organizations: ['organization 3'],
+      firstName: 'Kerri',
+      lastName: 'Blanchard',
+      email: 'kerriblanchard@digigene.com',
     },
     {
-      email: 'test1@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Oconnor',
+      lastName: 'Johnson',
+      email: 'oconnorjohnson@digigene.com',
     },
     {
-      email: 'test2@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Sabrina',
+      lastName: 'Guzman',
+      email: 'sabrinaguzman@digigene.com',
     },
     {
-      email: 'test3@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Bender',
+      lastName: 'Stout',
+      email: 'benderstout@digigene.com',
     },
     {
-      email: 'test4@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['organization 3'],
+      firstName: 'Marcy',
+      lastName: 'Lindsay',
+      email: 'marcylindsay@digigene.com',
     },
     {
-      email: 'test5@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['organization 3'],
+      firstName: 'Burks',
+      lastName: 'Rosa',
+      email: 'burksrosa@digigene.com',
     },
     {
-      email: 'test6@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Dorothea',
+      lastName: 'Shaffer',
+      email: 'dorotheashaffer@digigene.com',
     },
     {
-      email: 'test7@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Taylor',
+      lastName: 'Hudson',
+      email: 'taylorhudson@digigene.com',
     },
     {
-      email: 'test8@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['organization 3'],
+      firstName: 'Leona',
+      lastName: 'Mendez',
+      email: 'leonamendez@digigene.com',
     },
     {
-      email: 'test9@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Adriana',
+      lastName: 'Griffin',
+      email: 'adrianagriffin@digigene.com',
     },
     {
-      email: 'test10@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Montoya',
+      lastName: 'Mckay',
+      email: 'montoyamckay@digigene.com',
     },
     {
-      email: 'fabrice@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['organization 3'],
+      firstName: 'Avery',
+      lastName: 'Travis',
+      email: 'averytravis@digigene.com',
     },
     {
-      email: 'fabricerug@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Holman',
+      lastName: 'Knowles',
+      email: 'holmanknowles@digigene.com',
     },
     {
-      email: 'fabricenkuku@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['organization 3'],
+      firstName: 'Love',
+      lastName: 'Washington',
+      email: 'lovewashington@digigene.com',
     },
     {
-      email: 'fabricekayi@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Bryan',
+      lastName: 'Whitaker',
+      email: 'bryanwhitaker@digigene.com',
     },
     {
-      email: 'rugfabrice@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['organization 3'],
+      firstName: 'Joann',
+      lastName: 'Garcia',
+      email: 'joanngarcia@digigene.com',
     },
     {
-      email: 'fabricenziranziza@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Vicky',
+      lastName: 'Duran',
+      email: 'vickyduran@digigene.com',
     },
     {
-      email: 'fabricekayitankore@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Contreras',
+      lastName: 'Chase',
+      email: 'contreraschase@digigene.com',
     },
     {
-      email: 'shemankubito@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Kelsey',
+      lastName: 'Cummings',
+      email: 'kelseycummings@digigene.com',
     },
     {
-      email: 'shemalucie@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Kristy',
+      lastName: 'Alvarez',
+      email: 'kristyalvarez@digigene.com',
     },
     {
-      email: 'shema@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Jacquelyn',
+      lastName: 'Malone',
+      email: 'jacquelynmalone@digigene.com',
     },
     {
-      email: 'shemakanyandekwe@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Vinson',
+      lastName: 'Melton',
+      email: 'vinsonmelton@digigene.com',
     },
     {
-      email: 'shemarodri@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Nikki',
+      lastName: 'Mcgowan',
+      email: 'nikkimcgowan@digigene.com',
     },
     {
-      email: 'shema1@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Saundra',
+      lastName: 'Orr',
+      email: 'saundraorr@digigene.com',
     },
     {
-      email: 'shema2@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Jo',
+      lastName: 'Foley',
+      email: 'jofoley@digigene.com',
     },
     {
-      email: 'shema3@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Garrett',
+      lastName: 'Haley',
+      email: 'garretthaley@digigene.com',
     },
     {
-      email: 'shemajohn@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Maggie',
+      lastName: 'Guthrie',
+      email: 'maggieguthrie@digigene.com',
     },
-
     {
-      email: 'karimba@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Frazier',
+      lastName: 'Yang',
+      email: 'frazieryang@digigene.com',
     },
     {
-      email: 'karimbavianney@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Knight',
+      lastName: 'Williams',
+      email: 'knightwilliams@digigene.com',
     },
     {
-      email: 'karimba1@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Alta',
+      lastName: 'Kirk',
+      email: 'altakirk@digigene.com',
     },
     {
-      email: 'karimbajean@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Joni',
+      lastName: 'Soto',
+      email: 'jonisoto@digigene.com',
     },
     {
-      email: 'karimbafiston@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Marylou',
+      lastName: 'Dickson',
+      email: 'maryloudickson@digigene.com',
     },
     {
-      email: 'karimbajohn12@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Sheila',
+      lastName: 'Prince',
+      email: 'sheilaprince@digigene.com',
     },
     {
-      email: 'karimbafiston12@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Lowery',
+      lastName: 'Davis',
+      email: 'lowerydavis@digigene.com',
     },
     {
-      email: 'karimbajohn1@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Alana',
+      lastName: 'Church',
+      email: 'alanachurch@digigene.com',
     },
-
     {
-      email: 'inkuba@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Fischer',
+      lastName: 'Parks',
+      email: 'fischerparks@digigene.com',
     },
     {
-      email: 'inkuba1@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Mcneil',
+      lastName: 'Miranda',
+      email: 'mcneilmiranda@digigene.com',
     },
     {
-      email: 'inkuba2@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Dominguez',
+      lastName: 'Barlow',
+      email: 'dominguezbarlow@digigene.com',
     },
     {
-      email: 'inkuba3@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Moreno',
+      lastName: 'Rowe',
+      email: 'morenorowe@digigene.com',
     },
     {
-      email: 'inkuba4@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Velma',
+      lastName: 'Carney',
+      email: 'velmacarney@digigene.com',
     },
     {
-      email: 'inkuba5@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Mckay',
+      lastName: 'Park',
+      email: 'mckaypark@digigene.com',
     },
     {
-      email: 'inkuba6@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Stark',
+      lastName: 'Hill',
+      email: 'starkhill@digigene.com',
     },
     {
-      email: 'inkuba7@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Silvia',
+      lastName: 'Ochoa',
+      email: 'silviaochoa@digigene.com',
     },
     {
-      email: 'inkubajean@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Blanchard',
+      lastName: 'Kirkland',
+      email: 'blanchardkirkland@digigene.com',
     },
     {
-      email: 'inkubajohn@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Beatrice',
+      lastName: 'Hampton',
+      email: 'beatricehampton@digigene.com',
     },
     {
-      email: 'wilson@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Isabelle',
+      lastName: 'Roberson',
+      email: 'isabelleroberson@digigene.com',
     },
     {
-      email: 'wilsonjohn@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Lucile',
+      lastName: 'Suarez',
+      email: 'lucilesuarez@digigene.com',
     },
     {
-      email: 'generator@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Dionne',
+      lastName: 'Moss',
+      email: 'dionnemoss@digigene.com',
     },
     {
-      email: 'generato.r@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Beck',
+      lastName: 'Thomas',
+      email: 'beckthomas@digigene.com',
     },
     {
-      email: 'generat.or@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Solis',
+      lastName: 'Bentley',
+      email: 'solisbentley@digigene.com',
     },
     {
-      email: 'generat.o.r@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'James',
+      lastName: 'Shaw',
+      email: 'jamesshaw@digigene.com',
     },
     {
-      email: 'genera.tor@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Barrera',
+      lastName: 'Gentry',
+      email: 'barreragentry@digigene.com',
     },
     {
-      email: 'genera.to.r@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Noel',
+      lastName: 'Hicks',
+      email: 'noelhicks@digigene.com',
     },
     {
-      email: 'genera.t.or@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Christian',
+      lastName: 'Phillips',
+      email: 'christianphillips@digigene.com',
     },
     {
-      email: 'genera.t.o.r@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Jennifer',
+      lastName: 'Hayes',
+      email: 'jenniferhayes@digigene.com',
     },
     {
-      email: 'gener.ator@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Riley',
+      lastName: 'Cantrell',
+      email: 'rileycantrell@digigene.com',
     },
-
     {
-      email: 'danydrink@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Jami',
+      lastName: 'Mueller',
+      email: 'jamimueller@digigene.com',
     },
     {
-      email: 'mikedany@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Hardy',
+      lastName: 'Oliver',
+      email: 'hardyoliver@digigene.com',
     },
     {
-      email: 'milestonedany@pulse.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Saunders',
+      lastName: 'Ellis',
+      email: 'saundersellis@digigene.com',
     },
     {
-      email: 'davedany@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Cecelia',
+      lastName: 'Jones',
+      email: 'ceceliajones@digigene.com',
     },
     {
-      email: 'danydimtri@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Amber',
+      lastName: 'Moreno',
+      email: 'ambermoreno@digigene.com',
     },
     {
-      email: 'danyhelper@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Verna',
+      lastName: 'Gutierrez',
+      email: 'vernagutierrez@digigene.com',
     },
     {
-      email: 'dannyclug@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Houston',
+      lastName: 'Collier',
+      email: 'houstoncollier@digigene.com',
     },
     {
-      email: 'danychang@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Stanley',
+      lastName: 'Branch',
+      email: 'stanleybranch@digigene.com',
     },
     {
-      email: 'danychen@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Tameka',
+      lastName: 'Burnett',
+      email: 'tamekaburnett@digigene.com',
     },
     {
-      email: 'alanwalker@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Mosley',
+      lastName: 'Snyder',
+      email: 'mosleysnyder@digigene.com',
     },
     {
-      email: 'alanphilip@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Cline',
+      lastName: 'Murphy',
+      email: 'clinemurphy@digigene.com',
     },
     {
-      email: 'alanjames@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Genevieve',
+      lastName: 'Cooper',
+      email: 'genevievecooper@digigene.com',
     },
     {
-      email: 'alanclavin@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Valarie',
+      lastName: 'Wilcox',
+      email: 'valariewilcox@digigene.com',
     },
     {
-      email: 'dimalan@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Hull',
+      lastName: 'Pickett',
+      email: 'hullpickett@digigene.com',
     },
     {
-      email: 'alandest@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Bates',
+      lastName: 'Baird',
+      email: 'batesbaird@digigene.com',
     },
     {
-      email: 'alanpulg@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Therese',
+      lastName: 'Humphrey',
+      email: 'theresehumphrey@digigene.com',
     },
-
     {
-      email: 'hakizimanaaline@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Hope',
+      lastName: 'Mitchell',
+      email: 'hopemitchell@digigene.com',
     },
     {
-      email: 'hakizimanaalain@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Lucia',
+      lastName: 'Griffith',
+      email: 'luciagriffith@digigene.com',
     },
     {
-      email: 'hakizimanastani@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Sanchez',
+      lastName: 'Myers',
+      email: 'sanchezmyers@digigene.com',
     },
     {
-      email: 'hakizimanawilson@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Macdonald',
+      lastName: 'Pacheco',
+      email: 'macdonaldpacheco@digigene.com',
     },
     {
-      email: 'hakizimanadestin@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Josie',
+      lastName: 'Morrison',
+      email: 'josiemorrison@digigene.com',
     },
     {
-      email: 'hakizimanaphilip@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Branch',
+      lastName: 'Donovan',
+      email: 'branchdonovan@digigene.com',
     },
     {
-      email: 'hakizimanadio123@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Thompson',
+      lastName: 'Moody',
+      email: 'thompsonmoody@digigene.com',
     },
     {
-      email: 'hakizimanadivin@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Katharine',
+      lastName: 'George',
+      email: 'katharinegeorge@digigene.com',
     },
     {
-      email: 'hakizimanaclara@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Le',
+      lastName: 'Le',
+      email: 'lele@digigene.com',
     },
     {
-      email: 'hakizimanadenys@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Warner',
+      lastName: 'Robertson',
+      email: 'warnerrobertson@digigene.com',
     },
     {
-      email: 'hakizimanaquerry@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Quinn',
+      lastName: 'Meadows',
+      email: 'quinnmeadows@digigene.com',
     },
     {
-      email: 'cyanzayire@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Dunn',
+      lastName: 'Velez',
+      email: 'dunnvelez@digigene.com',
     },
     {
-      email: 'cyanzayiredeus@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Stafford',
+      lastName: 'Frank',
+      email: 'staffordfrank@digigene.com',
     },
     {
-      email: 'theophilehakizumwami@gmail.com',
-      password: hashSync('Organization123'),
-      role: 'trainee',
-      organizations: ['Organization 3'],
+      firstName: 'Deanna',
+      lastName: 'Vinson',
+      email: 'deannavinson@digigene.com',
     },
-
     {
-      email: 'admin@brainly.co',
-      password: hashSync('Brainly123'),
-      role: 'admin',
-      organizations: ['Brainly'],
+      firstName: 'Lori',
+      lastName: 'Barron',
+      email: 'loribarron@digigene.com',
     },
     {
-      email: 'admin2@brainly.co',
-      password: hashSync('Brainly123'),
-      role: 'admin',
-      organizations: ['Brainly'],
+      firstName: 'Cleo',
+      lastName: 'Harris',
+      email: 'cleoharris@digigene.com',
     },
     {
-      email: 'manager@brainly.co',
-      password: hashSync('Andela123'),
-      role: 'manager',
-      organizations: ['Brainly'],
+      firstName: 'Hansen',
+      lastName: 'Cantu',
+      email: 'hansencantu@digigene.com',
     },
     {
-      email: 'manager2@brainly.co',
-      password: hashSync('Brainly123'),
-      role: 'manager',
-      organizations: ['Brainly'],
+      firstName: 'Darla',
+      lastName: 'House',
+      email: 'darlahouse@digigene.com',
     },
     {
-      email: 'coordinator@brainly.co',
-      password: hashSync('brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Kari',
+      lastName: 'Chapman',
+      email: 'karichapman@digigene.com',
     },
     {
-      email: 'coordinator1@brainly.co',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Nelda',
+      lastName: 'Goodwin',
+      email: 'neldagoodwin@digigene.com',
     },
     {
-      email: 'trainee@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Clements',
+      lastName: 'Johnston',
+      email: 'clementsjohnston@digigene.com',
     },
     {
-      email: 'trainee1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Barrett',
+      lastName: 'Nguyen',
+      email: 'barrettnguyen@digigene.com',
     },
     {
-      email: 'trainee2@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Mcclure',
+      lastName: 'Gill',
+      email: 'mccluregill@digigene.com',
     },
     {
-      email: 'trainee3@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Mcclain',
+      lastName: 'Howard',
+      email: 'mcclainhoward@digigene.com',
     },
     {
-      email: 'james@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Elma',
+      lastName: 'Dean',
+      email: 'elmadean@digigene.com',
     },
     {
-      email: 'peter@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Mccormick',
+      lastName: 'Stephenson',
+      email: 'mccormickstephenson@digigene.com',
     },
     {
-      email: 'john@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'user',
-      organizations: ['Brainly'],
+      firstName: 'Jillian',
+      lastName: 'Sweeney',
+      email: 'jilliansweeney@digigene.com',
     },
     {
-      email: 'fanny@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Elliott',
+      lastName: 'Nolan',
+      email: 'elliottnolan@digigene.com',
     },
     {
-      email: 'delice@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'admin',
-      organizations: ['Brainly'],
+      firstName: 'Newton',
+      lastName: 'Burgess',
+      email: 'newtonburgess@digigene.com',
     },
     {
-      email: 'abijuru@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'admin',
-      organizations: ['Brainly'],
+      firstName: 'Nash',
+      lastName: 'Logan',
+      email: 'nashlogan@digigene.com',
     },
     {
-      email: 'sam123@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'admin',
-      organizations: ['Brainly'],
+      firstName: 'Porter',
+      lastName: 'Mcfadden',
+      email: 'portermcfadden@digigene.com',
     },
     {
-      email: 'samusoni@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'admin',
-      organizations: ['Brainly'],
+      firstName: 'Joyner',
+      lastName: 'Nash',
+      email: 'joynernash@digigene.com',
     },
     {
-      email: 'samusoni1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'manager',
-      organizations: ['Brainly'],
+      firstName: 'Rosalyn',
+      lastName: 'Mckenzie',
+      email: 'rosalynmckenzie@digigene.com',
     },
     {
-      email: 'samusoni10@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'manager',
-      organizations: ['Brainly'],
+      firstName: 'Strickland',
+      lastName: 'Rosales',
+      email: 'stricklandrosales@digigene.com',
     },
     {
-      email: 'sonia10@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'manager',
-      organizations: ['Brainly'],
+      firstName: 'Klein',
+      lastName: 'Ross',
+      email: 'kleinross@digigene.com',
     },
     {
-      email: 'sonia1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'manager',
-      organizations: ['Brainly'],
+      firstName: 'Hunter',
+      lastName: 'Hopper',
+      email: 'hunterhopper@digigene.com',
     },
     {
-      email: 'sonia001@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Margo',
+      lastName: 'Calhoun',
+      email: 'margocalhoun@digigene.com',
     },
     {
-      email: 'sonyy@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Briana',
+      lastName: 'Preston',
+      email: 'brianapreston@digigene.com',
     },
     {
-      email: 'sonyy1234@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Fox',
+      lastName: 'Fletcher',
+      email: 'foxfletcher@digigene.com',
     },
     {
-      email: 'sinaaa@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Jerri',
+      lastName: 'Meyers',
+      email: 'jerrimeyers@digigene.com',
     },
     {
-      email: 'sinaapia@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Morgan',
+      lastName: 'Robinson',
+      email: 'morganrobinson@digigene.com',
     },
     {
-      email: 'susanapia@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Payne',
+      lastName: 'Ramos',
+      email: 'payneramos@digigene.com',
     },
     {
-      email: 'susanapia1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Shauna',
+      lastName: 'Atkinson',
+      email: 'shaunaatkinson@digigene.com',
     },
     {
-      email: 'susanaa1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'coordinator',
-      organizations: ['Brainly'],
+      firstName: 'Ballard',
+      lastName: 'Bowers',
+      email: 'ballardbowers@digigene.com',
     },
     {
-      email: 'susanaa1009@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Chaney',
+      lastName: 'Andrews',
+      email: 'chaneyandrews@digigene.com',
     },
     {
-      email: 'susanaa109@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Krystal',
+      lastName: 'Johns',
+      email: 'krystaljohns@digigene.com',
     },
     {
-      email: 'nanaa109@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Lopez',
+      lastName: 'Gillespie',
+      email: 'lopezgillespie@digigene.com',
     },
     {
-      email: 'nanaa1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Tracey',
+      lastName: 'Cole',
+      email: 'traceycole@digigene.com',
     },
     {
-      email: 'nanaa19@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Medina',
+      lastName: 'Frazier',
+      email: 'medinafrazier@digigene.com',
     },
     {
-      email: 'tessa19@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Krista',
+      lastName: 'Erickson',
+      email: 'kristaerickson@digigene.com',
     },
     {
-      email: 'tessaoyaa@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Sharron',
+      lastName: 'Mcpherson',
+      email: 'sharronmcpherson@digigene.com',
     },
     {
-      email: 'tessaoya@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Cindy',
+      lastName: 'Richardson',
+      email: 'cindyrichardson@digigene.com',
     },
     {
-      email: 'tesaoya@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Margery',
+      lastName: 'Petersen',
+      email: 'margerypetersen@digigene.com',
     },
     {
-      email: 'teta@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Rhonda',
+      lastName: 'Coleman',
+      email: 'rhondacoleman@digigene.com',
     },
     {
-      email: 'tetabella@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Montgomery',
+      lastName: 'Leach',
+      email: 'montgomeryleach@digigene.com',
     },
     {
-      email: 'tetabella01@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Cecilia',
+      lastName: 'Valdez',
+      email: 'ceciliavaldez@digigene.com',
     },
     {
-      email: 'tetabella1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Tanya',
+      lastName: 'Davidson',
+      email: 'tanyadavidson@digigene.com',
     },
     {
-      email: 'tetabetty@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Miles',
+      lastName: 'Alexander',
+      email: 'milesalexander@digigene.com',
     },
     {
-      email: 'tetabetty1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Martina',
+      lastName: 'Curtis',
+      email: 'martinacurtis@digigene.com',
     },
     {
-      email: 'sistetabetty1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Hannah',
+      lastName: 'White',
+      email: 'hannahwhite@digigene.com',
     },
     {
-      email: 'sistetabetty@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Carney',
+      lastName: 'Juarez',
+      email: 'carneyjuarez@digigene.com',
     },
     {
-      email: 'sisbetty@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Hollie',
+      lastName: 'Haynes',
+      email: 'holliehaynes@digigene.com',
     },
     {
-      email: 'betty@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Marion',
+      lastName: 'Rush',
+      email: 'marionrush@digigene.com',
     },
     {
-      email: 'betty1@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Waller',
+      lastName: 'Mclaughlin',
+      email: 'wallermclaughlin@digigene.com',
     },
     {
-      email: 'betty11@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Cervantes',
+      lastName: 'Molina',
+      email: 'cervantesmolina@digigene.com',
     },
     {
-      email: 'betty12@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Ingrid',
+      lastName: 'Sutton',
+      email: 'ingridsutton@digigene.com',
     },
     {
-      email: 'betty14@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Rebecca',
+      lastName: 'May',
+      email: 'rebeccamay@digigene.com',
     },
     {
-      email: 'bett14@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Lara',
+      lastName: 'Edwards',
+      email: 'laraedwards@digigene.com',
     },
     {
-      email: 'bett19@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Elsa',
+      lastName: 'Sanders',
+      email: 'elsasanders@digigene.com',
     },
-
     {
-      email: 'bettttyy19@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Latisha',
+      lastName: 'Green',
+      email: 'latishagreen@digigene.com',
     },
     {
-      email: 'Kalisamayoo@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Rosa',
+      lastName: 'Pate',
+      email: 'rosapate@digigene.com',
     },
     {
-      email: 'Kalisamay9oo@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Marisol',
+      lastName: 'Fisher',
+      email: 'marisolfisher@digigene.com',
     },
     {
-      email: 'Kalisamayo09@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Knowles',
+      lastName: 'Bird',
+      email: 'knowlesbird@digigene.com',
     },
     {
-      email: 'Kalisamayo709@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Combs',
+      lastName: 'Russell',
+      email: 'combsrussell@digigene.com',
     },
     {
-      email: 'Kalisam09@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Brigitte',
+      lastName: 'Larson',
+      email: 'brigittelarson@digigene.com',
     },
     {
-      email: 'Kalisam00@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Grant',
+      lastName: 'Kaufman',
+      email: 'grantkaufman@digigene.com',
     },
     {
-      email: 'Kalim00@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'May',
+      lastName: 'Love',
+      email: 'maylove@digigene.com',
     },
-
     {
-      email: 'ngona@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Chandler',
+      lastName: 'Burch',
+      email: 'chandlerburch@digigene.com',
     },
     {
-      email: 'ngona8@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Figueroa',
+      lastName: 'Gould',
+      email: 'figueroagould@digigene.com',
     },
     {
-      email: 'Celine2@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Joy',
+      lastName: 'Castillo',
+      email: 'joycastillo@digigene.com',
     },
     {
-      email: 'Celine3@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Byrd',
+      lastName: 'Morin',
+      email: 'byrdmorin@digigene.com',
     },
     {
-      email: 'Celine4@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Josefina',
+      lastName: 'Wells',
+      email: 'josefinawells@digigene.com',
     },
     {
-      email: 'Celine5@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Hayes',
+      lastName: 'Sanford',
+      email: 'hayessanford@digigene.com',
     },
     {
-      email: 'Celine6@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Earlene',
+      lastName: 'Mcneil',
+      email: 'earlenemcneil@digigene.com',
     },
     {
-      email: 'Celine7@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Kinney',
+      lastName: 'Oneil',
+      email: 'kinneyoneil@digigene.com',
     },
     {
-      email: 'Celinejean@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Tricia',
+      lastName: 'Wagner',
+      email: 'triciawagner@digigene.com',
     },
     {
-      email: 'Celinejohn@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Byers',
+      lastName: 'Wade',
+      email: 'byerswade@digigene.com',
     },
     {
-      email: 'Musoni@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Walls',
+      lastName: 'Emerson',
+      email: 'wallsemerson@digigene.com',
     },
     {
-      email: 'Musonijohn@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Rojas',
+      lastName: 'Rocha',
+      email: 'rojasrocha@digigene.com',
     },
     {
-      email: 'pepper@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Dolly',
+      lastName: 'Boyd',
+      email: 'dollyboyd@digigene.com',
     },
     {
-      email: 'pepperalla@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Theresa',
+      lastName: 'Gibson',
+      email: 'theresagibson@digigene.com',
     },
     {
-      email: 'pepperallasiyaa@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Kerr',
+      lastName: 'Burton',
+      email: 'kerrburton@digigene.com',
     },
     {
-      email: 'pallilon@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Baird',
+      lastName: 'Padilla',
+      email: 'bairdpadilla@digigene.com',
     },
     {
-      email: 'pallilon.on@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Chrystal',
+      lastName: 'Raymond',
+      email: 'chrystalraymond@digigene.com',
     },
     {
-      email: 'pallilon.on.oi@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Rice',
+      lastName: 'Lawrence',
+      email: 'ricelawrence@digigene.com',
     },
     {
-      email: 'belise@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Juliana',
+      lastName: 'Stuart',
+      email: 'julianastuart@digigene.com',
     },
     {
-      email: 'belise900@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Liliana',
+      lastName: 'Garrett',
+      email: 'lilianagarrett@digigene.com',
     },
     {
-      email: 'belise90@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Sawyer',
+      lastName: 'Bishop',
+      email: 'sawyerbishop@digigene.com',
     },
-
     {
-      email: 'dieudonedrink@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Vasquez',
+      lastName: 'Mccall',
+      email: 'vasquezmccall@digigene.com',
     },
     {
-      email: 'mikedieudone@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Betsy',
+      lastName: 'Best',
+      email: 'betsybest@digigene.com',
     },
     {
-      email: 'milestonedieudone@pulse.com',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Lambert',
+      lastName: 'Flores',
+      email: 'lambertflores@digigene.com',
     },
     {
-      email: 'davedieudone@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Hurley',
+      lastName: 'Quinn',
+      email: 'hurleyquinn@digigene.com',
     },
     {
-      email: 'dieudonedimtri@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Mcmillan',
+      lastName: 'Tillman',
+      email: 'mcmillantillman@digigene.com',
     },
     {
-      email: 'dieudonehelper@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Harvey',
+      lastName: 'Chan',
+      email: 'harveychan@digigene.com',
     },
     {
-      email: 'dannyclug@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Wilkins',
+      lastName: 'Conner',
+      email: 'wilkinsconner@digigene.com',
     },
     {
-      email: 'dieudonechang@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Maria',
+      lastName: 'Oconnor',
+      email: 'mariaoconnor@digigene.com',
     },
     {
-      email: 'dieudonechen@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Reyna',
+      lastName: 'Leblanc',
+      email: 'reynaleblanc@digigene.com',
     },
     {
-      email: 'eliowalker@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Mayo',
+      lastName: 'Bass',
+      email: 'mayobass@digigene.com',
     },
     {
-      email: 'eliophilip@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Samantha',
+      lastName: 'Simon',
+      email: 'samanthasimon@digigene.com',
     },
     {
-      email: 'eliojames@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Rita',
+      lastName: 'Lloyd',
+      email: 'ritalloyd@digigene.com',
     },
     {
-      email: 'elioclavin@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Castaneda',
+      lastName: 'Romero',
+      email: 'castanedaromero@digigene.com',
     },
     {
-      email: 'dimelio@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Parsons',
+      lastName: 'Wolfe',
+      email: 'parsonswolfe@digigene.com',
     },
     {
-      email: 'eliodest@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Lorena',
+      lastName: 'Wilson',
+      email: 'lorenawilson@digigene.com',
     },
     {
-      email: 'eliopulg@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Munoz',
+      lastName: 'Stephens',
+      email: 'munozstephens@digigene.com',
     },
-
     {
-      email: 'mugaboaline@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Roth',
+      lastName: 'Turner',
+      email: 'rothturner@digigene.com',
     },
     {
-      email: 'mugaboalain@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Patterson',
+      lastName: 'Kerr',
+      email: 'pattersonkerr@digigene.com',
     },
     {
-      email: 'mugabostani@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Diann',
+      lastName: 'Ratliff',
+      email: 'diannratliff@digigene.com',
     },
     {
-      email: 'mugaboMusoni@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Campbell',
+      lastName: 'Mcbride',
+      email: 'campbellmcbride@digigene.com',
     },
     {
-      email: 'mugabodestin@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Alexandra',
+      lastName: 'Mosley',
+      email: 'alexandramosley@digigene.com',
     },
     {
-      email: 'mugabophilip@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Casey',
+      lastName: 'Decker',
+      email: 'caseydecker@digigene.com',
     },
     {
-      email: 'mugabodio123@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Berg',
+      lastName: 'Miller',
+      email: 'bergmiller@digigene.com',
     },
     {
-      email: 'mugabodivin@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Sharpe',
+      lastName: 'Dorsey',
+      email: 'sharpedorsey@digigene.com',
     },
     {
-      email: 'mugaboclara@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Beasley',
+      lastName: 'Marks',
+      email: 'beasleymarks@digigene.com',
     },
     {
-      email: 'mugabodenys@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Nellie',
+      lastName: 'Gonzalez',
+      email: 'nelliegonzalez@digigene.com',
     },
     {
-      email: 'mugaboquerry@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Steele',
+      lastName: 'Lyons',
+      email: 'steelelyons@digigene.com',
     },
     {
-      email: 'karekezi@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Hester',
+      lastName: 'Frederick',
+      email: 'hesterfrederick@digigene.com',
     },
     {
-      email: 'karekezideus@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Lynn',
+      lastName: 'Bryant',
+      email: 'lynnbryant@digigene.com',
     },
     {
-      email: 'kezaaabelitrie@brainly.tech',
-      password: hashSync('Brainly123'),
-      role: 'trainee',
-      organizations: ['Brainly'],
+      firstName: 'Floyd',
+      lastName: 'Carrillo',
+      email: 'floydcarrillo@digigene.com',
     },
-
     {
-      email: 'coise@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Mara',
+      lastName: 'Hinton',
+      email: 'marahinton@digigene.com',
     },
     {
-      email: 'klay@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'admin',
-      organizations: ['Kigalihub'],
+      firstName: 'Hardin',
+      lastName: 'Hodges',
+      email: 'hardinhodges@digigene.com',
     },
     {
-      email: 'curry@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'admin',
-      organizations: ['Kigalihub'],
+      firstName: 'Isabel',
+      lastName: 'Morse',
+      email: 'isabelmorse@digigene.com',
     },
     {
-      email: 'greendray@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'admin',
-      organizations: ['Kigalihub'],
+      firstName: 'Keller',
+      lastName: 'Mejia',
+      email: 'kellermejia@digigene.com',
     },
     {
-      email: 'bonnieclyde@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'admin',
-      organizations: ['Kigalihub'],
+      firstName: 'Kennedy',
+      lastName: 'Maxwell',
+      email: 'kennedymaxwell@digigene.com',
     },
     {
-      email: 'bonnieclyde1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'manager',
-      organizations: ['Kigalihub'],
+      firstName: 'Mariana',
+      lastName: 'Fry',
+      email: 'marianafry@digigene.com',
     },
     {
-      email: 'bonnieclyde2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'manager',
-      organizations: ['Kigalihub'],
+      firstName: 'Mcgowan',
+      lastName: 'Hubbard',
+      email: 'mcgowanhubbard@digigene.com',
     },
     {
-      email: 'bonnieclyde3@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'manager',
-      organizations: ['Kigalihub'],
+      firstName: 'Carver',
+      lastName: 'Alston',
+      email: 'carveralston@digigene.com',
     },
     {
-      email: 'bonnieclyde4@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'manager',
-      organizations: ['Kigalihub'],
+      firstName: 'Dennis',
+      lastName: 'Mccoy',
+      email: 'dennismccoy@digigene.com',
     },
     {
-      email: 'bonnieclyde5@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Malinda',
+      lastName: 'Clements',
+      email: 'malindaclements@digigene.com',
     },
     {
-      email: 'byuma@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Charity',
+      lastName: 'Dejesus',
+      email: 'charitydejesus@digigene.com',
     },
     {
-      email: 'byuma01@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Nolan',
+      lastName: 'Bernard',
+      email: 'nolanbernard@digigene.com',
     },
     {
-      email: 'byuma02@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Lynda',
+      lastName: 'Horne',
+      email: 'lyndahorne@digigene.com',
     },
     {
-      email: 'kanyami@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Olivia',
+      lastName: 'Holmes',
+      email: 'oliviaholmes@digigene.com',
     },
     {
-      email: 'kanyami1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Larson',
+      lastName: 'Moses',
+      email: 'larsonmoses@digigene.com',
     },
     {
-      email: 'kanyami2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Gwendolyn',
+      lastName: 'Stanton',
+      email: 'gwendolynstanton@digigene.com',
     },
     {
-      email: 'kanyami3@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'coordinator',
-      organizations: ['Kigalihub'],
+      firstName: 'Robertson',
+      lastName: 'Arnold',
+      email: 'robertsonarnold@digigene.com',
     },
     {
-      email: 'kanyami4@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Rosales',
+      lastName: 'Horton',
+      email: 'rosaleshorton@digigene.com',
     },
     {
-      email: 'kanyami5@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Deirdre',
+      lastName: 'Snider',
+      email: 'deirdresnider@digigene.com',
     },
     {
-      email: 'boneza@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Latasha',
+      lastName: 'Garza',
+      email: 'latashagarza@digigene.com',
     },
     {
-      email: 'boneza1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Hartman',
+      lastName: 'Higgins',
+      email: 'hartmanhiggins@digigene.com',
     },
     {
-      email: 'boneza2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Addie',
+      lastName: 'Lara',
+      email: 'addielara@digigene.com',
     },
     {
-      email: 'boneza3@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Fernandez',
+      lastName: 'Terry',
+      email: 'fernandezterry@digigene.com',
     },
     {
-      email: 'boneza4@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Snyder',
+      lastName: 'Chang',
+      email: 'snyderchang@digigene.com',
     },
     {
-      email: 'kanyamico@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Marta',
+      lastName: 'Bray',
+      email: 'martabray@digigene.com',
     },
     {
-      email: 'kanyamico1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Kemp',
+      lastName: 'Mercer',
+      email: 'kempmercer@digigene.com',
     },
     {
-      email: 'sanomcangelos1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Kristen',
+      lastName: 'Goff',
+      email: 'kristengoff@digigene.com',
     },
     {
-      email: 'sanomcangelos@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Helena',
+      lastName: 'Salas',
+      email: 'helenasalas@digigene.com',
     },
     {
-      email: 'sanomc@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Woods',
+      lastName: 'Flowers',
+      email: 'woodsflowers@digigene.com',
     },
     {
-      email: 'sanomcange@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Castillo',
+      lastName: 'Hall',
+      email: 'castillohall@digigene.com',
     },
     {
-      email: 'sanomcange2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Patricia',
+      lastName: 'Pugh',
+      email: 'patriciapugh@digigene.com',
     },
     {
-      email: 'sanomcangeloss1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Ola',
+      lastName: 'Jacobson',
+      email: 'olajacobson@digigene.com',
     },
     {
-      email: 'sanomcangeloss@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Millie',
+      lastName: 'Harvey',
+      email: 'millieharvey@digigene.com',
     },
     {
-      email: 'sanomcangeloss2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Tania',
+      lastName: 'Sloan',
+      email: 'taniasloan@digigene.com',
     },
     {
-      email: 'bjaywaka@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Kaye',
+      lastName: 'Hopkins',
+      email: 'kayehopkins@digigene.com',
     },
     {
-      email: 'bjaywakaa@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Casandra',
+      lastName: 'Santos',
+      email: 'casandrasantos@digigene.com',
     },
     {
-      email: 'bjaywakaa1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Henrietta',
+      lastName: 'Day',
+      email: 'henriettaday@digigene.com',
     },
     {
-      email: 'bjaywakaa11@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Carey',
+      lastName: 'England',
+      email: 'careyengland@digigene.com',
     },
     {
-      email: 'bjaywakaa12@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Allison',
+      lastName: 'Dyer',
+      email: 'allisondyer@digigene.com',
     },
     {
-      email: 'bjaywakaa14@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Juana',
+      lastName: 'Holman',
+      email: 'juanaholman@digigene.com',
     },
     {
-      email: 'greatking@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Cara',
+      lastName: 'Underwood',
+      email: 'caraunderwood@digigene.com',
     },
     {
-      email: 'greatkings@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Ferguson',
+      lastName: 'Brady',
+      email: 'fergusonbrady@digigene.com',
     },
-
     {
-      email: 'greatkings1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Brittany',
+      lastName: 'Manning',
+      email: 'brittanymanning@digigene.com',
     },
     {
-      email: 'greatkings2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Ivy',
+      lastName: 'Perez',
+      email: 'ivyperez@digigene.com',
     },
     {
-      email: 'wiseman@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Nell',
+      lastName: 'Rollins',
+      email: 'nellrollins@digigene.com',
     },
     {
-      email: 'wisemann@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Lourdes',
+      lastName: 'Mcdaniel',
+      email: 'lourdesmcdaniel@digigene.com',
     },
     {
-      email: 'jordanpoole@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Jarvis',
+      lastName: 'Kelly',
+      email: 'jarviskelly@digigene.com',
     },
     {
-      email: 'jordanpoole1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Harper',
+      lastName: 'Parsons',
+      email: 'harperparsons@digigene.com',
     },
     {
-      email: 'jordanpoole2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Franklin',
+      lastName: 'Richard',
+      email: 'franklinrichard@digigene.com',
     },
     {
-      email: 'jordanpoole3@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Mari',
+      lastName: 'Singleton',
+      email: 'marisingleton@digigene.com',
     },
-
     {
-      email: 'gunnerr@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Kelley',
+      lastName: 'Ellison',
+      email: 'kelleyellison@digigene.com',
     },
     {
-      email: 'gunner@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Ochoa',
+      lastName: 'Casey',
+      email: 'ochoacasey@digigene.com',
     },
     {
-      email: 'gunners@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Edith',
+      lastName: 'Ewing',
+      email: 'edithewing@digigene.com',
     },
     {
-      email: 'gunners1@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Marquita',
+      lastName: 'Reilly',
+      email: 'marquitareilly@digigene.com',
     },
     {
-      email: 'gunners2@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'gunners3@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'gunners4@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'gunners5@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'bencurso@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwego@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwegoyve@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwegoyves@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwegamoanos@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwegamo@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwegorwema@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'sucresmg@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'pato.ui@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'pato.ui.ux@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'chrissucres@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'chrissucremugani@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'chrissucre@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-
-    {
-      email: 'chrisswalker@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'princeofkigali@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'princeofkigalii@pulse.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'princeofkigalii1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'princeofkigalii2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'nibyoyva@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'nibyoyvan@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'nibyoyvanov@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'nibyoyvanovic@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'nibyoyvanovico@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'julish@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'julishimwe@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'juxjulish@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'juxjulish1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'juxjulish2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'juxjulish3@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-
-    {
-      email: 'julish14@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'julienish14@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'julienish15@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'rwegoyvess@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'julienish16@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'julienish17@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'aldaburume@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'aldaburumee@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'aldaburume1@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'aldaburume2@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'aldaburume3@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'wardell@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'benwhito@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
-    },
-    {
-      email: 'dellcurry@gmail.com',
-      password: hashSync('Kigalihub123'),
-      role: 'trainee',
-      organizations: ['Kigalihub'],
+      firstName: 'Traci',
+      lastName: 'Workman',
+      email: 'traciworkman@digigene.com',
     },
   ];
 
+  // Create Meaningful emails
+  users = users.map((user) => {
+    return {
+      ...user,
+      email: generateUserEmail(user),
+    };
+  });
+
+  // Share random Users Among organizations
+  organizations.Andela = [...users.slice(0, 72)];
+  organizations.Irembo = [...users.slice(72, 144)];
+  organizations.KLab = [...users.slice(144, 216)];
+  organizations.BK = [...users.slice(216, users.length + 1)];
+
+  // Numbers of users per organization
+  const usersTypes = {
+    admin: 2,
+    manager: 5,
+    coordinators: 5,
+    trainees: 30,
+    users: 30,
+  };
+
+  // Create an array of users who will be registered
+  const registerUsers = [];
+
+  // Populate registerUsers
+  Object.entries(organizations).forEach((org) => {
+    // Admin
+    for (let i = 0; i < org[1].length; i++) {
+      // Check if user exist in registerUsers
+
+      if (registerUsers.find((user) => user.email === org[1][i].email)) {
+        continue;
+      }
+
+      if (
+        registerUsers.filter(
+          (user) => user.organizations.includes(org[0]) && user.role === 'admin'
+        ).length === usersTypes.admin
+      )
+        break;
+
+      registerUsers.push({
+        email: org[1][i].email,
+        password: hashSync('Test@12345'),
+        role: 'admin',
+        organizations: [org[0]],
+      });
+    }
+
+    // Manager
+    for (let i = 0; i < org[1].length; i++) {
+      if (registerUsers.find((user) => user.email === org[1][i].email))
+        continue;
+
+      if (
+        registerUsers.filter(
+          (user) =>
+            user.organizations.includes(org[0]) && user.role === 'manager'
+        ).length === usersTypes.manager
+      )
+        break;
+
+      registerUsers.push({
+        email: org[1][i].email,
+        password: hashSync('Test@12345'),
+        role: 'manager',
+        organizations: [org[0]],
+      });
+    }
+
+    // Coordinators
+    for (let i = 0; i < org[1].length; i++) {
+      if (registerUsers.find((user) => user.email === org[1][i].email))
+        continue;
+
+      if (
+        registerUsers.filter(
+          (user) =>
+            user.organizations.includes(org[0]) && user.role === 'coordinator'
+        ).length === usersTypes.coordinators
+      )
+        break;
+
+      registerUsers.push({
+        email: org[1][i].email,
+        password: hashSync('Test@12345'),
+        role: 'coordinator',
+        organizations: [org[0]],
+      });
+    }
+
+    // users
+    for (let i = 0; i < org[1].length; i++) {
+      if (registerUsers.find((user) => user.email === org[1][i].email))
+        continue;
+
+      if (
+        registerUsers.filter(
+          (user) => user.organizations.includes(org[0]) && user.role === 'user'
+        ).length === usersTypes.users
+      )
+        break;
+
+      registerUsers.push({
+        email: org[1][i].email,
+        password: hashSync('Test@12345'),
+        role: 'user',
+        organizations: [org[0]],
+      });
+    }
+
+    // Tranee
+    for (let i = 0; i < org[1].length; i++) {
+      if (registerUsers.find((user) => user.email === org[1][i].email))
+        continue;
+
+      if (
+        registerUsers.filter(
+          (user) =>
+            user.organizations.includes(org[0]) && user.role === 'trainee'
+        ).length === usersTypes.trainees
+      )
+        break;
+
+      registerUsers.push({
+        email: org[1][i].email,
+        password: hashSync('Test@12345'),
+        role: 'trainee',
+        organizations: [org[0]],
+      });
+    }
+  });
+
+  // Save Users to the database
   await User.deleteMany({});
-  await User.insertMany(users);
-
-  const superAdmin: any = await User.findOne({
+  registerUsers.unshift({
     email: 'superadmin@devpulse.co',
+    password: hashSync('Test@12345'),
+    role: 'superAdmin',
+    organizations: ['Andela'],
   });
-  const admin: any = await User.findOne({ email: 'admin@devpulse.co' });
-  const admin2: any = await User.findOne({ email: 'admin2@devpulse.co' });
-  const manager: any = await User.findOne({ email: 'manager@devpulse.co' });
-  const manager2: any = await User.findOne({ email: 'manager2@devpulse.co' });
-  const coordinator: any = await User.findOne({
-    email: 'coordinator@devpulse.co',
-  });
+  await User.insertMany(registerUsers);
 
-  const trainee: any = await User.findOne({ email: 'trainee@devpulse.com' });
-  const trainee2: any = await User.findOne({ email: 'trainee1@pulse.com' });
-  const trainee3: any = await User.findOne({ email: 'trainee2@pulse.com' });
-  const trainee4: any = await User.findOne({ email: 'trainee3@pulse.com' });
-  const james: any = await User.findOne({ email: 'james@brainly.tech' });
-  const peter: any = await User.findOne({ email: 'peter@pulse.com' });
-  const john: any = await User.findOne({ email: 'john@pulse.com' });
+  // Query users that have been registered from database
+  const profiles = [];
+  let dbUsers = await User.find().select('_id email');
 
-  const test1: any = await User.findOne({ email: 'fanny@gmail.com' });
-  const admin4: any = await User.findOne({ email: 'delice@brainly.tech' });
-  const admin3: any = await User.findOne({ email: 'abijuru@brainly.tech' });
-  const admin5: any = await User.findOne({ email: 'sam123@brainly.tech' });
-  const admin6: any = await User.findOne({ email: 'samusoni@brainly.tech' });
-  const manager3: any = await User.findOne({ email: 'samusoni1@brainly.tech' });
-  const manager4: any = await User.findOne({
-    email: 'samusoni10@brainly.tech',
-  });
-  const manager5: any = await User.findOne({ email: 'sonia10@brainly.tech' });
-  const manager6: any = await User.findOne({ email: 'sonia1@brainly.tech' });
-  const coordinator3: any = await User.findOne({
-    email: 'sonia001@brainly.tech',
-  });
-  const coordinator4: any = await User.findOne({ email: 'sonyy@brainly.tech' });
-  const coordinator5: any = await User.findOne({
-    email: 'sonyy1234@brainly.tech',
-  });
-  const coordinator6: any = await User.findOne({
-    email: 'sinaaa@brainly.tech',
-  });
-  const coordinator7: any = await User.findOne({
-    email: 'sinaapia@brainly.tech',
-  });
-  const coordinator8: any = await User.findOne({
-    email: 'susanapia@brainly.tech',
-  });
-  const coordinator9: any = await User.findOne({
-    email: 'susanapia1@brainly.tech',
-  });
-  const coordinator11: any = await User.findOne({
-    email: 'susanaa1@brainly.tech',
-  });
-  const test2: any = await User.findOne({ email: 'susanaa1009@brainly.tech' });
-  const test3: any = await User.findOne({ email: 'susanaa109@brainly.tech' });
-  const test4: any = await User.findOne({ email: 'nanaa109@brainly.tech' });
-  const test5: any = await User.findOne({ email: 'nanaa1@brainly.tech' });
-  const test6: any = await User.findOne({ email: 'nanaa19@brainly.tech' });
-  const test7: any = await User.findOne({ email: 'tessa19@brainly.tech' });
-  const test8: any = await User.findOne({ email: 'tessaoyaa@brainly.tech' });
-  const test9: any = await User.findOne({ email: 'tessaoya@brainly.tech' });
-  const test10: any = await User.findOne({ email: 'tesaoya@brainly.tech' });
-  const fabrice: any = await User.findOne({ email: 'teta@brainly.tech' });
-  const fabricerug: any = await User.findOne({
-    email: 'tetabella@brainly.tech',
-  });
-  const fabricenkuku: any = await User.findOne({
-    email: 'tetabella01@brainly.tech',
-  });
-  const fabricekayi: any = await User.findOne({
-    email: 'tetabella1@brainly.tech',
-  });
-  const rugfabrice: any = await User.findOne({
-    email: 'tetabetty@brainly.tech',
-  });
-  const fabricenziranziza: any = await User.findOne({
-    email: 'tetabetty1@brainly.tech',
-  });
-  const fabricekayitankore: any = await User.findOne({
-    email: 'sistetabetty1@brainly.tech',
-  });
-  const shemankubito: any = await User.findOne({
-    email: 'sistetabetty@brainly.tech',
-  });
-  const shemalucie: any = await User.findOne({
-    email: 'sisbetty@brainly.tech',
-  });
-  const shema: any = await User.findOne({ email: 'betty@brainly.tech' });
-  const shemakanyandekwe: any = await User.findOne({
-    email: 'betty1@brainly.tech',
-  });
-  const shemarodri: any = await User.findOne({ email: 'betty11@brainly.tech' });
-  const shema1: any = await User.findOne({ email: 'betty12@brainly.tech' });
-  const shema2: any = await User.findOne({ email: 'betty14@brainly.tech' });
-  const shema3: any = await User.findOne({ email: 'bett14@brainly.tech' });
-  const karimb: any = await User.findOne({ email: 'bettttyy19@brainly.tech' });
-  const karimbavianne: any = await User.findOne({
-    email: 'Kalisamayoo@brainly.tech',
-  });
-  const karimba1: any = await User.findOne({
-    email: 'Kalisamay9oo@brainly.tech',
-  });
-  const karimbajean: any = await User.findOne({
-    email: 'Kalisamayo09@brainly.tech',
-  });
-  const karimbafiston: any = await User.findOne({
-    email: 'Kalisamayo709@brainly.tech',
-  });
-  const karimbajohn12: any = await User.findOne({
-    email: 'Kalisam09@brainly.tech',
-  });
-  const karimbajohn1: any = await User.findOne({
-    email: 'Kalim00@brainly.tech',
-  });
-  const karimbafiston12: any = await User.findOne({
-    email: 'Kalisam00@brainly.tech',
-  });
-  const Celine: any = await User.findOne({ email: 'ngona@brainly.tech' });
-  const Celine1: any = await User.findOne({ email: 'ngona8@brainly.tech' });
-  const Celine2: any = await User.findOne({ email: 'Celine2@pulse.com' });
-  const Celine3: any = await User.findOne({ email: 'Celine3@pulse.com' });
-  const Celine4: any = await User.findOne({ email: 'Celine4@pulse.com' });
-  const Celine5: any = await User.findOne({ email: 'Celine5@pulse.com' });
-  const Celine6: any = await User.findOne({ email: 'Celine6@pulse.com' });
-  const Celine7: any = await User.findOne({ email: 'Celine7@pulse.com' });
-  const Celinejean: any = await User.findOne({ email: 'Celinejean@pulse.com' });
-  const shemajohn: any = await User.findOne({ email: 'bett19@brainly.tech' });
-  const Musoni: any = await User.findOne({ email: 'Musoni@pulse.com' });
-  const Musonijohn: any = await User.findOne({ email: 'Musonijohn@pulse.com' });
-  const Celinejohn: any = await User.findOne({ email: 'Celinejohn@pulse.com' });
-  const pepper: any = await User.findOne({ email: 'pepper@brainly.tech' });
-  const pepper1: any = await User.findOne({ email: 'pepperalla@brainly.tech' });
-  const pepper2: any = await User.findOne({
-    email: 'pepperallasiyaa@brainly.tech',
-  });
-  const pepper3: any = await User.findOne({ email: 'pallilon@brainly.tech' });
-  const pepper4: any = await User.findOne({
-    email: 'pallilon.on@brainly.tech',
-  });
-  const pepper5: any = await User.findOne({
-    email: 'pallilon.on.oi@brainly.tech',
-  });
-  const pepper6: any = await User.findOne({ email: 'belise@brainly.tech' });
-  const pepper7: any = await User.findOne({ email: 'belise900@brainly.tech' });
-  const pepper8: any = await User.findOne({ email: 'belise90@brainly.tech' });
-  const dieudone: any = await User.findOne({
-    email: 'dieudonedrink@pulse.com',
-  });
-  const dieudone1: any = await User.findOne({
-    email: 'mikedieudone@pulse.com',
-  });
-  const dieudone2: any = await User.findOne({
-    email: 'milestonedieudone@pulse.com',
-  });
-  const dieudone3: any = await User.findOne({
-    email: 'davedieudone@brainly.tech',
-  });
-  const dieudone4: any = await User.findOne({
-    email: 'dieudonedimtri@brainly.tech',
-  });
-  const dieudone5: any = await User.findOne({
-    email: 'dieudonehelper@brainly.tech',
-  });
-  const dieudone6: any = await User.findOne({
-    email: 'dannyclug@brainly.tech',
-  });
-  const dieudone7: any = await User.findOne({
-    email: 'dieudonechang@brainly.tech',
-  });
-  const dieudone8: any = await User.findOne({
-    email: 'dieudonechen@brainly.tech',
-  });
-  const elio: any = await User.findOne({ email: 'eliowalker@brainly.tech' });
-  const elio1: any = await User.findOne({ email: 'eliophilip@brainly.tech' });
-  const elio2: any = await User.findOne({ email: 'eliojames@brainly.tech' });
-  const elio3: any = await User.findOne({ email: 'elioclavin@brainly.tech' });
-  const elio4: any = await User.findOne({ email: 'dimelio@brainly.tech' });
-  const elio5: any = await User.findOne({ email: 'eliodest@brainly.tech' });
-  const elio6: any = await User.findOne({ email: 'eliopulg@brainly.tech' });
-  const mugabo: any = await User.findOne({ email: 'mugaboaline@brainly.tech' });
-  const mugabo1: any = await User.findOne({
-    email: 'mugaboalain@brainly.tech',
-  });
-  const mugabo2: any = await User.findOne({
-    email: 'mugabostani@brainly.tech',
-  });
-  const mugabo3: any = await User.findOne({
-    email: 'mugaboMusoni@brainly.tech',
-  });
-  const mugabo4: any = await User.findOne({
-    email: 'mugabodestin@brainly.tech',
-  });
-  const mugabo5: any = await User.findOne({
-    email: 'mugabophilip@brainly.tech',
-  });
-  const mugabo6: any = await User.findOne({
-    email: 'mugabodio123@brainly.tech',
-  });
-  const mugabo7: any = await User.findOne({
-    email: 'mugabodivin@brainly.tech',
-  });
-  const mugabo8: any = await User.findOne({
-    email: 'mugaboclara@brainly.tech',
-  });
-  const mugabo9: any = await User.findOne({
-    email: 'mugabodenys@brainly.tech',
-  });
-  const mugabo10: any = await User.findOne({
-    email: 'mugaboquerry@brainly.tech',
-  });
-  const karekezi: any = await User.findOne({ email: 'karekezi@brainly.tech' });
-  const karekezi1: any = await User.findOne({
-    email: 'karekezideus@brainly.tech',
-  });
-  const hakizumwami1: any = await User.findOne({
-    email: 'kezaaabelitrie@brainly.tech',
-  });
+  // For every db user, generate a profile
+  for (let i = 0; i < dbUsers.length; i++) {
+    let userProfile = users.find((user) => user.email === dbUsers[i].email);
 
-  const done1: any = await User.findOne({ email: 'coise@gmail.com' });
-  const adminThree: any = await User.findOne({ email: 'klay@gmail.com' });
-  const adminFour: any = await User.findOne({ email: 'curry@gmail.com' });
-  const adminFive: any = await User.findOne({ email: 'greendray@gmail.com' });
-  const adminSix: any = await User.findOne({ email: 'bonnieclyde@gmail.com' });
-  const managerThree: any = await User.findOne({
-    email: 'bonnieclyde1@gmail.com',
-  });
-  const managerFour: any = await User.findOne({
-    email: 'bonnieclyde2@gmail.com',
-  });
-  const managerFive: any = await User.findOne({
-    email: 'bonnieclyde3@gmail.com',
-  });
-  const managerSix: any = await User.findOne({
-    email: 'bonnieclyde4@gmail.com',
-  });
-  const coordinatorThree: any = await User.findOne({
-    email: 'bonnieclyde5@gmail.com',
-  });
-  const coordinatorFour: any = await User.findOne({ email: 'byuma@gmail.com' });
-  const coordinatorFive: any = await User.findOne({
-    email: 'byuma01@gmail.com',
-  });
-  const coordinatorSix: any = await User.findOne({
-    email: 'byuma02@gmail.com',
-  });
-  const coordinatorSev: any = await User.findOne({
-    email: 'kanyami@gmail.com',
-  });
-  const coordinatorEig: any = await User.findOne({
-    email: 'kanyami1@gmail.com',
-  });
-  const coordinatorNin: any = await User.findOne({
-    email: 'kanyami2@gmail.com',
-  });
-  const coordinator10: any = await User.findOne({
-    email: 'kanyami3@gmail.com',
-  });
-  const done2: any = await User.findOne({ email: 'kanyami4@gmail.com' });
-  const done3: any = await User.findOne({ email: 'kanyami5@gmail.com' });
-  const done4: any = await User.findOne({ email: 'boneza@gmail.com' });
-  const done5: any = await User.findOne({ email: 'boneza1@gmail.com' });
-  const done6: any = await User.findOne({ email: 'boneza2@gmail.com' });
-  const done7: any = await User.findOne({ email: 'boneza3@gmail.com' });
-  const done8: any = await User.findOne({ email: 'boneza4@gmail.com' });
-  const done9: any = await User.findOne({ email: 'kanyamico@gmail.com' });
-  const done10: any = await User.findOne({ email: 'kanyamico1@gmail.com' });
-  const macAngelos: any = await User.findOne({ email: 'sanomcange@gmail.com' });
-  const macAngelos2: any = await User.findOne({
-    email: 'sanomcangelos1@gmail.com',
-  });
-  const macAngelos3: any = await User.findOne({
-    email: 'sanomcangelos@gmail.com',
-  });
-  const macAngelos4: any = await User.findOne({
-    email: 'sanomc@gmail.com',
-  });
-  const macAngelos5: any = await User.findOne({
-    email: 'sanomcange2@gmail.com',
-  });
-  const macAngelos6: any = await User.findOne({
-    email: 'sanomcangeloss1@gmail.com',
-  });
-  const macAngelos7: any = await User.findOne({
-    email: 'sanomcangeloss@gmail.com',
-  });
-  const macAngelos8: any = await User.findOne({
-    email: 'sanomcangeloss2@gmail.com',
-  });
-  const bjayziri: any = await User.findOne({ email: 'bjaywaka@gmail.com' });
-  const bjayziri1: any = await User.findOne({ email: 'bjaywakaa@gmail.com' });
-  const bjayziri2: any = await User.findOne({
-    email: 'bjaywakaa1@gmail.com',
-  });
-  const bjayziri3: any = await User.findOne({ email: 'bjaywakaa11@gmail.com' });
-  const bjayziri4: any = await User.findOne({ email: 'bjaywakaa12@gmail.com' });
-  const bjayziri5: any = await User.findOne({ email: 'bjaywakaa14@gmail.com' });
-  const great: any = await User.findOne({ email: 'greatking@gmail.com' });
-  const karimba: any = await User.findOne({ email: 'greatkings1@gmail.com' });
-  const karimbavianney: any = await User.findOne({
-    email: 'greatkings2@gmail.com',
-  });
-  const greatkakaaas: any = await User.findOne({ email: 'wiseman@gmail.com' });
-  const greatkakaaa: any = await User.findOne({
-    email: 'wisemann@gmail.com',
-  });
-  const greatkakaa: any = await User.findOne({
-    email: 'jordanpoole@gmail.com',
-  });
-  const greatkaka: any = await User.findOne({
-    email: 'jordanpoole1@gmail.com',
-  });
-  const greatkaka1: any = await User.findOne({
-    email: 'jordanpoole3@gmail.com',
-  });
-  const greatkakas: any = await User.findOne({
-    email: 'jordanpoole2@gmail.com',
-  });
-  const gunner: any = await User.findOne({ email: 'gunnerr@gmail.com' });
-  const gunner1: any = await User.findOne({ email: 'gunner@gmail.com' });
-  const gunners: any = await User.findOne({ email: 'gunners@pulse.com' });
-  const gunners1: any = await User.findOne({ email: 'gunners1@pulse.com' });
-  const gunners2: any = await User.findOne({ email: 'gunners2@pulse.com' });
-  const gunners3: any = await User.findOne({ email: 'gunners3@pulse.com' });
-  const gunners4: any = await User.findOne({ email: 'gunners4@pulse.com' });
-  const gunners5: any = await User.findOne({ email: 'gunners5@pulse.com' });
-  const bencurso: any = await User.findOne({ email: 'bencurso@pulse.com' });
-  const bjayzirijohn: any = await User.findOne({
-    email: 'greatkings@gmail.com',
-  });
-  const rwegoyve: any = await User.findOne({ email: 'rwegoyve@pulse.com' });
-  const rwegoyves: any = await User.findOne({ email: 'rwegoyves@pulse.com' });
-  const rwego: any = await User.findOne({ email: 'rwego@pulse.com' });
-  const sucres: any = await User.findOne({ email: 'rwegamoanos@gmail.com' });
-  const sucres1: any = await User.findOne({ email: 'rwegamo@gmail.com' });
-  const sucres2: any = await User.findOne({
-    email: 'rwegorwema@gmail.com',
-  });
-  const sucres3: any = await User.findOne({ email: 'sucresmg@gmail.com' });
-  const sucres4: any = await User.findOne({ email: 'pato.ui@gmail.com' });
-  const sucres5: any = await User.findOne({
-    email: 'pato.ui.ux@gmail.com',
-  });
-  const sucres6: any = await User.findOne({ email: 'chrissucres@gmail.com' });
-  const sucres7: any = await User.findOne({
-    email: 'chrissucremugani@gmail.com',
-  });
-  const sucres8: any = await User.findOne({ email: 'chrissucre@gmail.com' });
-  const princeniby: any = await User.findOne({
-    email: 'chrisswalker@pulse.com',
-  });
-  const princeniby1: any = await User.findOne({
-    email: 'princeofkigali@pulse.com',
-  });
-  const princeniby2: any = await User.findOne({
-    email: 'princeofkigalii@pulse.com',
-  });
-  const princeniby3: any = await User.findOne({
-    email: 'princeofkigalii1@gmail.com',
-  });
-  const princeniby4: any = await User.findOne({
-    email: 'princeofkigalii2@gmail.com',
-  });
-  const princeniby5: any = await User.findOne({
-    email: 'nibyoyva@gmail.com',
-  });
-  const princeniby6: any = await User.findOne({ email: 'nibyoyvan@gmail.com' });
-  const princeniby7: any = await User.findOne({
-    email: 'nibyoyvanov@gmail.com',
-  });
-  const princeniby8: any = await User.findOne({
-    email: 'nibyoyvanovic@gmail.com',
-  });
-  const uno: any = await User.findOne({ email: 'nibyoyvanovico@gmail.com' });
-  const uno1: any = await User.findOne({ email: 'julish@gmail.com' });
-  const uno2: any = await User.findOne({ email: 'julishimwe@gmail.com' });
-  const uno3: any = await User.findOne({ email: 'juxjulish@gmail.com' });
-  const uno4: any = await User.findOne({ email: 'juxjulish1@gmail.com' });
-  const uno5: any = await User.findOne({ email: 'juxjulish2@gmail.com' });
-  const uno6: any = await User.findOne({ email: 'juxjulish3@gmail.com' });
-  const didasmb: any = await User.findOne({ email: 'julish14@gmail.com' });
-  const didasmb1: any = await User.findOne({ email: 'julienish14@gmail.com' });
-  const didasmb2: any = await User.findOne({ email: 'julienish15@gmail.com' });
-  const didasmb3: any = await User.findOne({
-    email: 'rwegoyvess@gmail.com',
-  });
-  const didasmb4: any = await User.findOne({
-    email: 'julienish16@gmail.com',
-  });
-  const didasmb5: any = await User.findOne({
-    email: 'julienish17@gmail.com',
-  });
-  const didasmb6: any = await User.findOne({
-    email: 'aldaburume@gmail.com',
-  });
-  const didasmb7: any = await User.findOne({ email: 'aldaburumee@gmail.com' });
-  const didasmb8: any = await User.findOne({ email: 'aldaburume1@gmail.com' });
-  const didasmb9: any = await User.findOne({ email: 'aldaburume2@gmail.com' });
-  const didasmb10: any = await User.findOne({
-    email: 'aldaburume3@gmail.com',
-  });
-  const wardell: any = await User.findOne({ email: 'wardell@gmail.com' });
-  const benwhito: any = await User.findOne({
-    email: 'benwhito@gmail.com',
-  });
-  const dellcurry: any = await User.findOne({
-    email: 'dellcurry@gmail.com',
-  });
+    if (userProfile) {
+      profiles.push({
+        user: dbUsers[i]._id,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+      });
+    }
+  }
 
-  const profiles = [
-    {
-      user: superAdmin.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: admin.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: admin2.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: manager.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: manager2.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: coordinator.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: trainee.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: trainee2.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: trainee3.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: trainee4.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: james.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: peter.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: john.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: done1.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: adminThree.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: adminFour.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: adminFive.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: adminSix.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: managerThree.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: managerFour.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: managerFive.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: managerSix.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: coordinatorThree.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: coordinatorFour.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: coordinatorFive.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: coordinatorSix.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: done2.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: done3.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: done4.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: done5.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: done6.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: done7.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: done8.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: done9.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: done10.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: macAngelos.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: macAngelos2.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: macAngelos3.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: macAngelos4.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: macAngelos5.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: macAngelos6.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: macAngelos7.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: macAngelos8.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: bjayziri.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: bjayziri1.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: bjayziri2.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: bjayziri3.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: bjayziri4.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: bjayziri5.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: great.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: karimba.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: karimbavianne.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: greatkakaaas.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: greatkakaaa.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: greatkakaa.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: greatkaka.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: greatkaka1.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: greatkakas.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: gunner.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: gunner1.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: gunners.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: gunners1.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: gunners2.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: gunners3.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: gunners4.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: gunners5.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: bencurso.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: bjayzirijohn.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: rwegoyve.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: rwegoyves.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: rwego.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: sucres.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: sucres1.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: sucres2.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: sucres3.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: sucres4.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: sucres5.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: sucres6.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: sucres7.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: sucres8.id,
-      firstName: 'sucres',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: princeniby.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: princeniby1.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: princeniby2.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-    {
-      user: princeniby3.id,
-      firstName: 'James',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: princeniby4.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: princeniby5.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: princeniby6.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: princeniby7.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: princeniby8.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: uno.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: uno1.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: uno2.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: uno3.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: uno4.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: uno5.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: uno6.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: coordinatorSev.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: coordinatorEig.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: coordinatorNin.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: coordinator11.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-
-    {
-      user: didasmb.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: didasmb1.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: didasmb2.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: didasmb3.id,
-      firstName: 'Rshyaka',
-      lastName: 'Kwanda',
-    },
-    {
-      user: didasmb4.id,
-      firstName: 'uno',
-      lastName: 'Kwanda',
-    },
-    {
-      user: didasmb5.id,
-      firstName: 'didasmb',
-      lastName: 'Dev',
-    },
-    {
-      user: didasmb6.id,
-      firstName: 'didasmb',
-      lastName: 'Dev',
-    },
-    {
-      user: didasmb7.id,
-      firstName: 'didasmb',
-      lastName: 'Dev',
-    },
-    {
-      user: didasmb8.id,
-      firstName: 'didasmb',
-      lastName: 'Dev',
-    },
-    {
-      user: didasmb9.id,
-      firstName: 'didasmb',
-      lastName: 'Dev',
-    },
-    {
-      user: didasmb10.id,
-      firstName: 'didasmb',
-      lastName: 'Dev',
-    },
-    {
-      user: wardell.id,
-      firstName: 'wardell',
-      lastName: 'Dev',
-    },
-    {
-      user: benwhito.id,
-      firstName: 'wardell',
-      lastName: 'Dev',
-    },
-    {
-      user: dellcurry.id,
-      firstName: 'wardell',
-      lastName: 'Dev',
-    },
-    {
-      user: admin4.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: admin3.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: admin5.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: admin6.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: manager3.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: manager4.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: manager5.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: manager6.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: coordinator3.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: coordinator4.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: coordinator5.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: coordinator6.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: test2.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: test3.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: test4.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: test5.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: test6.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: test7.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: test8.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: test9.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: test10.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: fabrice.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: fabricerug.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: fabricenkuku.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: fabricekayi.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: rugfabrice.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: fabricenziranziza.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: fabricekayitankore.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: shemankubito.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: shemalucie.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: shema.id,
-      firstName: 'Gary',
-      lastName: 'Mukasa',
-    },
-    {
-      user: shemakanyandekwe.id,
-      firstName: 'Mike',
-      lastName: 'Akello',
-    },
-    {
-      user: shemarodri.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: shema1.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: shema2.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: shema3.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: karimb.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: karimbavianney.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: karimba1.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: karimbajean.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: karimbafiston.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: karimbajohn12.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: karimbajohn1.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: karimbafiston12.id,
-      firstName: 'Steven',
-      lastName: 'Mugabo',
-    },
-    {
-      user: Celine.id,
-      firstName: 'Charlotte',
-      lastName: 'Byiringiro',
-    },
-    {
-      user: Celine1.id,
-      firstName: 'Zaytzeff',
-      lastName: 'Amani',
-    },
-    {
-      user: Celine2.id,
-      firstName: 'Yvonne',
-      lastName: 'Mbabazi',
-    },
-    {
-      user: Celine3.id,
-      firstName: 'John',
-      lastName: 'Birungi',
-    },
-    {
-      user: Celine4.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: Celine5.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: Celine6.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: Celine7.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: Celinejean.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: shemajohn.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: Musoni.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: Musonijohn.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: Celinejohn.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: pepper.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: pepper1.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: pepper2.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: pepper3.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: pepper4.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: pepper5.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: pepper6.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: pepper7.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: pepper8.id,
-      firstName: 'pepper',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: dieudone.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: dieudone1.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: dieudone2.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-    {
-      user: dieudone3.id,
-      firstName: 'James',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: dieudone4.id,
-      firstName: 'Peter',
-      lastName: 'Mbonyineza',
-    },
-    {
-      user: dieudone5.id,
-      firstName: 'Eric',
-      lastName: 'Mugisha',
-    },
-    {
-      user: dieudone6.id,
-      firstName: 'Jimmy',
-      lastName: 'Obonyo',
-    },
-    {
-      user: dieudone7.id,
-      firstName: 'James',
-      lastName: 'Kamana',
-    },
-    {
-      user: dieudone8.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: elio.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: elio1.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: elio2.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: elio3.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: elio4.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: elio5.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: elio6.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: coordinator7.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: coordinator8.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: coordinator9.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: coordinator10.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-
-    {
-      user: mugabo.id,
-      firstName: 'Peter',
-      lastName: 'Okwadha',
-    },
-    {
-      user: mugabo1.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: mugabo2.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: mugabo3.id,
-      firstName: 'GEn',
-      lastName: 'Agarwal',
-    },
-    {
-      user: mugabo4.id,
-      firstName: 'elio',
-      lastName: 'Agarwal',
-    },
-    {
-      user: mugabo5.id,
-      firstName: 'mugabo',
-      lastName: 'Dev',
-    },
-    {
-      user: mugabo6.id,
-      firstName: 'mugabo',
-      lastName: 'Dev',
-    },
-    {
-      user: mugabo7.id,
-      firstName: 'mugabo',
-      lastName: 'Dev',
-    },
-    {
-      user: mugabo8.id,
-      firstName: 'mugabo',
-      lastName: 'Dev',
-    },
-    {
-      user: mugabo9.id,
-      firstName: 'mugabo',
-      lastName: 'Dev',
-    },
-    {
-      user: mugabo10.id,
-      firstName: 'mugabo',
-      lastName: 'Dev',
-    },
-    {
-      user: karekezi.id,
-      firstName: 'karekezi',
-      lastName: 'Dev',
-    },
-    {
-      user: karekezi1.id,
-      firstName: 'karekezi',
-      lastName: 'Dev',
-    },
-    {
-      user: hakizumwami1.id,
-      firstName: 'karekezi',
-      lastName: 'Dev',
-    },
-  ];
   await Profile.deleteMany({});
   await Profile.insertMany(profiles);
 
+  //   return null;
   return null;
 };
+
 export default seedUsers;
