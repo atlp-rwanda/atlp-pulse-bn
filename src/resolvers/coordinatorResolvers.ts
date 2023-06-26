@@ -18,10 +18,20 @@ const SECRET: string = process.env.SECRET || 'test_secret';
 
 const manageStudentResolvers = {
   Query: {
-    getAllCoordinators: async (_: any, __: any, context: any) => {
+    getAllCoordinators: async (_: any, __: any, context: Context) => {
       try {
+        // coordinator validation
+        const { userId, role } = (await checkUserLoggedIn(context))([
+          'admin',
+          'manager',
+          'coordinator',
+        ]);
 
-        const coordinators = await User.find({ role: 'coordinator' });
+        // Fetch coordinators based on the role and organization name
+        const coordinators = await User.find({
+          role: 'coordinator'
+        });
+
         return coordinators || [];
       } catch (error) {
         const { message } = error as { message: any };
@@ -30,11 +40,10 @@ const manageStudentResolvers = {
     },
 
 
+
+
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // get the organization if someone  logs in
-        let org: InstanceType<typeof Organization>;
-        org = await checkLoggedInOrganization(orgToken);
 
         // coordinator validation
         const { userId, role } = (await checkUserLoggedIn(context))([
@@ -42,6 +51,11 @@ const manageStudentResolvers = {
           'manager',
           'coordinator',
         ]);
+
+        // get the organization if someone  logs in
+        let org: InstanceType<typeof Organization>;
+        org = await checkLoggedInOrganization(orgToken);
+
         return (
           await User.find({ role: 'user', organizations: org?.name })
         ).filter((user: any) => {
@@ -252,6 +266,7 @@ const manageStudentResolvers = {
     },
   },
   Mutation: {
+
     async addMemberToTeam(
       _: any,
       { teamName, email, orgToken }: any,

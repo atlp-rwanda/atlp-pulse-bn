@@ -183,6 +183,7 @@ const Schema = gql`
   type Query {
     getAllUsers(orgToken: String): [User]
     getUsers(orgToken: String): [User]
+    getAllCoordinators: [User]
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole
