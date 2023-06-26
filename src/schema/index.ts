@@ -217,7 +217,10 @@ const Schema = gql`
     loginUser(loginInput: LoginInput): Login!
     loginOrg(orgInput: OrgInput): OrgLogin!
     requestOrganization(organizationInput: OrganizationInput!): String!
-    addOrganization(organizationInput: OrganizationInput): Organization!
+    addOrganization(
+      organizationInput: OrganizationInput
+      action: String
+      ): Organization!
     updateProfile(
       lastName: String
       firstName: String
