@@ -86,6 +86,7 @@ const Schema = gql`
     name: String!
     description: String
     admin: User
+    status:String
   }
   input OrganizationInput {
     email: String!
