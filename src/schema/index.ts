@@ -222,6 +222,10 @@ const Schema = gql`
       organizationInput: OrganizationInput
       action: String
       ): Organization!
+    RegisterNewOrganization(
+        organizationInput: OrganizationInput
+        action: String
+        ): Organization!
     updateProfile(
       lastName: String
       firstName: String

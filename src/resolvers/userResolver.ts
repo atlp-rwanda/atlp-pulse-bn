@@ -393,7 +393,7 @@ const resolvers: any = {
         throw new ApolloError('Invalid Organization Name', 'UserInputError');
       }
     },
-
+    
     async requestOrganization(
       _: any,
       { organizationInput: { name, email, description } }: any
@@ -423,16 +423,17 @@ const resolvers: any = {
           'UserInputError'
         );
       }
-      
+      if (!existingUser&&!admin) throw new ApolloError(`User not found  Please need to have account.`,
+      'UserInputError')
       if (admin) {
-        console.log("user",admin);
-          // Create the organization with 'pending' status
+      // Create the organization with 'pending' status
       const organization = await Organization.create({
         admin: admin._id,
         name,
         description,
         status: 'pending',
       });
+    
 
       const superAdmin = await User.find({ role: 'superAdmin' });
       // Get the email content
@@ -472,6 +473,14 @@ const resolvers: any = {
       }
       if (orgExists){
         let password: any = generateRandomPassword();
+        let adminID=orgExists.admin
+        let admin = await User.findOne({_id: adminID})
+        admin?.organizations.push(name)
+
+        const hash = await bcrypt.hash(password, 10)
+        await User.updateOne({email:email},{$set:{password:hash}});
+       
+
         orgExists.status='active';
         await orgExists.save()
 
