@@ -26,6 +26,12 @@ import Phase from '../models/phase.model';
 const SECRET: string = process.env.SECRET || 'test_secret';
 export type OrganizationType = InstanceType<typeof Organization>;
 
+enum Status {
+  pending = 'pending',
+  approved = 'approved',
+  rejected = 'rejected',
+}
+
 const resolvers: any = {
   Query: {
     async getOrganizations(_: any, __: any, context: Context) {
@@ -380,6 +386,14 @@ const resolvers: any = {
 
     async loginOrg(_: any, { orgInput: { name } }: any) {
       const organization: any = await Organization.findOne({ name });
+  
+      if(organization){
+
+      if(organization.status == Status.pending || organization.status == Status.rejected){
+        throw new ApolloError('Your organization is not approved yet', 'UserInputError');
+      }
+    }
+
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -390,7 +404,7 @@ const resolvers: any = {
         };
         return data;
       } else {
-        throw new ApolloError('Invalid Organization Name', 'UserInputError');
+        throw new ApolloError(`we do not recognize this organization ${name}`, 'UserInputError');
       }
     },
     
@@ -423,12 +437,22 @@ const resolvers: any = {
           'UserInputError'
         );
       }
-      if (!existingUser&&!admin) throw new ApolloError(`User not found  Please need to have account.`,
+      if (admin) throw new ApolloError(`User with ${email} exists.  Please use another email`,
       'UserInputError')
-      if (admin) {
+
+      let password: any = generateRandomPassword();
+      let newAdmin: any = undefined;
+      if (!admin) {
+        newAdmin = await User.create({
+          email:email, 
+          password:password,
+          role: 'admin',
+          organizations:name
+        });
+      
       // Create the organization with 'pending' status
       const organization = await Organization.create({
-        admin: admin._id,
+        admin: newAdmin._id,
         name,
         description,
         status: 'pending',
@@ -454,7 +478,6 @@ const resolvers: any = {
       }  
      
       } catch (error) {
-        console.error('Error sending email:', error);
         throw error
       }
     },
