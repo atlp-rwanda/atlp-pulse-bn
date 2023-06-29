@@ -1,7 +1,7 @@
 import { hashSync } from 'bcryptjs';
 import { User, Profile } from '../models/user';
 
-const generateUserEmail = (user) => {
+const generateUserEmail = (user: any) => {
   return `${user.firstName.toLowerCase()}.${user.lastName.toLowerCase()}@devpulse.com`;
 };
 
@@ -1481,10 +1481,10 @@ const seedUsers = async () => {
   };
 
   // Create an array of users who will be registered
-  const registerUsers = [];
+  const registerUsers: Array<any> = [];
 
   // Populate registerUsers
-  Object.entries(organizations).forEach((org) => {
+  Object.entries(organizations).forEach((org: any) => {
     // Admin
     for (let i = 0; i < org[1].length; i++) {
       // Check if user exist in registerUsers
@@ -1604,11 +1604,11 @@ const seedUsers = async () => {
 
   // Query users that have been registered from database
   const profiles = [];
-  let dbUsers = await User.find().select('_id email');
+  const dbUsers = await User.find().select('_id email');
 
   // For every db user, generate a profile
   for (let i = 0; i < dbUsers.length; i++) {
-    let userProfile = users.find((user) => user.email === dbUsers[i].email);
+    const userProfile = users.find((user) => user.email === dbUsers[i].email);
 
     if (userProfile) {
       profiles.push({
