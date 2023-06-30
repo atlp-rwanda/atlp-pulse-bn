@@ -11,6 +11,8 @@ import Program from '../models/program.model';
 import { Organization, Profile, User, UserRole } from '../models/user';
 import { sendEmail } from '../utils/sendEmail';
 import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate';
+import organizationApprovedTemplate from '../utils/templates/organizationApprovedTemplate';
+import organizationRejectedTemplate from '../utils/templates/organizationRejectedTemplate';
 import registrationRequest from '../utils/templates/registrationRequestTemplate';
 import { EmailPattern } from '../utils/validation.utils';
 import { Context } from './../context';
@@ -23,6 +25,12 @@ import Phase from '../models/phase.model';
 
 const SECRET: string = process.env.SECRET || 'test_secret';
 export type OrganizationType = InstanceType<typeof Organization>;
+
+enum Status {
+  pending = 'pending',
+  approved = 'approved',
+  rejected = 'rejected',
+}
 
 const resolvers: any = {
   Query: {
@@ -378,6 +386,14 @@ const resolvers: any = {
 
     async loginOrg(_: any, { orgInput: { name } }: any) {
       const organization: any = await Organization.findOne({ name });
+  
+      if(organization){
+
+      if(organization.status == Status.pending || organization.status == Status.rejected){
+        throw new ApolloError('Your organization is not approved yet', 'UserInputError');
+      }
+    }
+
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -388,49 +404,144 @@ const resolvers: any = {
         };
         return data;
       } else {
-        throw new ApolloError('Invalid Organization Name', 'UserInputError');
+        throw new ApolloError(`we do not recognize this organization ${name}`, 'UserInputError');
       }
     },
-
+    
     async requestOrganization(
       _: any,
       { organizationInput: { name, email, description } }: any
     ) {
-      const orgExists = await Organization.findOne({ name: name });
+      try {
+      // Check if organization name already exists
+      const orgExists = await Organization.findOne({ name });
       if (orgExists) {
         throw new ApolloError(
-          'Organization Name already taken ' + name,
+          `Organization name '${name}' already taken`,
           'UserInputError'
         );
       }
-
+    
+      // Validate email format
       const emailExpression = EmailPattern;
       const isValidEmail = emailExpression.test(String(email).toLowerCase());
-      if (!isValidEmail)
-        throw new ApolloError('invalid email format', 'ValidationError');
-
-      const user = await User.findOne({ email, role: { $ne: 'admin' } });
-      if (user) {
-        throw new ApolloError(
-          `User with email ${email} exists and is not an admin, user another email`
-        );
+      if (!isValidEmail) {
+        throw new ApolloError('Invalid email format', 'ValidationError');
       }
 
-      const superAdmin = await User.find({ role: 'superAdmin' });
+      const existingUser = await User.findOne({ email, role: { $ne: 'admin' } });
+      const admin = await User.findOne({ email, role: 'admin' }); 
+      if (existingUser) {
+        throw new ApolloError(
+          `User with email '${email}' exists and is not an admin. Please use another email.`,
+          'UserInputError'
+        );
+      }
+      if (admin) throw new ApolloError(`User with ${email} exists.  Please use another email`,
+      'UserInputError')
 
+      let password: any = generateRandomPassword();
+      let newAdmin: any = undefined;
+      if (!admin) {
+        newAdmin = await User.create({
+          email:email, 
+          password:password,
+          role: 'admin',
+          organizations:name
+        });
+      
+      // Create the organization with 'pending' status
+      const organization = await Organization.create({
+        admin: newAdmin._id,
+        name,
+        description,
+        status: 'pending',
+      });
+    
+
+      const superAdmin = await User.find({ role: 'superAdmin' });
+      // Get the email content
       const content = registrationRequest(email, name, description);
-      const link: any = 'https://metron-devpulse.vercel.app/';
-      return sendEmail(
-        superAdmin[0].email,
-        'Organisation registration request',
-        content,
-        link,
-        process.env.ADMIN_EMAIL,
-        process.env.ADMIN_PASS
-      )
-        .then(() => 'Organisation registration request sent successfully')
-        .catch((error) => error);
+      const link = 'https://metron-devpulse.vercel.app/';
+    
+      // Send registration request email to super admin
+        await sendEmail(
+          superAdmin[0].email,
+          'Organization registration request',
+          content,
+          link,
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        );
+    
+        return 'Organization registration request sent successfully';
+      }  
+     
+      } catch (error) {
+        throw error
+      }
     },
+
+    async RegisterNewOrganization(_:any,
+      {organizationInput:{name,email},action}:any,context:Context){
+      // check if requester is super admin
+      (await checkUserLoggedIn(context))(['superAdmin']);
+      const orgExists = await Organization.findOne({ name: name,email: email});
+      if (action=="approve"){
+     
+      if (!orgExists) {
+        throw new ApolloError(
+          'Organization Not found ','UserInputError'
+        );
+      }
+      if (orgExists){
+        let password: any = generateRandomPassword();
+        let adminID=orgExists.admin
+        let admin = await User.findOne({_id: adminID})
+        admin?.organizations.push(name)
+
+        const hash = await bcrypt.hash(password, 10)
+        await User.updateOne({email:email},{$set:{password:hash}});
+       
+
+        orgExists.status='active';
+        await orgExists.save()
+
+        const content = organizationApprovedTemplate(orgExists.name, email, password);
+        const link: any = 'https://metron-devpulse.vercel.app/';
+        await sendEmail(
+          email,
+          'Organization Approved and created notice',
+          content,
+          link,
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        );
+
+      }
+
+      }
+     if(orgExists && action == 'reject'){
+      orgExists.status='rejected';
+        await orgExists.save()
+      const content = organizationRejectedTemplate(name);
+       const link: any = 'https://metron-devpulse.vercel.app/';
+       await sendEmail(
+         email,
+         'Organization Request rejected notice',
+         content,
+         link,
+         process.env.ADMIN_EMAIL,
+         process.env.ADMIN_PASS
+       );
+
+     }
+
+     
+    return orgExists
+
+
+      },
     async addOrganization(
       _: any,
       { organizationInput: { name, email, description },action:action}: any,
@@ -469,6 +580,7 @@ const resolvers: any = {
         admin: admin ? admin._id : newAdmin?._id,
         name,
         description,
+        status:"active",
       });
     }
      if(action!=='new'){

@@ -129,6 +129,11 @@ const organizationSchema = new Schema({
     ref: 'User',
     required: true,
   },
+  status: {
+    type: String,
+    enum: ['active','pending','rejected'],
+    default: 'active',
+  },
 });
 
 const User = model('User', userSchema);
