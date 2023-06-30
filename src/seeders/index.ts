@@ -16,8 +16,10 @@ connect().then(async () => {
     await seedPhases();
     await seedCohorts();
     await seedTeams();
+    await seedNotification();
     await seedsystemRatings();
 
+    console.log('Database seeded Successfully');
     process.exit();
   } catch (error) {
     console.log('database seed errors ', { error });

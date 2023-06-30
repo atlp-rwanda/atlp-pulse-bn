@@ -4,268 +4,204 @@ import Program from '../models/program.model';
 import { Organization, User } from '../models/user';
 
 const seedCohorts = async () => {
+  // Organization
+  const andelaOrg = await Organization.find({ name: 'Andela' });
+  const iremboOrg = await Organization.find({ name: 'Irembo' });
+  const KlabOrg = await Organization.find({ name: 'KLab' });
+  const BkOrg = await Organization.find({ name: 'BK' });
+
+  // Programs
+  const andelaPrograms = await Program.find({
+    $or: [
+      { name: { $eq: 'Atlp 1' } },
+      { name: { $eq: 'Atlp 2' } },
+      { name: { $eq: 'Atlp 3' } },
+    ],
+  });
+  const iremboProgams = await Program.find({
+    $or: [
+      { name: { $eq: 'Brainly Developers Program' } },
+      { name: { $eq: 'Rwema' } },
+    ],
+  });
+  const klabProgams = await Program.find({
+    $or: [{ name: { $eq: 'Robotics' } }, { name: { $eq: 'IoT' } }],
+  });
+  const bkProgams = await Program.find({
+    $or: [{ name: { $eq: 'program 1 BK' } }, { name: { $eq: 'program 2 BK' } }],
+  });
+
+  // Phases
   const phases = await Phase.find();
-  const users = await User.find();
-  const coordinatorId = (await User.findOne({ role: 'coordinator' }))?.id;
-  const coordinator1 = (
-    await User.findOne({ email: 'coordinator@devpulse.co' })
-  )?.id;
-  const coordinator2 = (
-    await User.findOne({ email: 'coordinator1@devpulse.co' })
-  )?.id;
-  const coordinator3 = (await User.findOne({ email: 'coordinator@mtn.com' }))
-    ?.id;
-  const coordinator4 = (
-    await User.findOne({ email: 'coordinator3@devpulse.co' })
-  )?.id;
-  const coordinatorIrembo = (
-    await User.findOne({ email: 'coordinator@irembo.com' })
-  )?.id;
-  const coordinator2Irembo = (
-    await User.findOne({ email: 'coordinator2@irembo.com' })
-  )?.id;
-  const coordinator3Irembo = (
-    await User.findOne({ email: 'coordinator3@irembo.com' })
-  )?.id;
-  const coordinator4Irembo = (
-    await User.findOne({ email: 'coordinator4@irembo.com' })
-  )?.id;
-  const organizations = await Organization.find();
-  const programs = await Program.find();
+
+  // Coordinators
+  const andelCoord = await User.find({
+    role: 'coordinator',
+    organizations: { $in: ['Andela'] },
+  });
+  const iremboCoord = await User.find({
+    role: 'coordinator',
+    organizations: { $in: ['Irembo'] },
+  });
+  const KLabCoord = await User.find({
+    role: 'coordinator',
+    organizations: { $in: ['KLab'] },
+  });
+  const BkCoord = await User.find({
+    role: 'coordinator',
+    organizations: { $in: ['BK'] },
+  });
 
   const cohorts = [
+    // Andela
     {
       name: 'cohort 1',
-      phase: phases[0]?.id,
-      coordinator: users[5]?.id,
-      program: programs[0].id,
+      phase: phases[0]._id.toHexString(),
+      coordinator: andelCoord[0]._id.toHexString(),
+      program: andelaPrograms[0]._id.toHexString(),
       teams: 1,
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[0]?.id,
+      organization: andelaOrg[0]._id.toHexString(),
     },
     {
       name: 'cohort 2',
-      phase: phases[1]?.id,
-      coordinator: users[5]?.id,
-      program: programs[0].id,
+      phase: phases[1]._id.toHexString(),
+      coordinator: andelCoord[1]._id.toHexString(),
+      program: andelaPrograms[0]._id.toHexString(),
       teams: 1,
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[0]?.id,
+      organization: andelaOrg[0]._id.toHexString(),
     },
     {
       name: 'cohort 3',
-      phase: phases[2]?.id,
-      coordinator: users[6]?.id,
-      program: programs[1].id,
+      phase: phases[2]._id.toHexString(),
+      coordinator: andelCoord[2]._id.toHexString(),
+      program: andelaPrograms[1]._id.toHexString(),
       teams: 1,
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[1]?.id,
+      organization: andelaOrg[0]._id.toHexString(),
     },
     {
       name: 'cohort 4',
-      phase: phases[2]?.id,
-      coordinator: users[6]?.id,
-      program: programs[1].id,
+      phase: phases[2]._id.toHexString(),
+      coordinator: andelCoord[3]._id.toHexString(),
+      program: andelaPrograms[2]._id.toHexString(),
       teams: 2,
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[1]?.id,
-    },
-    {
-      name: 'cohort 4',
-      phase: phases[2]?.id,
-      coordinator: users[5]?.id,
-      program: programs[2].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[0]?.id,
+      organization: andelaOrg[0]._id.toHexString(),
     },
     {
       name: 'cohort 5',
-      phase: phases[3]?.id,
-      coordinator: users[6]?.id,
-      program: programs[2].id,
+      phase: phases[3]._id.toHexString(),
+      coordinator: andelCoord[4]._id.toHexString(),
+      program: andelaPrograms[0]._id.toHexString(),
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[1]?.id,
+      organization: andelaOrg[0]._id.toHexString(),
     },
+
+    // Irembo
     {
-      name: 'cohort 6',
-      phase: phases[1]?.id,
-      coordinator: users[6]?.id,
-      program: programs[2].id,
+      name: 'cohort 1',
+      phase: phases[1]._id.toHexString(),
+      coordinator: iremboCoord[0]._id.toHexString(),
+      program: iremboProgams[0]._id.toHexString(),
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[2]?.id,
+      organization: iremboOrg[0]._id.toHexString(),
     },
     {
-      name: 'cohort 19',
-      phase: phases[2]?.id,
-      coordinator: users[5]?.id,
-      program: programs[2].id,
+      name: 'cohort 2',
+      phase: phases[2]._id.toHexString(),
+      coordinator: iremboCoord[1]._id.toHexString(),
+      program: iremboProgams[1]._id.toHexString(),
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[2]?.id,
+      organization: iremboOrg[0]._id.toHexString(),
     },
     {
-      name: 'cohort eleven',
-      phase: phases[2]?.id,
-      coordinator: users[5]?.id,
-      program: programs[1].id,
+      name: 'cohort 3',
+      phase: phases[2]._id.toHexString(),
+      coordinator: iremboCoord[2]._id.toHexString(),
+      program: iremboProgams[0]._id.toHexString(),
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[2]?.id,
+      organization: iremboOrg[0]._id.toHexString(),
     },
+
+    // KLAB
     {
-      name: 'cohort 20',
-      phase: phases[3]?.id,
-      coordinator: users[6]?.id,
-      program: programs[1].id,
+      name: 'cohort 1',
+      phase: phases[1]._id.toHexString(),
+      coordinator: KLabCoord[0]._id.toHexString(),
+      program: klabProgams[0],
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[3]?.id,
+      organization: KlabOrg[0]._id.toHexString(),
     },
     {
-      name: 'cohort 21',
-      phase: phases[0]?.id,
-      coordinator: users[6]?.id,
-      program: programs[2].id,
+      name: 'cohort 2',
+      phase: phases[1]._id.toHexString(),
+      coordinator: KLabCoord[1]._id.toHexString(),
+      program: klabProgams[1],
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[3]?.id,
+      organization: KlabOrg[0]._id.toHexString(),
     },
     {
-      name: 'cohort fourteen',
-      phase: phases[1]?.id,
-      coordinator: users[6]?.id,
-      program: programs[1].id,
+      name: 'cohort 3',
+      phase: phases[1]._id.toHexString(),
+      coordinator: KLabCoord[2]._id.toHexString(),
+      program: klabProgams[0],
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[3]?.id,
+      organization: KlabOrg[0]._id.toHexString(),
     },
+
+    // BK
     {
-      name: 'cohort fifteen',
-      phase: phases[1]?.id,
-      coordinator: users[6]?.id,
-      program: programs[2].id,
+      name: 'cohort 1',
+      phase: phases[2]._id.toHexString(),
+      coordinator: BkCoord[0]._id.toHexString(),
+      program: bkProgams[0]._id.toHexString(),
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[4]?.id,
+      organization: BkOrg[0]._id.toHexString(),
     },
     {
-      name: 'cohort 19',
-      phase: phases[1]?.id,
-      coordinator: users[5]?.id,
-      program: programs[2].id,
+      name: 'cohort 2',
+      phase: phases[0]._id.toHexString(),
+      coordinator: BkCoord[1]._id.toHexString(),
+      program: bkProgams[1]._id.toHexString(),
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[4]?.id,
+      organization: BkOrg[0]._id.toHexString(),
     },
     {
-      name: 'cohort 20',
-      phase: phases[2]?.id,
-      coordinator: users[6]?.id,
-      program: programs[2].id,
+      name: '3',
+      phase: phases[1]._id.toHexString(),
+      coordinator: BkCoord[2]._id.toHexString(),
+      program: bkProgams[0]._id.toHexString(),
       active: true,
       startDate: new Date(),
       endDate: new Date(),
-      organization: organizations[4]?.id,
-    },
-    {
-      name: 'cohort 21',
-      phase: phases[0]?.id,
-      coordinator: users[5]?.id,
-      program: programs[2].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[5]?.id,
-    },
-    {
-      name: 'MTN cohort 1',
-      phase: phases[1]?.id,
-      coordinator: coordinator3,
-      program: programs[2].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[5]?.id,
-    },
-    {
-      name: 'MTN cohort 2',
-      phase: phases[1]?.id,
-      coordinator: coordinator3,
-      program: programs[2].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[5]?.id,
-    },
-    {
-      name: 'ORG3 cohort 1',
-      phase: phases[1]?.id,
-      coordinator: coordinator4,
-      program: programs[3].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[6]?.id,
-    },
-    {
-      name: 'Program 1 cohort 1',
-      phase: phases[0]?.id,
-      coordinator: coordinatorIrembo,
-      program: programs[4].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[6]?.id,
-    },
-    {
-      name: 'Program 1 cohort 2',
-      phase: phases[1]?.id,
-      coordinator: coordinator2Irembo,
-      program: programs[4].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[6]?.id,
-    },
-    {
-      name: 'Program 2 cohort 1',
-      phase: phases[1]?.id,
-      coordinator: coordinator3Irembo,
-      program: programs[5].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[6]?.id,
-    },
-    {
-      name: 'Program 2 cohort 2',
-      phase: phases[1]?.id,
-      coordinator: coordinator4Irembo,
-      program: programs[5].id,
-      active: true,
-      startDate: new Date(),
-      endDate: new Date(),
-      organization: organizations[2]?.id,
+      organization: BkOrg[0]._id.toHexString(),
     },
   ];
 

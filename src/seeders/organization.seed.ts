@@ -2,57 +2,48 @@
 import { Organization, User } from '../models/user';
 
 const seedOrganizations = async () => {
-  const admin = await User.find({ role: 'admin' });
+  const andelaAdmins = await User.find({
+    role: 'admin',
+    organizations: { $in: ['Andela'] },
+  });
+
+  const IremboAdmins = await User.find({
+    role: 'admin',
+    organizations: { $in: ['Irembo'] },
+  });
+
+  const kLabAdmins = await User.find({
+    role: 'admin',
+    organizations: { $in: ['KLab'] },
+  });
+
+  const BkAdmins = await User.find({
+    role: 'admin',
+    organizations: { $in: ['BK'] },
+  });
 
   const organizations = [
     {
       name: 'Andela',
       description:
         'Master the professional and technical skills needed to accelerate your career and use technology to change the world.',
-      admin: [admin[0]._id],
-    },
-    {
-      name: 'organization 2',
-      description: 'Organization 2 description',
-      admin: [admin[1]._id],
-    },
-    {
-      name: 'Organization 3',
-      description: 'Organization 3 description for testing',
-      admin: admin[2]._id,
-    },
-
-    {
-      name: 'Brainly',
-      description: 'Brainly description for testing',
-      admin: admin[3]._id,
-    },
-
-
-    {
-      name: 'Kigalihub',
-      description: 'this organization is kigali hub organization',
-      admin: admin[2]._id,
-    },
-      {
-      name: 'MTN',
-      description: 'testing MTN',
-      admin: admin[2]._id,
-    },
-    {
-      name: 'organization 3',
-      description: 'Organization 3 description',
-      admin: admin[3]._id,
+      admin: [...andelaAdmins.map((admin) => admin._id.toHexString())],
     },
     {
       name: 'Irembo',
-      description: 'Irembo description',
-      admin: admin[3]._id,
+      description: 'Organization 2 description',
+      admin: [...IremboAdmins.map((admin) => admin._id.toHexString())],
     },
     {
-    name: 'Kist',
-    description: 'Kist Organization description',
-    admin: admin[4]._id,
+      name: 'KLab',
+      description: 'Organization 3 description for testing',
+      admin: [...kLabAdmins.map((admin) => admin._id.toHexString())],
+    },
+
+    {
+      name: 'BK',
+      description: 'Brainly description for testing',
+      admin: [...BkAdmins.map((admin) => admin._id.toHexString())],
     },
   ];
 
