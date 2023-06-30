@@ -182,6 +182,7 @@ const Schema = gql`
   type Query {
     getAllUsers(orgToken: String): [User]
     getUsers(orgToken: String): [User]
+    getAllCoordinators: [User]
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole
@@ -216,7 +217,10 @@ const Schema = gql`
     loginUser(loginInput: LoginInput): Login!
     loginOrg(orgInput: OrgInput): OrgLogin!
     requestOrganization(organizationInput: OrganizationInput!): String!
-    addOrganization(organizationInput: OrganizationInput): Organization!
+    addOrganization(
+      organizationInput: OrganizationInput
+      action: String
+      ): Organization!
     updateProfile(
       lastName: String
       firstName: String

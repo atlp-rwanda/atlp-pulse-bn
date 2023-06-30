@@ -16,6 +16,10 @@ import { EmailPattern } from '../utils/validation.utils';
 import { Context } from './../context';
 import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate';
 import { error } from 'console';
+import bcrypt from 'bcryptjs';
+import Team from '../models/team.model';
+import Phase from '../models/phase.model';
+
 
 const SECRET: string = process.env.SECRET || 'test_secret';
 export type OrganizationType = InstanceType<typeof Organization>;
@@ -427,15 +431,14 @@ const resolvers: any = {
         .then(() => 'Organisation registration request sent successfully')
         .catch((error) => error);
     },
-
     async addOrganization(
       _: any,
-      { organizationInput: { name, email, description } }: any,
+      { organizationInput: { name, email, description },action:action}: any,
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
       (await checkUserLoggedIn(context))(['superAdmin']);
-
+     if(action=='new'){
       const orgExists = await Organization.findOne({ name: name });
       if (orgExists) {
         throw new ApolloError(
@@ -443,13 +446,14 @@ const resolvers: any = {
           'UserInputError'
         );
       }
+      }
 
+  
       // check if the requester is already an admin, if not create him
       const admin = await User.findOne({ email, role: 'admin' });
-      let password: any = undefined;
+      let password: any = generateRandomPassword();
       let newAdmin: any = undefined;
       if (!admin) {
-        password = generateRandomPassword();
         newAdmin = await User.create({
           email,
           password,
@@ -457,12 +461,22 @@ const resolvers: any = {
         });
       }
 
+      let org: any = await Organization.findOne({ admin: admin?._id });
+     
+     if(action=='new'){
       // create the organization
-      const org = await Organization.create({
+       org = await Organization.create({
         admin: admin ? admin._id : newAdmin?._id,
         name,
         description,
       });
+    }
+     if(action!=='new'){
+      const hash = await bcrypt.hash(password, 10)
+      await User.updateOne({email:email},{$set:{password:hash}});
+     }
+
+
 
       // send the requester an email with his password
       const content = organizationCreatedTemplate(org.name, email, password);
@@ -481,15 +495,25 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      const { userId } = (await checkUserLoggedIn(context))(['admin']);
+      const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
 
-      const organizationExists = await Organization.findOne({ id });
+      const organizationExists = await Organization.findOne({ _id: id });
+
       if (!organizationExists)
         throw new Error("This Organization doesn't exist");
+      await Cohort.deleteMany({organization:id});
+       await Team.deleteMany({organization:id});
+      await Phase.deleteMany({organization:id});
+      await User.deleteMany({organizations:organizationExists.name,role:{ $ne: 'superAdmin' }});
+      await User.deleteOne({_id:organizationExists.admin[0]})
       const deleteOrg = await Organization.findOneAndDelete({
-        admin: userId,
         _id: id,
       });
+
+      if (!deleteOrg)
+        throw new Error(
+          "Not deleted, something went wrong, please try again later"
+        );
       return deleteOrg;
     },
     async forgotPassword(_: any, { email }: any, context: any) {

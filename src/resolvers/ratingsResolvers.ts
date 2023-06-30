@@ -325,9 +325,9 @@ const ratingResolvers: any = {
                 oldData[0]?.quantityRemark == quantityRemark[0].toString()
                   ? oldData[0]?.quantityRemark
                   : [
-                      oldData[0]?.quantityRemark + '->',
-                      quantityRemark?.toString(),
-                    ],
+                    oldData[0]?.quantityRemark + '->',
+                    quantityRemark?.toString(),
+                  ],
               quality:
                 oldData[0]?.quality == quality[0].toString()
                   ? oldData[0]?.quality
@@ -336,25 +336,25 @@ const ratingResolvers: any = {
                 oldData[0]?.qualityRemark == qualityRemark[0].toString()
                   ? oldData[0]?.qualityRemark
                   : [
-                      oldData[0]?.qualityRemark + '->',
-                      qualityRemark?.toString(),
-                    ],
+                    oldData[0]?.qualityRemark + '->',
+                    qualityRemark?.toString(),
+                  ],
               professional_Skills:
                 oldData[0]?.professional_Skills ==
                 professional_Skills[0].toString()
                   ? oldData[0]?.professional_Skills
                   : [
-                      oldData[0]?.professional_Skills + '->',
-                      professional_Skills?.toString(),
-                    ],
+                    oldData[0]?.professional_Skills + '->',
+                    professional_Skills?.toString(),
+                  ],
               professionalRemark:
                 oldData[0]?.professionalRemark ==
                 professionalRemark[0].toString()
                   ? oldData[0]?.professionalRemark
                   : [
-                      oldData[0]?.professionalRemark + '->',
-                      professionalRemark?.toString(),
-                    ],
+                    oldData[0]?.professionalRemark + '->',
+                    professionalRemark?.toString(),
+                  ],
               coordinator: context.userId,
               cohort: oldData[0]?.cohort,
               average: oldData[0].average,

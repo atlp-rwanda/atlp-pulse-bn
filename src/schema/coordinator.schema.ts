@@ -6,12 +6,13 @@ const Schema = gql`
     getCohorts(orgToken: String): [Cohort]
     getTrainees(orgToken: String): [User]
     getCohortTrainees(orgToken: String, cohort: String): [User]
+    getAllCoordinators: [User]
   }
-
   type Message {
     message: String
   }
   type Mutation {
+
     addMemberToTeam(
       teamName: String!
       email: String!
@@ -31,7 +32,7 @@ const Schema = gql`
       orgToken: String!
     ): String
 
-    inviteUser(email: String!, orgToken: String!): String!
+    inviteUser(email: String!, orgToken: String!,type:String!): String!
   }
 `;
 export default Schema;
