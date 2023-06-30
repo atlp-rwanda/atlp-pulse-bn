@@ -1,71 +1,60 @@
-/* eslint-disable semi */
-/* eslint-disable indent */
-/* eslint-disable prefer-const */
-import { ApolloError } from 'apollo-server';
-import Cohort from '../models/cohort.model';
-import * as jwt from 'jsonwebtoken';
-import { Organization, User } from '../models/user';
-import { checkUserLoggedIn } from '../helpers/user.helpers';
-import { checkLoggedInOrganization } from '../helpers/organization.helper';
-import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate';
-import inviteUserTemplate from '../utils/templates/inviteUserTemplate';
-import { sendEmail } from '../utils/sendEmail';
-import { Context } from './../context';
-import Program from '../models/program.model';
-import Team from '../models/team.model';
+import { ApolloError } from 'apollo-server'
+import Cohort from '../models/cohort.model'
+import * as jwt from 'jsonwebtoken'
+import { Organization, User } from '../models/user'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
+import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
+import { sendEmail } from '../utils/sendEmail'
+import { Context } from './../context'
+import Program from '../models/program.model'
+import Team from '../models/team.model'
 
-const SECRET: string = process.env.SECRET || 'test_secret';
+const SECRET: string = process.env.SECRET || 'test_secret'
 
 const manageStudentResolvers = {
   Query: {
     getAllCoordinators: async (_: any, __: any, context: Context) => {
       try {
         // coordinator validation
-        const { userId, role } = (await checkUserLoggedIn(context))([
-          'admin',
-          'manager',
-          'coordinator',
-        ]);
+        ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
 
         // Fetch coordinators based on the role
         const coordinators = await User.find({
           role: 'coordinator',
-        });
+        })
 
-        return coordinators || [];
+        return coordinators || []
       } catch (error) {
-        const { message } = error as { message: any };
+        const { message } = error as { message: any }
         throw new ApolloError(
           'An error occurred while fetching coordinators.',
           'INTERNAL_SERVER_ERROR',
           {
             detailedMessage: message.toString(),
           }
-        );
+        )
       }
     },
 
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // coordinator validation
-        const { userId, role } = (await checkUserLoggedIn(context))([
-          'admin',
-          'manager',
-          'coordinator',
-        ]);
+        ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
 
         // get the organization if someone  logs in
-        let org: InstanceType<typeof Organization>;
-        org = await checkLoggedInOrganization(orgToken);
+        const org: InstanceType<typeof Organization> =
+          await checkLoggedInOrganization(orgToken)
 
         return (
           await User.find({ role: 'user', organizations: org?.name })
         ).filter((user: any) => {
-          return user.cohort == null || user.cohort == undefined;
-        });
+          return user.cohort == null || user.cohort == undefined
+        })
       } catch (error) {
-        const { message } = error as { message: any };
-        throw new ApolloError(message.toString(), '500');
+        const { message } = error as { message: any }
+        throw new ApolloError(message.toString(), '500')
       }
     },
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
@@ -75,11 +64,11 @@ const manageStudentResolvers = {
           'admin',
           'manager',
           'coordinator',
-        ]);
+        ])
 
         // get the organization if someone  logs in
-        let org: InstanceType<typeof Organization>;
-        org = await checkLoggedInOrganization(orgToken);
+        const org: InstanceType<typeof Organization> =
+          await checkLoggedInOrganization(orgToken)
 
         return (
           await User.find({ role: 'trainee' }).populate({
@@ -103,7 +92,7 @@ const manageStudentResolvers = {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
               user.team?.cohort?.program?.organization.admin.includes(userId)
-            );
+            )
           }
           if (role === 'manager') {
             return (
@@ -112,7 +101,7 @@ const manageStudentResolvers = {
                 /['"]+/g,
                 ''
               ) == userId
-            );
+            )
           }
           if (role === 'coordinator') {
             return (
@@ -121,12 +110,12 @@ const manageStudentResolvers = {
                 /['"]+/g,
                 ''
               ) == userId
-            );
+            )
           }
-        });
+        })
       } catch (error) {
-        const { message } = error as { message: any };
-        throw new ApolloError(message.toString(), '500');
+        const { message } = error as { message: any }
+        throw new ApolloError(message.toString(), '500')
       }
     },
     getCohortTrainees: async (
@@ -140,11 +129,11 @@ const manageStudentResolvers = {
           'admin',
           'manager',
           'coordinator',
-        ]);
+        ])
 
         // get the organization if someone  logs in
-        let org: InstanceType<typeof Organization>;
-        org = await checkLoggedInOrganization(orgToken);
+        const org: InstanceType<typeof Organization> =
+          await checkLoggedInOrganization(orgToken)
 
         return (
           await User.find({ role: 'trainee' }).populate({
@@ -174,7 +163,7 @@ const manageStudentResolvers = {
               user.team?.cohort?.name == cohort &&
               user.team?.cohort?.program?.organization.name == org?.name &&
               user.team?.cohort?.program?.organization.admin.includes(userId)
-            );
+            )
           }
           if (role === 'manager') {
             return (
@@ -184,7 +173,7 @@ const manageStudentResolvers = {
                 /['"]+/g,
                 ''
               ) == userId
-            );
+            )
           }
           if (role === 'coordinator') {
             return (
@@ -194,12 +183,12 @@ const manageStudentResolvers = {
                 /['"]+/g,
                 ''
               ) == userId
-            );
+            )
           }
-        });
+        })
       } catch (error) {
-        const { message } = error as { message: any };
-        throw new ApolloError(message.toString(), '500');
+        const { message } = error as { message: any }
+        throw new ApolloError(message.toString(), '500')
       }
     },
 
@@ -209,11 +198,11 @@ const manageStudentResolvers = {
         'admin',
         'manager',
         'coordinator',
-      ]);
+      ])
 
       // get the organization if someone  logs in
-      let org: InstanceType<typeof Organization>;
-      org = await checkLoggedInOrganization(orgToken);
+      const org: InstanceType<typeof Organization> =
+        await checkLoggedInOrganization(orgToken)
 
       if (role === 'coordinator') {
         const allCohorts = await Cohort.find({
@@ -226,13 +215,13 @@ const manageStudentResolvers = {
             path: 'organization',
             strictPopulate: false,
           },
-        });
+        })
         return allCohorts.filter((cohort: any) => {
           return (
             cohort.program?.organization.name == org?.name &&
             JSON.stringify(cohort.coordinator).replace(/['"]+/g, '') == userId
-          );
-        });
+          )
+        })
       }
 
       const allCohorts = await Cohort.find({}).populate({
@@ -243,28 +232,28 @@ const manageStudentResolvers = {
           path: 'organization',
           strictPopulate: false,
         },
-      });
+      })
       return allCohorts.filter((cohort: any) => {
         if (role === 'admin') {
           return (
             cohort.program?.organization.name == org?.name &&
             cohort.program?.organization?.admin.includes(userId)
-          );
+          )
         }
         if (role === 'manager') {
           return (
             cohort.program?.organization.name == org?.name &&
             JSON.stringify(cohort.program?.manager).replace(/['"]+/g, '') ==
               userId
-          );
+          )
         }
         if (role === 'coordinator') {
           return (
             cohort.program?.organization.name == org?.name &&
             JSON.stringify(cohort.coordinator).replace(/['"]+/g, '') == userId
-          );
+          )
         }
-      });
+      })
     },
   },
   Mutation: {
@@ -278,11 +267,11 @@ const manageStudentResolvers = {
         'admin',
         'manager',
         'coordinator',
-      ]);
+      ])
 
       // get the organization if someone  logs in
-      let org: InstanceType<typeof Organization>;
-      org = await checkLoggedInOrganization(orgToken);
+      const org: InstanceType<typeof Organization> =
+        await checkLoggedInOrganization(orgToken)
 
       const team: any = await Team.findOne({
         organization: org?.id,
@@ -301,7 +290,7 @@ const manageStudentResolvers = {
             strictPopulate: false,
           },
         },
-      });
+      })
 
       const user: any = await User.findOne({ email }).populate({
         path: 'team',
@@ -322,15 +311,15 @@ const manageStudentResolvers = {
             },
           },
         },
-      });
+      })
 
       if (team && user) {
         if (team.cohort.program.organization.name !== org?.name) {
           throw new Error(
-            " You logged into an organization that doesn't have such a team"
-          );
+            'You logged into an organization that doesn\'t have such a team'
+          )
         }
-        const programId = team.cohort.program.id;
+        const programId = team.cohort.program.id
 
         const checkTeam = await Team.find({}).populate({
           path: 'cohort',
@@ -346,46 +335,45 @@ const manageStudentResolvers = {
               strictPopulate: false,
             },
           },
-        });
+        })
         const results: any[] = checkTeam.filter((team: any) => {
           return (
             team.cohort.program?.id === programId &&
             team.cohort.program?.organization?.name === org?.name
-          );
-        });
+          )
+        })
 
         const checkTeamMember = results.reduce((prev: any, next: any) => {
           const members = next.members?.filter((member: any) => {
-            return member.toString() === user.id.toString();
-          });
+            return member.toString() === user.id.toString()
+          })
           if (members.length > 0) {
-            next.members = members;
-            prev.push(next);
+            next.members = members
+            prev.push(next)
           }
-          return prev;
-        }, []);
+          return prev
+        }, [])
 
         if (checkTeamMember.length > 0) {
           throw new Error(
             `This member is already added to '${checkTeamMember[0].name}' cohort`
-          );
+          )
         }
         if (!user.team) {
           if (user.team === undefined) {
             if (role === 'admin') {
               const organization: any = await Organization.findOne({
                 _id: org.id,
-              });
+              })
               if (!organization) {
-                throw new Error("You don't have an organization yet");
+                throw new Error('You don\'t have an organization yet')
               }
               if (
                 organization.admin.includes(userId) &&
                 organization.name == org.name
               ) {
-                const content = getOrganizationTemplate(org.name);
-                const link: any =
-                  'https://metron-devpulse.vercel.app/login/org';
+                const content = getOrganizationTemplate(org?.name || '')
+                const link: any = 'https://metron-devpulse.vercel.app/login/org'
                 await sendEmail(
                   user.email,
                   'Organization membership notice',
@@ -393,20 +381,20 @@ const manageStudentResolvers = {
                   link,
                   process.env.ADMIN_EMAIL,
                   process.env.ADMIN_PASS
-                );
+                )
               } else {
-                throw new Error('You logged into a different organization');
+                throw new Error('You logged into a different organization')
               }
             }
             if (role === 'manager') {
-              const program: any = await Program.findOne({ manager: userId });
+              const program: any = await Program.findOne({ manager: userId })
               if (!program) {
-                throw new Error("You dont't have a program yet");
+                throw new Error('You dont\'t have a program yet')
               }
               if (program.organization._id.toString() == org?.id.toString()) {
-                const content = getOrganizationTemplate(org.name);
+                const content = getOrganizationTemplate(org?.name || '')
                 const link: any =
-                  'https://metron-devpulse.vercel.app//login/org';
+                  'https://metron-devpulse.vercel.app//login/org'
                 await sendEmail(
                   user.email,
                   'Organization membership notice',
@@ -414,22 +402,22 @@ const manageStudentResolvers = {
                   link,
                   process.env.MANAGER_EMAIL,
                   process.env.MANAGER_PASSWORD
-                );
+                )
               } else {
-                throw new Error('You logged into a different organization');
+                throw new Error('You logged into a different organization')
               }
             }
             if (role === 'coordinator') {
-              const cohort: any = await Cohort.findOne({ coordinator: userId });
+              const cohort: any = await Cohort.findOne({ coordinator: userId })
               if (!cohort) {
-                throw new Error("You dont't have a coordinator yet");
+                throw new Error('You dont\'t have a coordinator yet')
               }
               const program: any = await Program.findOne({
                 _id: cohort.program,
-              });
+              })
               if (program.organization._id.toString() == org?.id.toString()) {
-                const content = getOrganizationTemplate(org.name);
-                const link: any = 'https://devpulse.co/login/org';
+                const content = getOrganizationTemplate(org?.name || '')
+                const link: any = 'https://devpulse.co/login/org'
                 await sendEmail(
                   user.email,
                   'Organization membership notice',
@@ -437,21 +425,21 @@ const manageStudentResolvers = {
                   link,
                   process.env.COORDINATOR_EMAIL,
                   process.env.COORDINATOR_PASS
-                );
+                )
               } else {
-                throw new Error('You logged into a different organization');
+                throw new Error('You logged into a different organization')
               }
             }
           }
 
-          user.team = team.id;
-          user.cohort = team.cohort.id;
-          user.role = 'trainee';
-          await user.save();
-          await team.members.push(user.id);
-          await team.save();
+          user.team = team.id
+          user.cohort = team.cohort.id
+          user.role = 'trainee'
+          await user.save()
+          await team.members.push(user.id)
+          await team.save()
 
-          return `member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`;
+          return `member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`
         }
         if (user.cohort) {
           if (
@@ -460,7 +448,7 @@ const manageStudentResolvers = {
           ) {
             throw new Error(
               ` This user is already part of another team '${user.team.cohort.name}' in program '${team.cohort.program.name}'`
-            );
+            )
           }
           if (
             user.cohort.program.id.toString() === programId.toString() &&
@@ -468,7 +456,7 @@ const manageStudentResolvers = {
           ) {
             throw new Error(
               ` This user is already part of another organization '${user.cohort.program.organization.name}'`
-            );
+            )
           }
           if (
             user.cohort.program.id.toString() !== programId.toString() &&
@@ -476,13 +464,13 @@ const manageStudentResolvers = {
           ) {
             throw new Error(
               ` This user is already part of another program in a different organization '${user.cohort.program.organization.name}'`
-            );
+            )
           }
         }
       } else {
         throw new Error(
           'The cohort or email you provided are not in existance '
-        );
+        )
       }
     },
     async removeMemberFromCohort(
@@ -491,15 +479,15 @@ const manageStudentResolvers = {
       context: any
     ) {
       // coordinator validation
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId } = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
         'coordinator',
-      ]);
+      ])
 
       // get the organization if someone  logs in
-      let org: InstanceType<typeof Organization>;
-      org = await checkLoggedInOrganization(orgToken);
+      const org: InstanceType<typeof Organization> =
+        await checkLoggedInOrganization(orgToken)
 
       const checkMember: any = await User.findOne({ email }).populate({
         path: 'team',
@@ -521,10 +509,10 @@ const manageStudentResolvers = {
             },
           },
         },
-      });
+      })
 
       if (!checkMember) {
-        throw new Error('This member does not exist ');
+        throw new Error('This member does not exist ')
       }
       if (
         (checkMember.team.cohort?.program?.organization?.admin.includes(
@@ -542,24 +530,24 @@ const manageStudentResolvers = {
           checkMember.team?.name == teamName)
       ) {
         const memberCheck = checkMember.team?.members.filter((member: any) => {
-          return member.toString() == checkMember.id.toString();
-        });
+          return member.toString() == checkMember.id.toString()
+        })
 
         if (memberCheck[0].toString() == checkMember.id.toString()) {
-          (checkMember.team.members = checkMember.team?.members.filter(
+          checkMember.team.members = checkMember.team?.members.filter(
             (member: any) => {
-              return member.toString() !== checkMember.id.toString();
+              return member.toString() !== checkMember.id.toString()
             }
-          )),
-            await checkMember.team.save();
-          checkMember.role = 'user';
-          checkMember.coordinator = null;
-          checkMember.cohort = null;
-          checkMember.team = null;
-          await checkMember.save();
-          return `member with email ${email} is successfully removed from cohort`;
+          )
+          await checkMember.team.save()
+          checkMember.role = 'user'
+          checkMember.coordinator = null
+          checkMember.cohort = null
+          checkMember.team = null
+          await checkMember.save()
+          return `member with email ${email} is successfully removed from cohort`
         } else {
-          throw new Error('This member is not in this cohort');
+          throw new Error('This member is not in this cohort')
         }
       }
     },
@@ -570,82 +558,78 @@ const manageStudentResolvers = {
       context: any
     ) {
       // coordinator validation
-      const { userId, role }: any = (await checkUserLoggedIn(context))([
-        'admin',
-        'manager',
-        'coordinator',
-      ]);
+      ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
 
       // get the organization if someone  logs in
-      let org: InstanceType<typeof Organization>;
-      org = await checkLoggedInOrganization(orgToken);
+      const org: InstanceType<typeof Organization> =
+        await checkLoggedInOrganization(orgToken)
 
       if (!org.name) {
-        throw new Error('You are not logged into an organization');
+        throw new Error('You are not logged into an organization')
       }
 
       const teamToChange = await Team.findOne({
         organization: org?.id,
         name: removedFromTeamName,
-      });
+      })
 
       const newTeam = await Team.findOne({
         organization: org?.id,
         name: addedToTeamName,
-      });
+      })
 
       const member = await User.findOne({ email }).populate({
         path: 'team',
         model: Team,
         strictPopulate: false,
-      });
+      })
 
       if (member && teamToChange && newTeam) {
-        member.team = newTeam?.id;
-        member.cohort = newTeam?.cohort;
-        await member.save();
+        member.team = newTeam?.id
+        member.cohort = newTeam?.cohort
+        await member.save()
         teamToChange.members = teamToChange?.members.filter((user: any) => {
-          return user.toString() !== member?.id.toString();
-        });
-        await teamToChange?.save();
-        newTeam?.members.push(member?.id);
-        await newTeam?.save();
-        return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`;
+          return user.toString() !== member?.id.toString()
+        })
+        await teamToChange?.save()
+        newTeam?.members.push(member?.id)
+        await newTeam?.save()
+        return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`
       } else {
-        throw new Error('This member does not exist');
+        throw new Error('This member does not exist')
       }
     },
     async inviteUser(_: any, { email, orgToken, type }: any, context: any) {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
-      ]);
+      ])
 
       // get the organization if someone  logs in
-      let org: InstanceType<typeof Organization>;
-      org = await checkLoggedInOrganization(orgToken);
+      const org: InstanceType<typeof Organization> =
+        await checkLoggedInOrganization(orgToken)
 
-      const user: any = await User.findOne({ _id: userId, role: role });
-      const userExists: any = await User.findOne({ email });
+      const user: any = await User.findOne({ _id: userId, role: role })
+      const userExists: any = await User.findOne({ email })
 
       if (userExists) {
-        throw new Error('This user already exists in DevPulse');
+        throw new Error('This user already exists in DevPulse')
       } else {
         const token: any = jwt.sign({ name: org.name }, SECRET, {
           expiresIn: '2d',
-        });
-        const newToken: any = token.replace(/\./g, '*');
+        })
+        const newToken: any = token.replace(/\./g, '*')
         const link =
           type == 'user'
             ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
-            : `${process.env.REGISTER_ORG_FRONTEND_URL}`;
+            : `${process.env.REGISTER_ORG_FRONTEND_URL}`
         const content = inviteUserTemplate(
-          org.name,
+          org?.name || '',
           user.email,
           user.role,
           link
-        );
-        const someSpace = ' ';
+        )
+        const someSpace = ' '
 
         await sendEmail(
           email,
@@ -658,11 +642,11 @@ const manageStudentResolvers = {
           role === 'manager'
             ? process.env.MANAGER_PASSWORD
             : process.env.ADMIN_PASS
-        );
+        )
       }
-      return 'Invitation sent successfully!';
+      return 'Invitation sent successfully!'
     },
   },
-};
+}
 
-export default manageStudentResolvers;
+export default manageStudentResolvers

@@ -1,5 +1,5 @@
 import { Notifications } from '../models/reply.model';
-import { Rating, TempData } from '../models/ratings';
+import { Rating } from '../models/ratings';
 import { User } from '../models/user';
 import { IntegerType, ObjectId } from 'mongodb';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
@@ -39,12 +39,8 @@ const replyResolver = {
     ) => {
       try {
         const {
-          userEmail,
           rating,
           sprint,
-          quantityRemark,
-          qualityRemark,
-          professionalRemark,
           bodyQuantity,
           bodyQuality,
           bodyProfessional,

@@ -1,13 +1,13 @@
-import bcrypt from 'bcryptjs';
-import mongoose, { model, Schema } from 'mongoose';
-import { systemRating } from './ratingSystem';
+import bcrypt from 'bcryptjs'
+import mongoose, { model, Schema } from 'mongoose'
+
 mongoose.set('toJSON', {
   virtuals: true,
   versionKey: false,
   transform: function (doc, ret) {
-    delete ret._id;
+    delete ret._id
   },
-});
+})
 
 const userSchema = new Schema({
   email: {
@@ -37,25 +37,25 @@ const userSchema = new Schema({
     type: [String],
     required: true,
   },
-});
+})
 
 userSchema.methods.checkPass = async function (password: string) {
-  const pass = await bcrypt.compare(password, this.password);
-  return pass;
-};
+  const pass = await bcrypt.compare(password, this.password)
+  return pass
+}
 
 userSchema.pre('remove', async function (next) {
-  const prof = await Profile.findOne({ user: this._id });
-  if (prof) await prof.remove();
-  return next();
-});
+  const prof = await Profile.findOne({ user: this._id })
+  if (prof) await prof.remove()
+  return next()
+})
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  const hash = await bcrypt.hash(this.password, 10);
-  this.password = hash;
-  return next();
-});
+  if (!this.isModified('password')) return next()
+  const hash = await bcrypt.hash(this.password || '', 10)
+  this.password = hash
+  return next()
+})
 
 const profileSchema = new Schema({
   firstName: {
@@ -100,11 +100,11 @@ const profileSchema = new Schema({
   githubUsername: {
     type: String,
   },
-});
+})
 
 profileSchema.virtual('name').get(function () {
-  return this.firstName + ' ' + this.lastName;
-});
+  return this.firstName + ' ' + this.lastName
+})
 
 const UserRole = mongoose.model(
   'UserRole',
@@ -116,7 +116,7 @@ const UserRole = mongoose.model(
       unique: true,
     },
   })
-);
+)
 
 const organizationSchema = new Schema({
   name: {
@@ -140,13 +140,13 @@ const organizationSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['active','pending','rejected'],
+    enum: ['active', 'pending', 'rejected'],
     default: 'active',
   },
-});
+})
 
-const User = model('User', userSchema);
-const Profile = mongoose.model('Profile', profileSchema);
-const Organization = model('Organization', organizationSchema);
+const User = model('User', userSchema)
+const Profile = mongoose.model('Profile', profileSchema)
+const Organization = model('Organization', organizationSchema)
 
-export { User, Profile, UserRole, Organization };
+export { User, Profile, UserRole, Organization }

@@ -1,5 +1,5 @@
-import mongoose, { Schema } from 'mongoose';
-import { User } from './user';
+import mongoose, { Schema } from 'mongoose'
+import { User } from './user'
 
 const teamSchema = new Schema(
   {
@@ -32,25 +32,25 @@ const teamSchema = new Schema(
       async disactivate(teamId: any) {
         const team = await this.findByIdAndUpdate(teamId, {
           active: false,
-        });
-        await User.updateMany({ team: team?.id }, { team: null });
+        })
+        await User.updateMany({ team: team?.id }, { team: null })
 
-        return team;
+        return team
       },
     },
   }
-);
+)
 
 function findActive(this: any, next: any) {
-  this.where({ active: true });
-  next();
+  this.where({ active: true })
+  next()
 }
-teamSchema.pre('find', findActive);
-teamSchema.pre('findOne', findActive);
-teamSchema.pre('findOneAndDelete', findActive);
-teamSchema.pre('findOneAndReplace', findActive);
-teamSchema.pre('findOneAndRemove', findActive);
-teamSchema.pre('findOneAndUpdate', findActive);
+teamSchema.pre('find', findActive)
+teamSchema.pre('findOne', findActive)
+teamSchema.pre('findOneAndDelete', findActive)
+teamSchema.pre('findOneAndReplace', findActive)
+teamSchema.pre('findOneAndRemove', findActive)
+teamSchema.pre('findOneAndUpdate', findActive)
 
-const Team = mongoose.model('Team', teamSchema);
-export default Team;
+const Team = mongoose.model('Team', teamSchema)
+export default Team

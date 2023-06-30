@@ -1,6 +1,6 @@
 import Cohort from '../models/cohort.model';
 import Team from '../models/team.model';
-import { Organization, User } from '../models/user';
+import { Organization } from '../models/user';
 
 const seedTeams = async () => {
   const cohort = await Cohort.find();
