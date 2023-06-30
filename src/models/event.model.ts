@@ -31,6 +31,27 @@ const Event = mongoose.model(
       type: String,
       required: true,
     },
+    guests: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    invitationStatus: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending',
+    },
+    invitationReason: {
+      type: String,
+      default: '',
+    },
+    acceptedUsers: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   })
 );
 export { Event };

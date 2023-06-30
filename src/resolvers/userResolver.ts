@@ -141,6 +141,7 @@ const resolvers: any = {
             const pullRequests = response.data.filter(
               (pullRequest: any) => pullRequest.user.login === username
             )
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             pullRequestTotal += pullRequests.length
             pullRequestOpen += pullRequests.filter(
               (pullRequest: any) => pullRequest.state === 'open'
