@@ -27,26 +27,26 @@ const manageStudentResolvers = {
           'coordinator',
         ]);
 
-        // Fetch coordinators based on the role 
+        // Fetch coordinators based on the role
         const coordinators = await User.find({
-          role: 'coordinator'
+          role: 'coordinator',
         });
 
         return coordinators || [];
       } catch (error) {
         const { message } = error as { message: any };
-        throw new ApolloError('An error occurred while fetching coordinators.', 'INTERNAL_SERVER_ERROR', {
-          detailedMessage: message.toString(),
-        });
+        throw new ApolloError(
+          'An error occurred while fetching coordinators.',
+          'INTERNAL_SERVER_ERROR',
+          {
+            detailedMessage: message.toString(),
+          }
+        );
       }
     },
 
-
-
-
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
-
         // coordinator validation
         const { userId, role } = (await checkUserLoggedIn(context))([
           'admin',
@@ -268,7 +268,6 @@ const manageStudentResolvers = {
     },
   },
   Mutation: {
-
     async addMemberToTeam(
       _: any,
       { teamName, email, orgToken }: any,
@@ -285,7 +284,10 @@ const manageStudentResolvers = {
       let org: InstanceType<typeof Organization>;
       org = await checkLoggedInOrganization(orgToken);
 
-      const team: any = await Team.findOne({ organization: org?.id,name:teamName }).populate({
+      const team: any = await Team.findOne({
+        organization: org?.id,
+        name: teamName,
+      }).populate({
         path: 'cohort',
         model: Cohort,
         strictPopulate: false,
@@ -578,42 +580,42 @@ const manageStudentResolvers = {
       let org: InstanceType<typeof Organization>;
       org = await checkLoggedInOrganization(orgToken);
 
-      if(!org.name){
+      if (!org.name) {
         throw new Error('You are not logged into an organization');
       }
 
-      const teamToChange= await Team.findOne({
+      const teamToChange = await Team.findOne({
         organization: org?.id,
         name: removedFromTeamName,
       });
 
-      const newTeam= await Team.findOne({
+      const newTeam = await Team.findOne({
         organization: org?.id,
         name: addedToTeamName,
       });
 
-      const member = await User.findOne({email}).populate({
+      const member = await User.findOne({ email }).populate({
         path: 'team',
         model: Team,
         strictPopulate: false,
       });
 
-      if(member && teamToChange && newTeam){
-        member.team= newTeam?.id;
-        member.cohort= newTeam?.cohort;
+      if (member && teamToChange && newTeam) {
+        member.team = newTeam?.id;
+        member.cohort = newTeam?.cohort;
         await member.save();
-        teamToChange.members=teamToChange?.members.filter((user: any) => {
+        teamToChange.members = teamToChange?.members.filter((user: any) => {
           return user.toString() !== member?.id.toString();
         });
         await teamToChange?.save();
         newTeam?.members.push(member?.id);
         await newTeam?.save();
         return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`;
-      }else{
+      } else {
         throw new Error('This member does not exist');
       }
     },
-    async inviteUser(_: any, { email, orgToken,type }: any, context: any) {
+    async inviteUser(_: any, { email, orgToken, type }: any, context: any) {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
@@ -633,7 +635,10 @@ const manageStudentResolvers = {
           expiresIn: '2d',
         });
         const newToken: any = token.replace(/\./g, '*');
-        const link = type=='user' ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`:`${process.env.REGISTER_ORG_FRONTEND_URL}`;
+        const link =
+          type == 'user'
+            ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
+            : `${process.env.REGISTER_ORG_FRONTEND_URL}`;
         const content = inviteUserTemplate(
           org.name,
           user.email,
