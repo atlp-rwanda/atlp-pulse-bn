@@ -589,7 +589,7 @@ const resolvers: any = {
           return 'Organization registration request sent successfully'
         }
       } catch (error) {
-        throw error
+        throw error;
       }
     },
 
