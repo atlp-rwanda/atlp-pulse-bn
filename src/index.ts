@@ -1,9 +1,3 @@
-/*
-Author: chankruze (chankruze@geekofia.in)
-Created: Wed Feb 02 2022 00:13:13 GMT+0530 (India Standard Time)
-
-Copyright (c) geekofia 2022 and beyond
-*/
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { formatError } from './ErrorMsg';
