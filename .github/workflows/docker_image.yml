@@ -1,6 +1,6 @@
 name: Docker Image
 on:
-  push:
+  pull_request:
     branches:
       - develop
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
         - name: Uses Node.js 
           uses: actions/setup-node@v3
           with:
-            node-version: 16.x
+            node-version: 18.x
             cache: 'npm'
             
         - run: npm install
@@ -24,18 +24,20 @@ jobs:
         - name: Build and publish Docker Image
           uses: mr-smithers-excellent/docker-build-push@v5
           with:
-            image: procech20/atlp-pulse
+            image: ${{ secrets.DOCKER_HUB_USERNAME }}/atlp-pulse-bn
+            tags: latest
             registry: docker.io
             username: ${{ secrets.DOCKER_HUB_USERNAME }}
-            password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-    deploy:
-      runs-on: ubuntu-latest
-      concurrency: deployment
-      needs: [build]
-      steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}} 
-          heroku_app_name: ${{secrets.HEROKU_APP_NAME}} #Must be unique in Heroku
-          heroku_email: ${{secrets.HEROKU_EMAIL}}
+            password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          env:
+            MONGO_PROD_DB: ${{ secrets.MONGO_STAGING_DB}}
+        - name: Login to DO
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.DO_HOST }}
+            username: ${{ secrets.DO_USERNAME }}
+            key: ${{ secrets.DO_KEY }}
+            port: ${{ secrets.DO_PORT }}
+            script: |
+              docker pull devpulse/atlp-pulse-bn:latest
+              docker run -p 4000:4000 -d devpulse/atlp-pulse-bn:latest
