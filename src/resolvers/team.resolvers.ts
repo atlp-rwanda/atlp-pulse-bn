@@ -1,18 +1,46 @@
-import { ApolloError, ValidationError } from 'apollo-server'
-import { checkLoggedInOrganization } from '../helpers/organization.helper'
-import { checkUserLoggedIn } from '../helpers/user.helpers'
-import Team from '../models/team.model'
-import Program from '../models/program.model'
-import Cohort from '../models/cohort.model'
-import { Organization, User } from '../models/user'
-import { Context } from '../context'
-import { ProgramType } from './program.resolvers'
-import { OrganizationType } from './userResolver'
+import { ApolloError, ValidationError } from 'apollo-server';
+import { checkLoggedInOrganization } from '../helpers/organization.helper';
+import { checkUserLoggedIn } from '../helpers/user.helpers';
+import Team from '../models/team.model';
+import Program from '../models/program.model';
+import Phase from '../models/phase.model';
+import Cohort from '../models/cohort.model';
+import { Organization, User } from '../models/user';
+import { Context } from '../context';
+import { ProgramType } from './program.resolvers';
+import { OrganizationType } from './userResolver';
+import { Rating } from '../models/ratings';
 
 const resolvers = {
   Team: {
     async cohort(parent: any) {
       return await Cohort.findById(parent.cohort)
+    },
+    async ttl(parent: any) {
+      return await User.findById(parent.ttl);
+    },
+    async members(parent: any) {
+      return await User.find({ _id: { $in: parent.members } });
+    },
+    async avgRatings(parent: any) {
+      const allRatings = await Rating.find({ user: { $in: parent.members } });
+      const averageQuantity =
+        allRatings.reduce((tot, curr) => tot + Number(curr?.quantity ?? 0), 0) /
+        allRatings.length;
+      const averageQuality =
+        allRatings.reduce((tot, curr) => tot + Number(curr?.quality ?? 0), 0) /
+        allRatings.length;
+      const averageAttendance =
+        allRatings.reduce(
+          (tot, curr) => tot + Number(curr?.professional_Skills ?? 0),
+          0
+        ) / allRatings.length;
+
+      return {
+        quantity: averageQuantity.toString(),
+        quality: averageQuality.toString(),
+        professional_Skills: averageAttendance.toString(),
+      };
     },
   },
   Query: {
@@ -36,23 +64,32 @@ const resolvers = {
         const adminMatch = { _id: org?.id, admin: userId }
 
         return (
-          await Team.find({ organization: org }).populate({
-            path: 'cohort',
-            match: role === 'manager' && managerMatch,
-            model: Cohort,
-            strictPopulate: false,
-            populate: {
-              path: 'organization',
-              match: role === 'admin' && adminMatch,
-              model: Organization,
+          (
+            await Team.find({ organization: org }).populate({
+              path: 'cohort',
+              match: role === 'manager' && managerMatch,
+              model: Cohort,
               strictPopulate: false,
-            },
-          })
-        ).filter((item: any) => {
-          const org = (item.program as InstanceType<typeof Program>)
-            ?.organization
-          return item.program !== null && org !== null
-        })
+              populate: {
+                path: 'organization',
+                match: role === 'admin' && adminMatch,
+                model: Organization,
+                strictPopulate: false,
+                populate: {
+                  path: 'members',
+                  model: User,
+                  strictPopulate: false,
+                },
+              },
+            })
+          )
+            // .populate({ path: 'members', model: User, strictPopulate: false })
+            .filter((item: any) => {
+              const org = (item.program as InstanceType<typeof Program>)
+                ?.organization;
+              return item.program !== null && org !== null;
+            })
+        );
       } catch (error) {
         const { message } = error as { message: any }
         throw new ApolloError(message.toString(), '500')
@@ -70,7 +107,7 @@ const resolvers = {
           'admin',
           'coordinator',
           'manager',
-        ])
+        ]);
 
         // get the organization if a superAdmin logs in
         let org
@@ -116,7 +153,8 @@ const resolvers = {
           'admin',
           'manager',
           'coordinator',
-        ])
+          'ttl',
+        ]);
 
         // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
@@ -125,20 +163,22 @@ const resolvers = {
         return (
           await User.find({ role: 'trainee' }).populate({
             path: 'team',
-
             strictPopulate: false,
-            populate: {
-              path: 'cohort',
-              strictPopulate: false,
-              populate: {
-                path: 'program',
+            populate: [
+              {
+                path: 'cohort',
                 strictPopulate: false,
                 populate: {
-                  path: 'organization',
+                  path: 'program',
                   strictPopulate: false,
+                  populate: {
+                    path: 'organization',
+                    strictPopulate: false,
+                  },
                 },
               },
-            },
+              { path: 'team.ttl', strictPopulate: false },
+            ],
           })
         ).filter((user: any) => {
           if (role === 'admin') {
@@ -168,7 +208,17 @@ const resolvers = {
               ) == userId
             )
           }
-        })
+          if (role === 'ttl') {
+            console.log(user);
+
+            return (
+              user.team?.name === team &&
+              // user?.organizations?.includes(org?.name)
+              user.team?.cohort?.program?.organization.name == org?.name &&
+              JSON.stringify(user.team?.ttl).replace(/['"]+/g, '') === userId
+            );
+          }
+        });
       } catch (error) {
         const { message } = error as { message: any }
         throw new ApolloError(message.toString(), '500')
@@ -179,14 +229,16 @@ const resolvers = {
     addTeam: async (
       _: any,
       args: {
-        name: string
-        cohortName: string
-        orgToken: string
+        name: string;
+        cohortName: string;
+        orgToken: string;
+        startingPhase: Date;
+        ttlEmail: string;
       },
       context: Context
     ) => {
       try {
-        const { name, cohortName, orgToken } = args
+        const { name, cohortName, orgToken, startingPhase, ttlEmail } = args;
 
         // some validations
         ;(await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager'])
@@ -204,23 +256,34 @@ const resolvers = {
           )
         }
 
+        const ttlExist = await User.findOne({
+          email: ttlEmail,
+          role: 'ttl',
+        });
+
+        if (!ttlExist) {
+          throw new ValidationError(`TTl with ${ttlEmail} doesn't exist`);
+        }
+
         const org = new Team({
           name,
           cohort: cohort.id,
           organization: organ?.id,
-        })
-        cohort.teams = cohort.teams + 1
-        cohort.save()
+          startingPhase,
+          ttl: ttlExist?.id,
+        });
+        cohort.teams = cohort.teams + 1;
+        cohort.save();
 
-        return org.save()
-      } catch (error) {
-        const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        return org.save();
+      } catch (error: any) {
+        const { message } = error as { message: any };
+        throw new ApolloError(message.toString(), '500');
       }
     },
     deleteTeam: async (parent: any, args: any, context: Context) => {
-      ;(await checkUserLoggedIn(context))(['admin'])
-      const findTeam = await Team.findById(args.id)
+      (await checkUserLoggedIn(context))(['admin', 'manager']);
+      const findTeam = await Team.findById(args.id);
       if (!findTeam)
         throw new Error('The Team you want to delete does not exist')
 

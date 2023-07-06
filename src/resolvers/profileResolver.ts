@@ -30,7 +30,15 @@ const profileResolvers: any = {
       const users = await User.find({
         organizations: org?.name,
         role: {
-          $in: ['user', 'coordinator', 'manager', 'admin', 'trainee', 'user'],
+          $in: [
+            'user',
+            'coordinator',
+            'manager',
+            'admin',
+            'trainee',
+            'user',
+            'ttl',
+          ],
         },
       }).populate({
         path: 'team',

@@ -28,11 +28,21 @@ const Schema = gql`
     createdAt: String!
     read: String!
   }
-
+  type Ratings {
+    quantity: String
+    quality: String
+    professional_Skills: String
+  }
   type Team {
     id: ID!
     name: String
     cohort: Cohort
+    ttl: User
+    avgRatings: Ratings
+    members: [User]
+    startingPhase: DateTime
+    active: Boolean
+    organization: Organization
   }
   type User {
     id: ID!
@@ -150,6 +160,7 @@ const Schema = gql`
     bodyQuantity: String
     quality: String!
     qualityRemark: String
+    attendance: String
     bodyQuality: String
     professional_Skills: String!
     professionalRemark: String
@@ -371,7 +382,7 @@ const Schema = gql`
       confirmPassword: String!
       token: String!
     ): String!
-    addTeam(name: String!, cohortName: String!, orgToken: String!): Team!
+
 
     addActiveRepostoOrganization(name: String!, repoUrl: String!): Organization!
 
@@ -379,6 +390,13 @@ const Schema = gql`
       name: String!
       repoUrl: String!
     ): Organization!
+    addTeam(
+      name: String!
+      cohortName: String!
+      orgToken: String!
+      startingPhase: DateTime!
+      ttlEmail: String!
+    ): Team!
   }
   type ratingSystem {
     id: ID!
