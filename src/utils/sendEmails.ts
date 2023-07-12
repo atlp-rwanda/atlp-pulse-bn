@@ -12,7 +12,7 @@ export const sendEmails = async (
   title: any
 ) => {
   const transport = nodemailer.createTransport({
-    host: 'smtp.gmail.com', 
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {

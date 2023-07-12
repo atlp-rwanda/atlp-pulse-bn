@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer'
 import generateTemplate from '../helpers/emailTemplate.helper'
-
 export const sendEmail = async (
   receiver: any,
   subject: any,
@@ -10,7 +9,7 @@ export const sendEmail = async (
   senderPassword: any
 ): Promise<any> => {
   const transport = nodemailer.createTransport({
-    host: 'smtp.gmail.com', 
+    host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
@@ -18,7 +17,6 @@ export const sendEmail = async (
       pass: senderPassword,
     },
   })
-
   const mailOptions = {
     to: receiver,
     subject: subject,
@@ -32,7 +30,6 @@ export const sendEmail = async (
       address: senderEmail as string,
     },
   }
-
   return new Promise((res, rej) => {
     transport.sendMail(mailOptions, (error: any) => {
       if (error) rej('Unable to send request!!!')
