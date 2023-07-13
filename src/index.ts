@@ -19,6 +19,7 @@ import userResolvers from './resolvers/userResolver';
 import ratingResolvers from './resolvers/ratingsResolvers';
 import cohortSchema from './schema/cohort.schema';
 import coordinatorSchema from './schema/coordinator.schema';
+import ticketSchema from './schema/ticket.shema';
 import schemas from './schema/index';
 import programSchema from './schema/program.schema';
 import replyResolver from './resolvers/reply.resolver';
@@ -31,6 +32,7 @@ import { connect } from './database/db.config';
 import { context } from './context';
 import notificationResolver from './resolvers/notification.resolvers';
 import eventResolvers from './resolvers/eventResolver';
+import ticketResolver from './resolvers/ticket.resolver';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -45,6 +47,7 @@ export const resolvers = mergeResolvers([
   teamResolver,
   notificationResolver,
   eventResolvers,
+  ticketResolver,
 ]);
 export const typeDefs = mergeTypeDefs([
   schemas,
@@ -52,9 +55,11 @@ export const typeDefs = mergeTypeDefs([
   programSchema,
   coordinatorSchema,
   phaseSchema,
+  ticketSchema,
 ]);
 
 (async function startApolloServer(typeDefs, resolvers) {
+  console.log(process.env.NODE_ENV);
   // Required logic for integrating with Express
   const app = express();
   const httpServer = http.createServer(app);
