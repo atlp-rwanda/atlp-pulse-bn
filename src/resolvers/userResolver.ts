@@ -85,8 +85,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      
-      (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         'admin',
         'coordinator',
         'trainee',
