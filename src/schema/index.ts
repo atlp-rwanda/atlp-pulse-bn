@@ -50,9 +50,10 @@ const Schema = gql`
     email: String!
     password: String!
     profile: Profile
-    cohort: Cohort
-    organizations: [String!]!
     team: Team
+    cohort: Cohort
+    program: Program
+    organizations: [String!]!
   }
   input RegisterInput {
     email: String!

@@ -26,6 +26,7 @@ const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 export type OrganizationType = InstanceType<typeof Organization>
+export type UserType = InstanceType<typeof User>
 
 enum Status {
   pending = 'pending',
@@ -81,7 +82,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error('This Organization doesn\'t exist')
+        throw new Error("This Organization doesn't exist")
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -244,7 +245,6 @@ const resolvers: any = {
     ) {
       //get location
       const newActivity = activity || null
-      console.log(newActivity)
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
@@ -304,12 +304,12 @@ const resolvers: any = {
             {
               expiresIn: '2h',
             }
-          );
+          )
           const data = {
             token: token,
             user: user.toJSON(),
-          };
-          return data;
+          }
+          return data
         }
         const organization: any = await Organization.findOne({
           name: org?.name,
@@ -438,12 +438,12 @@ const resolvers: any = {
         'admin',
         'superAdmin',
         'ttl',
-      ];
-      const org = await checkLoggedInOrganization(orgToken);
-      const roleExists = allRoles.includes(name);
-      if (!roleExists) throw new Error('This role doesn\'t exist');
-      const userExists = await User.findById(id);
-      if (!userExists) throw new Error('User doesn\'t exist');
+      ]
+      const org = await checkLoggedInOrganization(orgToken)
+      const roleExists = allRoles.includes(name)
+      if (!roleExists) throw new Error("This role doesn't exist")
+      const userExists = await User.findById(id)
+      if (!userExists) throw new Error("User doesn't exist")
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -488,7 +488,7 @@ const resolvers: any = {
           )
         }
       } else if (userExists.role == 'ttl') {
-        let teamttl: any = await Team.find({ ttl: userExists?.id });
+        let teamttl: any = await Team.find({ ttl: userExists?.id })
         if (teamttl) {
           await Team.updateMany(
             { ttl: userExists?.id },
@@ -497,7 +497,7 @@ const resolvers: any = {
                 ttl: null,
               },
             }
-          );
+          )
         }
       } else if (userExists.role == 'admin') {
         const userOrg: any = await Organization.find({ admin: userExists?.id })
@@ -534,8 +534,10 @@ const resolvers: any = {
 
     //This section is to make org name login to be case insensitive
     async loginOrg(_: any, { orgInput: { name } }: any) {
-      const organization: any = await Organization.findOne({ name: { $regex: new RegExp('^' + name + '$', 'i') } })
-    
+      const organization: any = await Organization.findOne({
+        name: { $regex: new RegExp('^' + name + '$', 'i') },
+      })
+
       if (organization) {
         if (
           organization.status == Status.pending ||
@@ -547,7 +549,7 @@ const resolvers: any = {
           )
         }
       }
-    
+
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -564,7 +566,7 @@ const resolvers: any = {
         )
       }
     },
-  
+
     // end of making org name to be case insensitive
 
     async requestOrganization(
@@ -844,7 +846,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error('This Organization doesn\'t exist')
+        throw new Error("This Organization doesn't exist")
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -893,7 +895,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error('User doesn\'t exist! ')
+          throw new Error("User doesn't exist! ")
         }
         user.password = password
         await user.save()
@@ -913,6 +915,31 @@ const resolvers: any = {
         return null
       } else {
         return profile
+      }
+    },
+    async program(parent: any) {
+      const program = await Program.findOne({ manager: parent.id.toString() })
+      if (!program) {
+        return null
+      } else {
+        return program
+      }
+    },
+    async cohort(parent: any) {
+      const cohort = await Cohort.findOne({ coordinator: parent.id.toString() })
+      if (!cohort) {
+        return null
+      } else {
+        return cohort
+      }
+    },
+
+    async team(parent: UserType) {
+      const team = await Team.findOne({ members: parent._id })
+      if (!team) {
+        return null
+      } else {
+        return team
       }
     },
   },
