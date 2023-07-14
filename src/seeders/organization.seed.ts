@@ -28,6 +28,11 @@ const seedOrganizations = async () => {
       description:
         'Master the professional and technical skills needed to accelerate your career and use technology to change the world.',
       admin: [...andelaAdmins.map((admin) => admin._id.toHexString())],
+      gitHubOrganisation: 'atlp-rwanda',
+      activeRepos: [
+        'atlp-pulse-bn',
+        'atlp-pulse-fn'
+      ],
     },
     {
       name: 'Irembo',

@@ -97,6 +97,9 @@ const profileSchema = new Schema({
     required: true,
     unique: true,
   },
+  githubUsername: {
+    type: String,
+  },
 });
 
 profileSchema.virtual('name').get(function () {
@@ -123,6 +126,12 @@ const organizationSchema = new Schema({
   },
   description: {
     type: String,
+  },
+  gitHubOrganisation: {
+    type: String,
+  },
+  activeRepos: {
+    type: [String],
   },
   admin: {
     type: [mongoose.Types.ObjectId],

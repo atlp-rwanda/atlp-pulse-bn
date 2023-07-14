@@ -1615,6 +1615,7 @@ const seedUsers = async () => {
         user: dbUsers[i]._id,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
+        githubUsername: i%2 === 0 ? 'teerenzo' : 'ngoma3',
       });
     }
   }

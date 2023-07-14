@@ -63,6 +63,7 @@ const Schema = gql`
     biography: String
     avatar: String
     cover: String
+    githubUsername: String
   }
 
   type UserRole {
@@ -88,6 +89,18 @@ const Schema = gql`
     admin: User
     status:String
   }
+
+  type GitHubActivity {
+    totalCommits: String!
+    pullRequest: pullRequest!
+  }
+
+  type pullRequest {
+    merged:String!
+    closed:String!
+    opened:String!
+  }
+
   input OrganizationInput {
     email: String!
     name: String!
@@ -201,6 +214,7 @@ const Schema = gql`
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     getAllNotification: [Notification]
+    gitHubActivity(organisation: String!, username: String!): GitHubActivity! 
   }
 
   type Mutation {
@@ -226,6 +240,9 @@ const Schema = gql`
         organizationInput: OrganizationInput
         action: String
         ): Organization!
+
+    
+
     updateProfile(
       lastName: String
       firstName: String
@@ -236,6 +253,7 @@ const Schema = gql`
       biography: String
       fileName: String
       cover: String
+      githubUsername: String
     ): Profile
 
     createProfile(
@@ -248,6 +266,7 @@ const Schema = gql`
       biography: String
       fileName: String
       cover: String
+      githubUsername: String
     ): Profile
     updateAvatar(avatar: String): Profile
     updateCoverImage(cover: String): Profile

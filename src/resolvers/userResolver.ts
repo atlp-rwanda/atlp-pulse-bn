@@ -21,6 +21,11 @@ import { error } from 'console';
 import bcrypt from 'bcryptjs';
 import Team from '../models/team.model';
 import Phase from '../models/phase.model';
+import { Octokit } from '@octokit/rest';
+
+
+const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` });
+
 
 const SECRET: string = process.env.SECRET || 'test_secret';
 export type OrganizationType = InstanceType<typeof Organization>;
@@ -61,6 +66,95 @@ const resolvers: any = {
       if (!user) {
         throw new Error('Unauthorized to access the page! ');
       }
+    },
+
+
+    async gitHubActivity(_: any, { organisation,username }: any, context: Context) {
+
+      const { userId } = (await checkUserLoggedIn(context))(['admin','coordinator']);
+
+     const organisationExists = await Organization.findOne({ name: organisation });
+      if (!organisationExists)
+        throw new Error("This Organization doesn't exist");
+
+      organisation=organisationExists.gitHubOrganisation;  
+
+      const {data: checkOrg} = await octokit.orgs.get({org:organisation});
+      if(!checkOrg){
+        throw new ApolloError(
+          'Organization Not found On GitHub','UserInputError'
+        );
+      }
+      const {data: checkUser} = await octokit.users.getByUsername({username:username});
+      if(!checkUser){
+        throw new ApolloError(
+          'User Not found On Github','UserInputError'
+        );
+      }
+
+
+    let allRepos:any = [];
+
+
+ 
+
+    allRepos=organisationExists.activeRepos;
+
+    let pullRequestOpen = 0;
+    let pullRequestClosed = 0;
+    let pullRequestMerged = 0;
+    let pullRequestTotal = 0;
+    let allCommits = 0;
+
+
+
+    try {
+      for (const repo of allRepos) {
+        try {
+          const commitResponse = await octokit.repos.listCommits({
+            owner: organisation,
+            repo: repo,
+            sha: 'develop',
+            author: username
+          });
+
+          const response = await octokit.pulls.list({
+            owner: organisation,
+            repo: repo,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 200
+          });
+
+          const pullRequests = response.data.filter((pullRequest: any) => pullRequest.user.login === username);
+          pullRequestTotal += pullRequests.length;
+          pullRequestOpen += pullRequests.filter((pullRequest: any) => pullRequest.state === 'open').length;
+          pullRequestClosed += pullRequests.filter((pullRequest: any) => pullRequest.state === 'closed').length;
+          pullRequestMerged += pullRequests.filter((pullRequest: any) => pullRequest.merged_at).length;
+
+          const commits = commitResponse.data;
+          allCommits += commits.length;
+        } catch (error) {
+          console.error(`Error retrieving commits for repository ${repo.name}:`, error);
+          throw new ApolloError('Error retrieving commits for repository ${repo.name}:');
+     
+        }
+      }
+  
+
+    } catch (error) {
+
+      console.error('Error retrieving repositories:', error);
+    }
+      return {
+        totalCommits: allCommits,
+        pullRequest: {
+          merged: pullRequestMerged,
+          closed: pullRequestClosed,
+          opened: pullRequestOpen
+        }
+      };
     },
   },
   Mutation: {
@@ -615,10 +709,8 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      const { userId } = (await checkUserLoggedIn(context))([
-        'admin',
-        'superAdmin',
-      ]);
+
+      const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
 
       const organizationExists = await Organization.findOne({ _id: id });
 
