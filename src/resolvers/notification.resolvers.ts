@@ -16,7 +16,16 @@ const notificationResolver = {
     },
 
     markAsRead: async (parent: any, args: any, context: Context) => {
-      ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
+      ;(await checkUserLoggedIn(context))([
+        'coordinator',
+        'trainee',
+        'superAdmin',
+        'manager',
+        'ttl',
+        'user',
+        'admin',
+      ])
+
       const findNotification = await Notification.findById(args.id)
       if (!findNotification)
         throw new Error('The notification you want to update does not exist')

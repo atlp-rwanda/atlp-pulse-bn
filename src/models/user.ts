@@ -9,39 +9,52 @@ mongoose.set('toJSON', {
   },
 })
 
-const userSchema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
+const userSchema = new Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      default: 'user',
+    },
+    team: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref: 'Team',
+    },
+    status: {
+      type: String,
+      enum: ['active', 'drop'],
+      default: 'active',
+    },
+    cohort: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref: 'Cohort',
+    },
+    organizations: {
+      type: [String],
+      required: true,
+    },
   },
-  password: {
-    type: String,
-    required: true,
-  },
-  role: {
-    type: String,
-    default: 'user',
-  },
-  team: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-    ref: 'Team',
-  },
-  status: {
-    type: String,
-    enum: ['active', 'drop'],
-    default: 'active',
-  },
-  cohort: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-    ref: 'Cohort',
-  },
-  organizations: {
-    type: [String],
-    required: true,
-  },
+
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+)
+
+userSchema.virtual('profile', {
+  ref: 'Profile',
+  foreignField: 'user',
+  localField: '_id',
 })
 
 userSchema.methods.checkPass = async function (password: string) {
@@ -62,53 +75,56 @@ userSchema.pre('save', async function (next) {
   return next()
 })
 
-const profileSchema = new Schema({
-  firstName: {
-    type: String,
+const profileSchema = new Schema(
+  {
+    firstName: {
+      type: String,
+    },
+    lastName: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    country: {
+      type: String,
+    },
+    phoneNumber: {
+      type: String,
+    },
+    biography: {
+      type: String,
+    },
+    avatar: {
+      type: String,
+    },
+    cover: {
+      type: String,
+    },
+    gender: {
+      type: String,
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+    user: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      unique: true,
+    },
+    githubUsername: {
+      type: String,
+    },
   },
-  lastName: {
-    type: String,
-  },
-  address: {
-    type: String,
-  },
-  city: {
-    type: String,
-  },
-  country: {
-    type: String,
-  },
-  phoneNumber: {
-    type: String,
-  },
-  biography: {
-    type: String,
-  },
-  avatar: {
-    type: String,
-  },
-  cover: {
-    type: String,
-  },
-  gender: {
-    type: String,
-  },
-  dateOfBirth: {
-    type: Date,
-  },
-  user: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true,
-  },
-  activity: {
-    type: Array,
-  },
-  githubUsername: {
-    type: String,
-  },
-})
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+)
 
 profileSchema.virtual('name').get(function () {
   return this.firstName + ' ' + this.lastName

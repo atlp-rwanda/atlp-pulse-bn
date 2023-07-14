@@ -1,36 +1,36 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-import { formatError } from './ErrorMsg';
-const { ApolloServer } = require('apollo-server-express');
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
-const { execute, subscribe } = require('graphql');
-const { SubscriptionServer } = require('subscriptions-transport-ws');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const express = require('express');
-const http = require('http');
-const { PubSub } = require('graphql-subscriptions');
-import cohortResolvers from './resolvers/cohort.resolvers';
-import manageStudentResolvers from './resolvers/coordinatorResolvers';
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
-import profileResolvers from './resolvers/profileResolver';
-import programResolvers from './resolvers/program.resolvers';
-import userResolvers from './resolvers/userResolver';
-import ratingResolvers from './resolvers/ratingsResolvers';
-import cohortSchema from './schema/cohort.schema';
-import coordinatorSchema from './schema/coordinator.schema';
-import ticketSchema from './schema/ticket.shema';
-import schemas from './schema/index';
-import programSchema from './schema/program.schema';
-import replyResolver from './resolvers/reply.resolver';
-import phaseResolver from './resolvers/phase.resolver';
-import phaseSchema from './schema/phase.schema';
-import teamResolver from './resolvers/team.resolvers';
-import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
-import { connect } from './database/db.config';
-import { context } from './context';
-import notificationResolver from './resolvers/notification.resolvers';
-import eventResolvers from './resolvers/eventResolver';
-import ticketResolver from './resolvers/ticket.resolver';
+import { formatError } from './ErrorMsg'
+const { ApolloServer } = require('apollo-server-express')
+const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
+const { execute, subscribe } = require('graphql')
+const { SubscriptionServer } = require('subscriptions-transport-ws')
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+const express = require('express')
+const http = require('http')
+const { PubSub } = require('graphql-subscriptions')
+import cohortResolvers from './resolvers/cohort.resolvers'
+import manageStudentResolvers from './resolvers/coordinatorResolvers'
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
+import profileResolvers from './resolvers/profileResolver'
+import programResolvers from './resolvers/program.resolvers'
+import userResolvers from './resolvers/userResolver'
+import ratingResolvers from './resolvers/ratingsResolvers'
+import cohortSchema from './schema/cohort.schema'
+import coordinatorSchema from './schema/coordinator.schema'
+import ticketSchema from './schema/ticket.shema'
+import schemas from './schema/index'
+import programSchema from './schema/program.schema'
+import replyResolver from './resolvers/reply.resolver'
+import phaseResolver from './resolvers/phase.resolver'
+import phaseSchema from './schema/phase.schema'
+import teamResolver from './resolvers/team.resolvers'
+import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
+import { connect } from './database/db.config'
+import { context } from './context'
+import notificationResolver from './resolvers/notification.resolvers'
+import eventResolvers from './resolvers/eventResolver'
+import ticketResolver from './resolvers/ticket.resolver'
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -46,7 +46,7 @@ export const resolvers = mergeResolvers([
   notificationResolver,
   eventResolvers,
   ticketResolver,
-]);
+])
 export const typeDefs = mergeTypeDefs([
   schemas,
   cohortSchema,
@@ -54,10 +54,9 @@ export const typeDefs = mergeTypeDefs([
   coordinatorSchema,
   phaseSchema,
   ticketSchema,
-]);
-
-(async function startApolloServer(typeDefs, resolvers) {
-  console.log(process.env.NODE_ENV);
+])
+;(async function startApolloServer(typeDefs, resolvers) {
+  console.log(process.env.NODE_ENV)
   // Required logic for integrating with Express
   const app = express()
   const httpServer = http.createServer(app)
