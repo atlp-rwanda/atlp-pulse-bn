@@ -1,5 +1,5 @@
 /* eslint-disable */
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 const systemRating = mongoose.model(
   'systemRating',
   new Schema({
@@ -24,7 +24,7 @@ const systemRating = mongoose.model(
       type: [String],
       required: false,
     },
-     defaultGrading: {
+    defaultGrading: {
       type: Boolean,
       default: false,
     },
@@ -33,9 +33,7 @@ const systemRating = mongoose.model(
       ref: 'Organization',
       required: true,
     },
-   
   })
-);
+)
 
-
-export { systemRating };
+export { systemRating }

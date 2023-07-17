@@ -1,7 +1,7 @@
-import nodemailer from 'nodemailer';
-import generateTemplate from '../helpers/emailForTrainee.helper';
+import nodemailer from 'nodemailer'
+import generateTemplate from '../helpers/emailForTrainee.helper'
 
-const mode = process.env.NODE_ENV || 'development';
+const mode = process.env.NODE_ENV || 'development'
 
 export const sendEmails = async (
   senderEmail: any,
@@ -35,24 +35,24 @@ export const sendEmails = async (
         pass: senderPassword,
       },
     },
-  };
+  }
 
   const transport = nodemailer.createTransport(
     transportOptions[mode] || transportOptions.development
-  );
+  )
 
   const mailOptions = {
     from: senderEmail,
     to: receiver,
     subject: subject,
     html: generateTemplate(content, title),
-  };
+  }
 
   transport.sendMail(mailOptions, (error, info) => {
     if (error) {
-      return console.log(error);
+      return console.log(error)
     }
-    console.log('Message sent: %s', info);
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-  });
-};
+    console.log('Message sent: %s', info)
+    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+  })
+}

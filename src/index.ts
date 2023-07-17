@@ -6,7 +6,6 @@ const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
 const { execute, subscribe } = require('graphql');
 const { SubscriptionServer } = require('subscriptions-transport-ws');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
-const gql = require('graphql-tag');
 const express = require('express');
 const http = require('http');
 const { PubSub } = require('graphql-subscriptions');
@@ -23,7 +22,6 @@ import ticketSchema from './schema/ticket.shema';
 import schemas from './schema/index';
 import programSchema from './schema/program.schema';
 import replyResolver from './resolvers/reply.resolver';
-import { sendEmails } from './utils/sendEmails';
 import phaseResolver from './resolvers/phase.resolver';
 import phaseSchema from './schema/phase.schema';
 import teamResolver from './resolvers/team.resolvers';
@@ -61,10 +59,10 @@ export const typeDefs = mergeTypeDefs([
 (async function startApolloServer(typeDefs, resolvers) {
   console.log(process.env.NODE_ENV);
   // Required logic for integrating with Express
-  const app = express();
-  const httpServer = http.createServer(app);
-  const schema = makeExecutableSchema({ typeDefs, resolvers });
-  const pubsub = new PubSub();
+  const app = express()
+  const httpServer = http.createServer(app)
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
+  const pubsub = new PubSub()
   // Same ApolloServer initialization as before, plus the drain plugin.
   const server = new ApolloServer({
     schema,
@@ -76,9 +74,9 @@ export const typeDefs = mergeTypeDefs([
         async serverWillStart() {
           return {
             async drainServer() {
-              subscriptionServer.close();
+              subscriptionServer.close()
             },
-          };
+          }
         },
       },
     ],
@@ -86,7 +84,7 @@ export const typeDefs = mergeTypeDefs([
     formatError: formatError,
     context: context,
     csrfPrevention: true,
-  });
+  })
 
   const subscriptionServer = SubscriptionServer.create(
     {
@@ -95,16 +93,16 @@ export const typeDefs = mergeTypeDefs([
       // These are imported from `graphql`.
       execute,
       subscribe,
-      async onConnect(connectionParams: any, webSocket: any, context: any) {
-        console.log('Connected!');
+      async onConnect() {
+        console.log('Connected!')
         // If an object is returned here, it will be passed as the `context`
         // argument to your subscription resolvers.
         return {
           pubsub,
-        };
+        }
       },
-      onDisconnect(webSocket: any, context: any) {
-        console.log('Disconnected!');
+      onDisconnect() {
+        console.log('Disconnected!')
       },
     },
     {
@@ -113,24 +111,24 @@ export const typeDefs = mergeTypeDefs([
       // This `server` is the instance returned from `new ApolloServer`.
       path: '/',
     }
-  );
+  )
 
   // More required logic for integrating with Express
-  await server.start();
+  await server.start()
   server.applyMiddleware({
     app,
     path: '/',
-  });
+  })
 
   // Modified server startup
-  const PORT: number = parseInt(process.env.PORT!) || 4000;
+  const PORT: number = parseInt(process.env.PORT!) || 4000
 
   connect().then(() => {
-    console.log('Database Connected');
+    console.log('Database Connected')
     httpServer.listen({ port: PORT }, () =>
       console.log(
         `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
       )
-    );
-  });
-})(typeDefs, resolvers);
+    )
+  })
+})(typeDefs, resolvers)

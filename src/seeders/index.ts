@@ -7,6 +7,7 @@ import seedUsers from './users.seed';
 import seedPhases from './phases.seed';
 import seedTeams from './teams.seed';
 import seedNotification from './notification.seed';
+import seedRatings from './rating.seed';
 
 connect().then(async () => {
   try {
@@ -18,6 +19,7 @@ connect().then(async () => {
     await seedTeams();
     await seedNotification();
     await seedsystemRatings();
+    await seedRatings();
 
     console.log('Database seeded Successfully');
     process.exit();

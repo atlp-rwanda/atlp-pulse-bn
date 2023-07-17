@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import { gql } from 'apollo-server'
 
 const Schema = gql`
   type Cohort {
@@ -6,10 +6,18 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  
+
   type Subscription {
     newRating(receiver: String!): Notification!
+    newfeedback(sprint: String, user: String): RatingMessageTemp!
+    newfeedbacks(sprint_user: String): newFeedbacks
     newReply: Notification!
+  }
+
+  type newFeedbacks {
+    sprint: String
+    user: String
+    data: RatingMessageTemp!
   }
 
   type Notification {
@@ -87,7 +95,7 @@ const Schema = gql`
     name: String!
     description: String
     admin: User
-    status:String
+    status: String
   }
 
   type GitHubActivity {
@@ -123,6 +131,7 @@ const Schema = gql`
     coordinator: String!
     cohort: Cohort!
     average: String
+    feedbacks: [RatingMessageTemp]
   }
 
   type AddRating {
@@ -141,6 +150,7 @@ const Schema = gql`
     average: String
     approved: Boolean!
     coordinator: String!
+    feedbacks: [RatingMessageTemp]
   }
 
   type updateRating {
@@ -193,6 +203,13 @@ const Schema = gql`
     professionalRemark: String
     approved: Boolean!
   }
+
+  type RatingMessageTemp {
+    sender: User!
+    content: String
+    createdAt: String
+  }
+
   type Query {
     getAllUsers(orgToken: String): [User]
     getUsers(orgToken: String): [User]
@@ -235,14 +252,11 @@ const Schema = gql`
     addOrganization(
       organizationInput: OrganizationInput
       action: String
-      ): Organization!
+    ): Organization!
     RegisterNewOrganization(
-        organizationInput: OrganizationInput
-        action: String
-        ): Organization!
-
-    
-
+      organizationInput: OrganizationInput
+      action: String
+    ): Organization!
     updateProfile(
       lastName: String
       firstName: String
@@ -312,6 +326,11 @@ const Schema = gql`
       bodyProfessional: [String]
       orgToken: String!
     ): updateToReply
+    AddRatingFeedback(
+      sprint: String
+      user: String
+      content: String
+    ): RatingMessageTemp
 
     approveRating(user: String!, sprint: Int!): ApproveRating
     rejectRating(user: String!, sprint: Int!): String!
@@ -426,5 +445,5 @@ const Schema = gql`
   type Query {
     getEvents(authToken: String): [Event]
   }
-`;
-export default Schema;
+`
+export default Schema
