@@ -1486,10 +1486,10 @@ const seedUsers = async () => {
   // Populate registerUsers
   Object.entries(organizations).forEach((org: any) => {
     // Admin
-    for (let i = 0; i < org[1].length; i++) {
+    for (const element of org[1]) {
       // Check if user exist in registerUsers
 
-      if (registerUsers.find((user) => user.email === org[1][i].email)) {
+      if (registerUsers.find((user) => user.email === element.email)) {
         continue;
       }
 
@@ -1501,7 +1501,7 @@ const seedUsers = async () => {
         break;
 
       registerUsers.push({
-        email: org[1][i].email,
+        email: element.email,
         password: hashSync('Test@12345'),
         role: 'admin',
         organizations: [org[0]],
@@ -1509,8 +1509,8 @@ const seedUsers = async () => {
     }
 
     // Manager
-    for (let i = 0; i < org[1].length; i++) {
-      if (registerUsers.find((user) => user.email === org[1][i].email))
+    for (const element of org[1]) {
+      if (registerUsers.find((user) => user.email === element.email))
         continue;
 
       if (
@@ -1522,7 +1522,7 @@ const seedUsers = async () => {
         break;
 
       registerUsers.push({
-        email: org[1][i].email,
+        email: element.email,
         password: hashSync('Test@12345'),
         role: 'manager',
         organizations: [org[0]],
@@ -1530,8 +1530,8 @@ const seedUsers = async () => {
     }
 
     // Coordinators
-    for (let i = 0; i < org[1].length; i++) {
-      if (registerUsers.find((user) => user.email === org[1][i].email))
+    for (const element of org[1]) {
+      if (registerUsers.find((user) => user.email === element.email))
         continue;
 
       if (
@@ -1543,7 +1543,7 @@ const seedUsers = async () => {
         break;
 
       registerUsers.push({
-        email: org[1][i].email,
+        email: element.email,
         password: hashSync('Test@12345'),
         role: 'coordinator',
         organizations: [org[0]],
@@ -1551,8 +1551,8 @@ const seedUsers = async () => {
     }
 
     // users
-    for (let i = 0; i < org[1].length; i++) {
-      if (registerUsers.find((user) => user.email === org[1][i].email))
+    for (const element of org[1]) {
+      if (registerUsers.find((user) => user.email === element.email))
         continue;
 
       if (
@@ -1563,7 +1563,7 @@ const seedUsers = async () => {
         break;
 
       registerUsers.push({
-        email: org[1][i].email,
+        email: element.email,
         password: hashSync('Test@12345'),
         role: 'user',
         organizations: [org[0]],
@@ -1571,8 +1571,8 @@ const seedUsers = async () => {
     }
 
     // Tranee
-    for (let i = 0; i < org[1].length; i++) {
-      if (registerUsers.find((user) => user.email === org[1][i].email))
+    for (const element of org[1]) {
+      if (registerUsers.find((user) => user.email === element.email))
         continue;
 
       if (
@@ -1584,7 +1584,7 @@ const seedUsers = async () => {
         break;
 
       registerUsers.push({
-        email: org[1][i].email,
+        email: element.email,
         password: hashSync('Test@12345'),
         role: 'trainee',
         organizations: [org[0]],

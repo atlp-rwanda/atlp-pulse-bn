@@ -16,9 +16,9 @@ const createRatingSystemresolver = {
       return ratingSystems;
     },
     async getRatingSystem(parent: any, args: any) {
-      const ratingSystem = await systemRating.findById(args.id);
-      if (!ratingSystem) throw new Error("This rating system doesn't exist");
-      return ratingSystem;
+      const ratingSystem = await systemRating.findById(args.id)
+      if (!ratingSystem) throw new Error("This rating system doesn't exist")
+      return ratingSystem
     },
     async getDefaultGrading() {
       const defaultGradingSystem = await systemRating.find({
@@ -76,15 +76,15 @@ const createRatingSystemresolver = {
     },
 
     async deleteRatingSystem(parent: any, args: any) {
-      const ratingSystem = await systemRating.findById(args.id);
+      const ratingSystem = await systemRating.findById(args.id)
 
-      if (!ratingSystem) throw new Error("This rating system doesn't exist");
+      if (!ratingSystem) throw new Error("This rating system doesn't exist")
       const deleteRatingSystem = await systemRating.deleteOne({
         _id: args.id,
-      });
+      })
 
       return 'You have successfully deleted tshis rating system';
     },
   },
-};
-export default createRatingSystemresolver;
+}
+export default createRatingSystemresolver

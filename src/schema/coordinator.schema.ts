@@ -12,7 +12,6 @@ const Schema = gql`
     message: String
   }
   type Mutation {
-
     addMemberToTeam(
       teamName: String!
       email: String!

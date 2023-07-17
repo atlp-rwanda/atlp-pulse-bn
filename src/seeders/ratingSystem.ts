@@ -1,5 +1,5 @@
-import { Organization, User } from '../models/user';
-import { systemRating } from '../models/ratingSystem';
+import { Organization } from '../models/user'
+import { systemRating } from '../models/ratingSystem'
 
 const seedsystemRatings = async () => {
   const ratingSystem = [
@@ -27,10 +27,23 @@ const seedsystemRatings = async () => {
       percentage: ['75-100', '50-75', '35-50'],
       organization: (await Organization.find())[1]?.id,
     },
-  ];
-  await systemRating.deleteMany({});
+    {
+      userId: '3',
+      name: 'Andela',
+      grade: ['0', '1', '2'],
+      description: [
+        'Below Expectation',
+        'Met expectation',
+        'Exceed Expectation',
+      ],
+      percentage: ['0-40', '40-70', '70-100'],
+      organization: (await Organization.findOne({ name: 'Andela' }))?.id,
+      defaultGrading: true,
+    },
+  ]
+  await systemRating.deleteMany({})
 
-  await systemRating.insertMany(ratingSystem);
-  return null;
-};
-export default seedsystemRatings;
+  await systemRating.insertMany(ratingSystem)
+  return null
+}
+export default seedsystemRatings
