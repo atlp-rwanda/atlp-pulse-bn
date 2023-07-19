@@ -90,6 +90,7 @@ const resolvers: any = {
         'coordinator',
         'trainee',
         'manager',
+        'ttl'
       ])
 
       const organisationExists = await Organization.findOne({

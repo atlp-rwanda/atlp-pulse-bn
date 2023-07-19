@@ -254,6 +254,8 @@ const Schema = gql`
 
   type Query {
     getAllUsers(orgToken: String): [User]
+    getAllTTLUsers(orgToken: String): [User]
+    getTTLTrainees(orgToken: String): [User]
     getUsers(orgToken: String): [User]
     getAllCoordinators: [User]
     getProfile: Profile
@@ -279,6 +281,7 @@ const Schema = gql`
   type Mutation {
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
+    dropTTLUser(email:String!, reason: String!):String!
     createUser(
       firstName: String!
       lastName: String!
