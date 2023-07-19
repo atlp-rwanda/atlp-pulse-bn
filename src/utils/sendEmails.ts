@@ -11,35 +11,15 @@ export const sendEmails = async (
   content: any,
   title: any
 ) => {
-  const transportOptions: any = {
-    production: {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      service: 'gmail',
-      auth: {
-        user: senderEmail,
-        pass: senderPassword,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
+  const transport = nodemailer.createTransport({
+    host: 'mail.privateemail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: senderEmail,
+      pass: senderPassword,
     },
-    development: {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      service: 'gmail',
-      auth: {
-        user: senderEmail,
-        pass: senderPassword,
-      },
-    },
-  }
-
-  const transport = nodemailer.createTransport(
-    transportOptions[mode] || transportOptions.development
-  )
+  });
 
   const mailOptions = {
     from: senderEmail,
