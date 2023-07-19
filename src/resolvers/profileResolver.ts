@@ -68,7 +68,9 @@ const profileResolvers: any = {
           biography,
           avatar,
           cover,
+          githubUsername
         }: any = args;
+        console.log(githubUsername);
         const { userId }: any = context;
 
         if (!userId) {
@@ -87,6 +89,7 @@ const profileResolvers: any = {
             biography: biography,
             avatar: avatar,
             cover: cover,
+            githubUsername: githubUsername
           },
           { new: true, upsert: true }
         );
