@@ -40,4 +40,5 @@ jobs:
             port: ${{ secrets.DO_PORT }}
             script: |
               docker pull devpulse/atlp-pulse-bn:latest
+              docker ps | grep 4000 | cut -f1 -d' ' | xargs docker stop
               docker run -p 4000:4000 -d devpulse/atlp-pulse-bn:latest
