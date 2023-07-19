@@ -126,6 +126,9 @@ const profileSchema = new Schema(
     githubUsername: {
       type: String,
     },
+    resume: {
+      type: String,
+    },
   },
   {
     toJSON: { virtuals: true },
