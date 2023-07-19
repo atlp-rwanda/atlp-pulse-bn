@@ -71,7 +71,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.8.1",
     "mongoose": "^6.6.1",
-    "node-fetch": "^3.3.1",
+    "node-fetch": "^2.6.12",
     "nodemailer": "^6.7.8",
     "normalize-mongoose": "^1.0.0",
     "subscriptions-transport-ws": "^0.11.0",
