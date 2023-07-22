@@ -74,7 +74,7 @@ const Schema = gql`
     email: String
     password: String
     orgToken: String
-    activity: ActivityInput!
+    activity: ActivityInput
   }
   input OrgInput {
     name: String
