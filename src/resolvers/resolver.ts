@@ -101,7 +101,7 @@ const resolvers = {
     },
   },
   User: {
-    async profile(parent: any) {
+    async profile(parent: any): Promise<any> {
       const profile = await Profile.findOne({
         where: { user: parent.id.toString() },
       });

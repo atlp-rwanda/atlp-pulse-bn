@@ -21,7 +21,7 @@ import bcrypt from 'bcryptjs'
 import Team from '../models/team.model'
 import Phase from '../models/phase.model'
 import { Octokit } from '@octokit/rest'
-
+import { checkloginAttepmts } from '../helpers/logintracker'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
 const SECRET: string = process.env.SECRET || 'test_secret'
@@ -65,13 +65,18 @@ const resolvers: any = {
       }
     },
 
-    async gitHubActivity(_: any, { organisation,username }: any, context: Context) {
+    async gitHubActivity(
+      _: any,
+      { organisation, username }: any,
+      context: Context
+    ) {
+      ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
 
       const { userId } = (await checkUserLoggedIn(context))(['admin','coordinator','trainee','manager']);
 
       const organisationExists = await Organization.findOne({ name: organisation });
       if (!organisationExists)
-        throw new Error('This Organization doesn\'t exist');
+        throw new Error("This Organization doesn't exist")
 
       organisation=organisationExists.gitHubOrganisation;  
 
@@ -226,8 +231,11 @@ const resolvers: any = {
     },
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken } }: any
+      { loginInput: { email, password, orgToken, activity } }: any
     ) {
+      //get location
+      const newActivity = activity || null
+      console.log(newActivity)
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
@@ -247,8 +255,21 @@ const resolvers: any = {
           },
         },
       })
+      let attempts = await checkloginAttepmts(Profile, user)
 
       if (await user?.checkPass(password)) {
+        await Profile.findOneAndUpdate(
+          { user },
+          {
+            $push: {
+              activity: { $each: [{ failed: 0, ...newActivity }] },
+            },
+          }
+        )
+        await Profile.findOneAndUpdate(
+          { user },
+          { $push: { activity: { $each: [newActivity] } } }
+        )
         if (
           user?.role === 'trainee' &&
           user?.cohort?.program?.organization?.name == org?.name
@@ -366,9 +387,21 @@ const resolvers: any = {
           }
           return superAdminData
         } else {
+          await Profile.findOneAndUpdate(
+            { user },
+            { $push: { activity: { $each: [newActivity] } } }
+          )
           throw new Error('You are not part of the organization you logged in.')
         }
       } else {
+        await Profile.findOneAndUpdate(
+          { user },
+          {
+            $push: {
+              activity: { $each: [{ failed: attempts, ...newActivity }] },
+            },
+          }
+        )
         throw new ApolloError('Invalid credential', 'UserInputError')
       }
     },
@@ -383,9 +416,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error('This role doesn\'t exist')
+      if (!roleExists) throw new Error("This role doesn't exist")
       const userExists = await User.findById(id)
-      if (!userExists) throw new Error('User doesn\'t exist')
+      if (!userExists) throw new Error("User doesn't exist")
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -785,7 +818,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error('This Organization doesn\'t exist')
+        throw new Error("This Organization doesn't exist")
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -834,7 +867,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error('User doesn\'t exist! ');
+          throw new Error("User doesn't exist! ")
         }
         user.password = password
         await user.save()
