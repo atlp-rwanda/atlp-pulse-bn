@@ -90,12 +90,15 @@ const Schema = gql`
     token: String
     organization: Organization
   }
+  
   type Organization {
     id: ID!
     name: String!
     description: String
     admin: User
-    status: String
+    status:String
+    gitHubOrganisation: String
+    activeRepos: [String]
   }
 
   type GitHubActivity {
@@ -286,6 +289,7 @@ const Schema = gql`
     updateCoverImage(cover: String): Profile
     updateUserRole(id: ID!, name: String, orgToken: String): User!
     deleteOrganization(id: ID!): Organization
+    updateGithubOrganisation(name: String!, gitHubOrganisation: String!): Organization
     addRatings(
       user: String!
       sprint: Int!
@@ -341,6 +345,16 @@ const Schema = gql`
       token: String!
     ): String!
     addTeam(name: String!, cohortName: String!, orgToken: String!): Team!
+
+    addActiveRepostoOrganization(
+      name: String!
+      repoUrl: String!
+    ): Organization!
+
+    deleteActiveRepostoOrganization(
+      name: String!
+      repoUrl: String!
+    ): Organization!
   }
   type ratingSystem {
     id: ID!
