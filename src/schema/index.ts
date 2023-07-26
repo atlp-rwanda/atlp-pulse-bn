@@ -49,11 +49,22 @@ const Schema = gql`
     password: String!
     role: String
   }
-
+  input ActivityInput {
+    date: String!
+    country_code: String!
+    country_name: String!
+    city: String!
+    postal: String!
+    latitude: Float!
+    longitude: Float!
+    IPv4: String!
+    state: String!
+  }
   input LoginInput {
     email: String
     password: String
     orgToken: String
+    activity: ActivityInput!
   }
   input OrgInput {
     name: String
@@ -71,7 +82,19 @@ const Schema = gql`
     biography: String
     avatar: String
     cover: String
-    githubUsername: String
+    activity: [Activity]
+  }
+  type Activity {
+    date: String!
+    country_code: String
+    country_name: String
+    city: String
+    postal: String
+    latitude: Float
+    longitude: Float
+    IPv4: String
+    state: String
+    failed: Int
   }
 
   type UserRole {
@@ -107,9 +130,9 @@ const Schema = gql`
   }
 
   type pullRequest {
-    merged:String!
-    closed:String!
-    opened:String!
+    merged: String!
+    closed: String!
+    opened: String!
   }
 
   input OrganizationInput {
@@ -234,7 +257,7 @@ const Schema = gql`
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     getAllNotification: [Notification]
-    gitHubActivity(organisation: String!, username: String!): GitHubActivity! 
+    gitHubActivity(organisation: String!, username: String!): GitHubActivity!
   }
 
   type Mutation {

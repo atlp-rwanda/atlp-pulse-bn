@@ -97,6 +97,9 @@ const profileSchema = new Schema({
     required: true,
     unique: true,
   },
+  activity: {
+    type: Array,
+  },
   githubUsername: {
     type: String,
   },
