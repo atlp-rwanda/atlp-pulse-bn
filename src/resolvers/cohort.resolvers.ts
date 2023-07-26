@@ -120,13 +120,13 @@ const resolvers = {
           )
         }
         if (differenceInDays(new Date(startDate), Date.now()) < 0) {
-          throw new ValidationError('Start Date can\'t be in the past')
+          throw new ValidationError('Start Date can\'t be in the past');
         }
         if (
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
         ) {
-          throw new ValidationError('End Date can\'t be before Start Date')
+          throw new ValidationError('End Date can\'t be before Start Date');
         }
 
         const findCohort = await Cohort.find({ name, organization: organ?.id })
@@ -225,7 +225,7 @@ const resolvers = {
       }
 
       if (startDate && differenceInDays(new Date(startDate), Date.now()) < 0) {
-        throw new ValidationError('Start Date can\'t be in the past')
+        throw new ValidationError('Start Date can\'t be in the past');
       }
       if (
         endDate &&
@@ -238,7 +238,7 @@ const resolvers = {
             new Date(endDate)
           ))
       ) {
-        throw new ValidationError('End Date can\'t be before Start Date')
+        throw new ValidationError('End Date can\'t be before Start Date');
       }
 
       if (role !== 'superAdmin') {
