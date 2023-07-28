@@ -72,42 +72,44 @@ const resolvers: any = {
     ) {
       ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
 
-      const { userId } = (await checkUserLoggedIn(context))(['admin','coordinator','trainee','manager']);
+      const { userId } = (await checkUserLoggedIn(context))([
+        'admin',
+        'coordinator',
+        'trainee',
+        'manager',
+      ])
 
-      const organisationExists = await Organization.findOne({ name: organisation });
+      const organisationExists = await Organization.findOne({
+        name: organisation,
+      })
       if (!organisationExists)
         throw new Error("This Organization doesn't exist")
 
-      organisation=organisationExists.gitHubOrganisation;  
+      organisation = organisationExists.gitHubOrganisation
 
-      const {data: checkOrg} = await octokit.orgs.get({org:organisation});
-      if(!checkOrg){
+      const { data: checkOrg } = await octokit.orgs.get({ org: organisation })
+      if (!checkOrg) {
         throw new ApolloError(
-          'Organization Not found On GitHub','UserInputError'
-        );
+          'Organization Not found On GitHub',
+          'UserInputError'
+        )
       }
-      const {data: checkUser} = await octokit.users.getByUsername({username:username});
-      if(!checkUser){
-        throw new ApolloError(
-          'User Not found On Github','UserInputError'
-        );
+      const { data: checkUser } = await octokit.users.getByUsername({
+        username: username,
+      })
+      if (!checkUser) {
+        throw new ApolloError('User Not found On Github', 'UserInputError')
       }
 
+      let allRepos: any = []
 
-      let allRepos:any = [];
+      allRepos = organisationExists.activeRepos
 
-
- 
-
-      allRepos=organisationExists.activeRepos;
-
-      let pullRequestOpen = 0;
-      let pullRequestClosed = 0;
-      let pullRequestMerged = 0;
-      let pullRequestTotal = 0;
-      let allCommits = 0;
-
-
+      let pullRequestOpen = 0
+      let pullRequestClosed = 0
+      let pullRequestMerged = 0
+      let pullRequestTotal = 0
+      let allCommits = 0
 
       try {
         for (const repo of allRepos) {
@@ -118,34 +120,43 @@ const resolvers: any = {
               state: 'all',
               sort: 'created',
               direction: 'desc',
-              per_page: 200
-            });
+              per_page: 200,
+            })
 
-            const pullRequests = response.data.filter((pullRequest: any) => pullRequest.user.login === username);
-            pullRequestTotal += pullRequests.length;
-            pullRequestOpen += pullRequests.filter((pullRequest: any) => pullRequest.state === 'open').length;
-            pullRequestClosed += pullRequests.filter((pullRequest: any) => pullRequest.state === 'closed').length;
-            pullRequestMerged += pullRequests.filter((pullRequest: any) => pullRequest.merged_at!=null).length;
+            const pullRequests = response.data.filter(
+              (pullRequest: any) => pullRequest.user.login === username
+            )
+            pullRequestTotal += pullRequests.length
+            pullRequestOpen += pullRequests.filter(
+              (pullRequest: any) => pullRequest.state === 'open'
+            ).length
+            pullRequestClosed += pullRequests.filter(
+              (pullRequest: any) => pullRequest.state === 'closed'
+            ).length
+            pullRequestMerged += pullRequests.filter(
+              (pullRequest: any) => pullRequest.merged_at != null
+            ).length
           } catch (error) {
-            console.error(`Error retrieving commits for repository ${repo.name}:`, error);
-            throw new ApolloError('Error retrieving commits for repository ${repo.name}:');
-     
+            console.error(
+              `Error retrieving commits for repository ${repo.name}:`,
+              error
+            )
+            throw new ApolloError(
+              'Error retrieving commits for repository ${repo.name}:'
+            )
           }
         }
-  
-
       } catch (error) {
-
-        console.error('Error retrieving repositories:', error);
+        console.error('Error retrieving repositories:', error)
       }
       return {
         totalCommits: pullRequestMerged,
         pullRequest: {
           merged: pullRequestMerged,
           closed: pullRequestClosed,
-          opened: pullRequestOpen
-        }
-      };
+          opened: pullRequestOpen,
+        },
+      }
     },
   },
   Mutation: {
@@ -600,7 +611,7 @@ const resolvers: any = {
           return 'Organization registration request sent successfully'
         }
       } catch (error) {
-        throw error;
+        throw error
       }
     },
 
@@ -678,7 +689,6 @@ const resolvers: any = {
         }
       }
 
-
       // check if the requester is already an admin, if not create him
       const admin = await User.findOne({ email, role: 'admin' })
       const password: any = generateRandomPassword()
@@ -723,94 +733,91 @@ const resolvers: any = {
       return org
     },
 
-    async updateGithubOrganisation(_: any, { name,gitHubOrganisation }: any, context: Context) {
+    async updateGithubOrganisation(
+      _: any,
+      { name, gitHubOrganisation }: any,
+      context: Context
+    ) {
+      const { userId } = (await checkUserLoggedIn(context))([
+        'admin',
+        'superAdmin',
+      ])
 
-      const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
-
-      const org=await Organization.findOne({name:name});
-      if(!org){
-        throw new ApolloError(
-          'Organization Not found','UserInputError'
-        );
+      const org = await Organization.findOne({ name: name })
+      if (!org) {
+        throw new ApolloError('Organization Not found', 'UserInputError')
       }
 
-      org.gitHubOrganisation=gitHubOrganisation;
-      await org.save();
+      org.gitHubOrganisation = gitHubOrganisation
+      await org.save()
 
       return {
-        admin:org.admin,
-        name:org.name,  
-        description:org.description,
-        status:org.status,
-        gitHubOrganisation:org.gitHubOrganisation
+        admin: org.admin,
+        name: org.name,
+        description: org.description,
+        status: org.status,
+        gitHubOrganisation: org.gitHubOrganisation,
       }
     },
 
-
-    async addActiveRepostoOrganization(_: any, { name,repoUrl }: any, context: Context) {
-
+    async addActiveRepostoOrganization(
+      _: any,
+      { name, repoUrl }: any,
+      context: Context
+    ) {
       // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
 
-      const checkOrg=await Organization.findOne({name:name});
-      if(!checkOrg){
-        throw new ApolloError(
-          'Organization Not found','UserInputError'
-        );
+      const checkOrg = await Organization.findOne({ name: name })
+      if (!checkOrg) {
+        throw new ApolloError('Organization Not found', 'UserInputError')
       }
 
-      const allRepos=checkOrg.activeRepos;
-      if(allRepos.includes(repoUrl)){
-        throw new ApolloError(
-          'Repository Already Exists','UserInputError'
-        );
+      const allRepos = checkOrg.activeRepos
+      if (allRepos.includes(repoUrl)) {
+        throw new ApolloError('Repository Already Exists', 'UserInputError')
       }
 
-      checkOrg.activeRepos.push(repoUrl);
-      await checkOrg.save();
+      checkOrg.activeRepos.push(repoUrl)
+      await checkOrg.save()
 
       return {
-        admin:checkOrg.admin,
-        name:checkOrg.name,
-        description:checkOrg.description,
-        status:checkOrg.status
+        admin: checkOrg.admin,
+        name: checkOrg.name,
+        description: checkOrg.description,
+        status: checkOrg.status,
       }
-
     },
 
-    async deleteActiveRepostoOrganization(_: any, { name,repoUrl }: any, context: Context) {
-
+    async deleteActiveRepostoOrganization(
+      _: any,
+      { name, repoUrl }: any,
+      context: Context
+    ) {
       // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
 
-      const org =await Organization.findOne({name:name});
-      if(!org){
-        throw new ApolloError(
-          'Organization Not found','UserInputError'
-        );
+      const org = await Organization.findOne({ name: name })
+      if (!org) {
+        throw new ApolloError('Organization Not found', 'UserInputError')
       }
 
-      const allRepos=org.activeRepos;
-      if(!allRepos.includes(repoUrl)){
-        throw new ApolloError(
-          'Repository Not Found','UserInputError'
-        );
+      const allRepos = org.activeRepos
+      if (!allRepos.includes(repoUrl)) {
+        throw new ApolloError('Repository Not Found', 'UserInputError')
       }
 
-      const index=allRepos.indexOf(repoUrl);
+      const index = allRepos.indexOf(repoUrl)
 
-      allRepos.splice(index,1);
+      allRepos.splice(index, 1)
 
-      await org.save();
+      await org.save()
 
       return {
-        admin:org.admin,
-        name:org.name,
-        description:org.description,
-        status:org.status
+        admin: org.admin,
+        name: org.name,
+        description: org.description,
+        status: org.status,
       }
-     
-
     },
-  
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
       ;(await checkUserLoggedIn(context))(['admin', 'superAdmin'])
