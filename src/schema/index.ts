@@ -51,14 +51,14 @@ const Schema = gql`
   }
   input ActivityInput {
     date: String!
-    country_code: String!
+    country_code: String
     country_name: String!
-    city: String!
-    postal: String!
-    latitude: Float!
-    longitude: Float!
-    IPv4: String!
-    state: String!
+    city: String
+    postal: String
+    latitude: Float
+    longitude: Float
+    IPv4: String
+    state: String
   }
   input LoginInput {
     email: String
@@ -113,13 +113,13 @@ const Schema = gql`
     token: String
     organization: Organization
   }
-  
+
   type Organization {
     id: ID!
     name: String!
     description: String
     admin: User
-    status:String
+    status: String
     gitHubOrganisation: String
     activeRepos: [String]
   }
@@ -312,7 +312,10 @@ const Schema = gql`
     updateCoverImage(cover: String): Profile
     updateUserRole(id: ID!, name: String, orgToken: String): User!
     deleteOrganization(id: ID!): Organization
-    updateGithubOrganisation(name: String!, gitHubOrganisation: String!): Organization
+    updateGithubOrganisation(
+      name: String!
+      gitHubOrganisation: String!
+    ): Organization
     addRatings(
       user: String!
       sprint: Int!
@@ -369,10 +372,7 @@ const Schema = gql`
     ): String!
     addTeam(name: String!, cohortName: String!, orgToken: String!): Team!
 
-    addActiveRepostoOrganization(
-      name: String!
-      repoUrl: String!
-    ): Organization!
+    addActiveRepostoOrganization(name: String!, repoUrl: String!): Organization!
 
     deleteActiveRepostoOrganization(
       name: String!
