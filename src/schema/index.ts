@@ -83,6 +83,7 @@ const Schema = gql`
     avatar: String
     cover: String
     activity: [Activity]
+    githubUsername: String
   }
   type Activity {
     date: String!
