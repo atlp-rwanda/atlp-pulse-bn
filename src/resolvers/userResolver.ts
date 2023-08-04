@@ -24,9 +24,8 @@ import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
-
-const SECRET: string = process.env.SECRET || 'test_secret';
-export type OrganizationType = InstanceType<typeof Organization>;
+const SECRET: string = process.env.SECRET ?? 'test_secret'
+export type OrganizationType = InstanceType<typeof Organization>
 
 enum Status {
   pending = 'pending',
@@ -71,9 +70,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
-
-      const { userId } = (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         'admin',
         'coordinator',
         'trainee',
@@ -84,7 +81,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -444,9 +441,9 @@ const resolvers: any = {
       ];
       const org = await checkLoggedInOrganization(orgToken);
       const roleExists = allRoles.includes(name);
-      if (!roleExists) throw new Error("This role doesn't exist");
+      if (!roleExists) throw new Error('This role doesn\'t exist');
       const userExists = await User.findById(id);
-      if (!userExists) throw new Error("User doesn't exist");
+      if (!userExists) throw new Error('User doesn\'t exist');
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -626,7 +623,7 @@ const resolvers: any = {
           const superAdmin = await User.find({ role: 'superAdmin' })
           // Get the email content
           const content = registrationRequest(email, name, description)
-          const link = 'https://metron-devpulse.vercel.app/'
+          const link = process.env.FRONTEND_LINK
 
           // Send registration request email to super admin
           await sendEmail(
@@ -674,7 +671,7 @@ const resolvers: any = {
             email,
             password
           )
-          const link: any = 'https://metron-devpulse.vercel.app/'
+          const link: any = process.env.FRONTEND_LINK
           await sendEmail(
             email,
             'Organization Approved and created notice',
@@ -689,7 +686,7 @@ const resolvers: any = {
         orgExists.status = 'rejected'
         await orgExists.save()
         const content = organizationRejectedTemplate(name)
-        const link: any = 'https://metron-devpulse.vercel.app/'
+        const link: any = process.env.FRONTEND_LINK
         await sendEmail(
           email,
           'Organization Request rejected notice',
@@ -749,7 +746,7 @@ const resolvers: any = {
 
       // send the requester an email with his password
       const content = organizationCreatedTemplate(org.name, email, password)
-      const link: any = 'https://metron-devpulse.vercel.app/'
+      const link: any = process.env.FRONTEND_LINK
       // send an email to the user who desire the organization
       await sendEmail(
         email,
@@ -768,10 +765,7 @@ const resolvers: any = {
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      const { userId } = (await checkUserLoggedIn(context))([
-        'admin',
-        'superAdmin',
-      ])
+      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin'])
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
@@ -790,11 +784,7 @@ const resolvers: any = {
       }
     },
 
-    async addActiveRepostoOrganization(
-      _: any,
-      { name, repoUrl }: any,
-      context: Context
-    ) {
+    async addActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
       // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
 
       const checkOrg = await Organization.findOne({ name: name })
@@ -818,11 +808,7 @@ const resolvers: any = {
       }
     },
 
-    async deleteActiveRepostoOrganization(
-      _: any,
-      { name, repoUrl }: any,
-      context: Context
-    ) {
+    async deleteActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
       // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
 
       const org = await Organization.findOne({ name: name })
@@ -855,7 +841,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -884,7 +870,7 @@ const resolvers: any = {
         const newToken: any = token.replaceAll('.', '*')
         const link = `${process.env.RESET_PASSWORD_FRONTEND_URL}/${newToken}`
         const content = forgotPasswordTemplate(link)
-        const someSpace = ' '
+        const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
           'Proceed With Reset Password',
@@ -904,7 +890,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()
