@@ -614,7 +614,7 @@ const manageStudentResolvers = {
       if (userExists) {
         throw new Error('This user already exists in DevPulse')
       } else {
-        const token: any = jwt.sign({ name: org.name }, SECRET, {
+        const token: any = jwt.sign({ name: org.name, email: email }, SECRET, {
           expiresIn: '2d',
         })
         const newToken: any = token.replace(/\./g, '*')
