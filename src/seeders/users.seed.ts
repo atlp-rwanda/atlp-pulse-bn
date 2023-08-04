@@ -1477,7 +1477,8 @@ const seedUsers = async () => {
     manager: 5,
     coordinators: 5,
     trainees: 30,
-    users: 30,
+    users: 20,
+    ttl: 10,
   };
 
   // Create an array of users who will be registered
@@ -1590,6 +1591,26 @@ const seedUsers = async () => {
         organizations: [org[0]],
       });
     }
+
+    // ttl
+    for (let i = 0; i < org[1].length; i++) {
+      if (registerUsers.find((user) => user.email === org[1][i].email))
+        continue;
+
+      if (
+        registerUsers.filter(
+          (user) => user.organizations.includes(org[0]) && user.role === 'ttl'
+        ).length === usersTypes.ttl
+      )
+        break;
+
+      registerUsers.push({
+        email: org[1][i].email,
+        password: hashSync('Test@12345'),
+        role: 'ttl',
+        organizations: [org[0]],
+      });
+    }
   });
 
   // Save Users to the database
@@ -1600,6 +1621,7 @@ const seedUsers = async () => {
     role: 'superAdmin',
     organizations: ['Andela'],
   });
+
   await User.insertMany(registerUsers);
 
   // Query users that have been registered from database

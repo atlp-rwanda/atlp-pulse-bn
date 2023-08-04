@@ -24,8 +24,9 @@ import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
-const SECRET: string = process.env.SECRET || 'test_secret'
-export type OrganizationType = InstanceType<typeof Organization>
+
+const SECRET: string = process.env.SECRET || 'test_secret';
+export type OrganizationType = InstanceType<typeof Organization>;
 
 enum Status {
   pending = 'pending',
@@ -283,7 +284,7 @@ const resolvers: any = {
         )
         if (
           user?.role === 'trainee' &&
-          user?.cohort?.program?.organization?.name == org?.name
+          user?.organizations?.includes(org?.name)
         ) {
           const token = jwt.sign(
             { userId: user._id, role: user._doc?.role || 'user' },
@@ -297,6 +298,21 @@ const resolvers: any = {
             user: user.toJSON(),
           }
           return data
+        }
+
+        if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
+          const token = jwt.sign(
+            { userId: user._id, role: user._doc?.role || 'user' },
+            SECRET,
+            {
+              expiresIn: '2h',
+            }
+          );
+          const data = {
+            token: token,
+            user: user.toJSON(),
+          };
+          return data;
         }
         const organization: any = await Organization.findOne({
           name: org?.name,
@@ -424,12 +440,13 @@ const resolvers: any = {
         'manager',
         'admin',
         'superAdmin',
-      ]
-      const org = await checkLoggedInOrganization(orgToken)
-      const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
-      const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+        'ttl',
+      ];
+      const org = await checkLoggedInOrganization(orgToken);
+      const roleExists = allRoles.includes(name);
+      if (!roleExists) throw new Error("This role doesn't exist");
+      const userExists = await User.findById(id);
+      if (!userExists) throw new Error("User doesn't exist");
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -473,6 +490,18 @@ const resolvers: any = {
             }
           )
         }
+      } else if (userExists.role == 'ttl') {
+        let teamttl: any = await Team.find({ ttl: userExists?.id });
+        if (teamttl) {
+          await Team.updateMany(
+            { ttl: userExists?.id },
+            {
+              $set: {
+                ttl: null,
+              },
+            }
+          );
+        }
       } else if (userExists.role == 'admin') {
         const userOrg: any = await Organization.find({ admin: userExists?.id })
         if (userOrg) {
@@ -500,6 +529,7 @@ const resolvers: any = {
       )
       return updatedUser
     },
+
     async createUserRole(_: any, { name }: any) {
       const newRole = await UserRole.create({ name })
       return newRole
