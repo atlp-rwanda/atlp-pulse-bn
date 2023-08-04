@@ -12,9 +12,17 @@ const teamSchema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: 'Cohort',
     },
+    ttl: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+    },
     members: {
       type: [mongoose.Types.ObjectId],
       ref: 'User',
+    },
+    startingPhase: {
+      type: Date,
+      required: true,
     },
     active: {
       type: Boolean,

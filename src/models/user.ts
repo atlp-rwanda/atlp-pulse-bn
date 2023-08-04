@@ -28,6 +28,11 @@ const userSchema = new Schema({
     required: false,
     ref: 'Team',
   },
+  status: {
+    type: String,
+    enum: ['active', 'drop'],
+    default: 'active',
+  },
   cohort: {
     type: mongoose.Types.ObjectId,
     required: false,
