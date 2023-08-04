@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import generateTemplate from '../helpers/emailTemplate.helper';
+import nodemailer from 'nodemailer'
+import generateTemplate from '../helpers/emailTemplate.helper'
 
 export const sendEmail = async (
   receiver: any,
@@ -17,7 +17,7 @@ export const sendEmail = async (
       user: senderEmail,
       pass: senderPassword,
     },
-  });
+  })
 
   const mailOptions = {
     to: receiver,
@@ -31,17 +31,12 @@ export const sendEmail = async (
       name: 'Devpulse',
       address: senderEmail as string,
     },
-  };
+  }
 
   return new Promise((res, rej) => {
-    transport.sendMail(mailOptions, (error: any, info: any) => {
-      if (error) {
-        console.log(error);
-        rej('Unable to send request!!');
-      }
-      console.log('Message sent: %s', info);
-      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-      res('');
-    });
-  });
-};
+    transport.sendMail(mailOptions, (error: any) => {
+      if (error) rej('Unable to send request!!!')
+      res('')
+    })
+  })
+}

@@ -329,9 +329,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                      `${oldData?.quantityRemark} ->`,
-                      quantityRemark?.toString(),
-                    ],
+                    `${oldData?.quantityRemark} ->`,
+                    quantityRemark?.toString(),
+                  ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -345,16 +345,16 @@ const ratingResolvers: any = {
                 professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                      `${oldData?.professional_Skills} ->`,
-                      professional_Skills?.toString(),
-                    ],
+                    `${oldData?.professional_Skills} ->`,
+                    professional_Skills?.toString(),
+                  ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                      `${oldData?.professionalRemark} ->`,
-                      professionalRemark?.toString(),
-                    ],
+                    `${oldData?.professionalRemark} ->`,
+                    professionalRemark?.toString(),
+                  ],
               coordinator: context.userId,
               cohort: oldData?.cohort,
               average: oldData?.average,
