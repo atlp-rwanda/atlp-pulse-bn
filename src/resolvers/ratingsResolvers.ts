@@ -478,11 +478,7 @@ const ratingResolvers: any = {
           },
           context: { userId: string }
         ) => {
-          org = await checkLoggedInOrganization(orgToken);
-          await Rating.find({
-            user: user,
-            sprint: sprint,
-          });
+          org = await checkLoggedInOrganization(orgToken)
           const updateReply = await Rating.findOneAndUpdate(
             { user: user, sprint: sprint },
             {

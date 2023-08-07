@@ -86,8 +86,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      
-      (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         'admin',
         'coordinator',
         'trainee',
@@ -218,9 +217,13 @@ const resolvers: any = {
         password,
         organizations: org.name,
       })
-      const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
-        expiresIn: '2h',
-      })
+      const token = jwt.sign(
+        { userId: user._id, email: user.email, role: user?.role },
+        SECRET,
+        {
+          expiresIn: '2h',
+        }
+      )
 
       const newProfile = await Profile.create({
         user,
@@ -302,7 +305,11 @@ const resolvers: any = {
           user?.organizations?.includes(org?.name)
         ) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -317,7 +324,11 @@ const resolvers: any = {
 
         if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -336,7 +347,11 @@ const resolvers: any = {
 
         if (user?.role === 'admin' && organization) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -364,7 +379,11 @@ const resolvers: any = {
           }
           if (checkProgramOrganization) {
             const managerToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
+              {
+                userId: user._id,
+                email: user.email,
+                role: user._doc?.role || 'user',
+              },
               SECRET,
               {
                 expiresIn: '2h',
@@ -401,7 +420,11 @@ const resolvers: any = {
 
           if (checkCohortOrganization) {
             const coordinatorToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
+              {
+                userId: user._id,
+                email: user.email,
+                role: user._doc?.role || 'user',
+              },
               SECRET,
               {
                 expiresIn: '2h',
@@ -417,7 +440,11 @@ const resolvers: any = {
           }
         } else if (user?.role === 'superAdmin') {
           const superAdminToken = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -552,15 +579,10 @@ const resolvers: any = {
 
     //This section is to make org name login to be case insensitive
     async loginOrg(_: any, { orgInput: { name } }: any) {
-<<<<<<< HEAD
       const organization: any = await Organization.findOne({
         name: { $regex: new RegExp('^' + name + '$', 'i') },
       })
 
-=======
-      const organization: any = await Organization.findOne({ name: { $regex: new RegExp('^' + name + '$', 'i') } })
-    
->>>>>>> fadc327 ( feat(case insensitive): devpulse orgname login (#225) (#125))
       if (organization) {
         if (
           organization.status == Status.pending ||
@@ -572,7 +594,7 @@ const resolvers: any = {
           )
         }
       }
-    
+
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -589,7 +611,9 @@ const resolvers: any = {
         )
       }
     },
-  
+
+    // end of making org name to be case insensitive
+
     // end of making org name to be case insensitive
 
     // end of making org name to be case insensitive

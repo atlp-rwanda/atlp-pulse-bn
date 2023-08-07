@@ -1,4 +1,13 @@
-export default function generateTemplate(content: any, title: any, start:any,  id: any , host:string, timeToStart:any,  timeToEnd:any ) {
+/* eslint-disable quotes */
+export default function generateTemplate(
+  content: any,
+  title: any,
+  start: any,
+  id: any,
+  host: string,
+  timeToStart: any,
+  timeToEnd: any
+) {
   return `
       <!doctype html>
       <html lang="en-US">
@@ -53,7 +62,7 @@ export default function generateTemplate(content: any, title: any, start:any,  i
                                               <span
                                                   style="display:inline-block; vertical-align:middle; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;"></span>
                                               <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
-                                                 Follow this link to confirm invitation or cancel it, <strong><a href="${`${process.env.FRONTEND_LINK}/dashboard/calendar/confirm?e=${id}`}">accept or reject</a></strong>
+                                                 Follow this link to confirm invitation or cancel it, <strong><a href="${`${process.env.FRONTEND_LINK}/calendar/confirm?e=${id}`}">accept or reject</a></strong>
                                               </p>
                                                   </p>
                                           </td>
@@ -81,5 +90,5 @@ export default function generateTemplate(content: any, title: any, start:any,  i
           <!-- body table-->
       </body>
       </html>
-  `;
+  `
 }

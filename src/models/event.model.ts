@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 const Event = mongoose.model(
   'Event',
   new Schema({
@@ -33,7 +33,7 @@ const Event = mongoose.model(
     },
     guests: [
       {
-        type: mongoose.Types.ObjectId,
+        type: String,
         ref: 'User',
       },
     ],
@@ -48,10 +48,10 @@ const Event = mongoose.model(
     },
     acceptedUsers: [
       {
-        type: mongoose.Types.ObjectId,
+        type: String,
         ref: 'User',
       },
     ],
   })
-);
-export { Event };
+)
+export { Event }
