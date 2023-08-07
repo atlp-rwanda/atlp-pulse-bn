@@ -1,32 +1,33 @@
-import { Context } from '../context';
-import { checkLoggedInOrganization } from '../helpers/organization.helper';
-import { checkUserLoggedIn } from '../helpers/user.helpers';
-import { Profile, User, UserRole } from '../models/user';
+import { Context } from '../context'
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Profile, User, UserRole } from '../models/user'
+import { ApolloError } from 'apollo-server-core'
 
 const profileResolvers: any = {
   Query: {
     getProfile: async (parent: any, args: any, context: any) => {
-      const { userId }: any = context;
+      const { userId }: any = context
       if (!userId) {
-        throw new Error('You need to login first');
+        throw new Error('You need to login first')
       }
-      const profile = await Profile.findOne({ user: userId });
-      return profile;
+      const profile = await Profile.findOne({ user: userId })
+      return profile
     },
     getAllUsers: async (
       _: any,
       args: {
-        orgToken: string;
+        orgToken: string
       },
       context: Context
     ) => {
-      (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
         'trainee',
         'coordinator',
-      ]);
-      const org = await checkLoggedInOrganization(args.orgToken);
+      ])
+      const org = await checkLoggedInOrganization(args.orgToken)
       const users = await User.find({
         organizations: org?.name,
         role: {
@@ -47,12 +48,12 @@ const profileResolvers: any = {
             },
           },
         },
-      });
-      return users;
+      })
+      return users
     },
     async getAllRoles() {
-      const roles = await UserRole.find({});
-      return roles;
+      const roles = await UserRole.find({})
+      return roles
     },
   },
   Mutation: {
@@ -68,13 +69,12 @@ const profileResolvers: any = {
           biography,
           avatar,
           cover,
-          githubUsername
-        }: any = args;
-        console.log(githubUsername);
-        const { userId }: any = context;
+          githubUsername,
+        }: any = args
+        const { userId }: any = context
 
         if (!userId) {
-          throw new Error('You need to login first');
+          throw new Error('You need to login first')
         }
 
         const updatedProfile = await Profile.findOneAndUpdate(
@@ -89,56 +89,56 @@ const profileResolvers: any = {
             biography: biography,
             avatar: avatar,
             cover: cover,
-            githubUsername: githubUsername
+            githubUsername: githubUsername,
           },
           { new: true, upsert: true }
-        );
-        return updatedProfile;
+        )
+        return updatedProfile
       } catch (error) {
-        throw error;
+        throw error
       }
     },
 
     updateAvatar: async (parent: any, args: any, context: any) => {
       try {
-        const { avatar }: any = args;
-        const { userId }: any = context;
+        const { avatar }: any = args
+        const { userId }: any = context
 
         if (!userId) {
-          throw new Error('You need to login first');
+          throw new Error('You need to login first')
         }
 
         const newAvatar = await Profile.findOneAndUpdate(
           { user: userId },
           { avatar: avatar },
           { new: true, upsert: true }
-        );
-        return newAvatar;
+        )
+        return newAvatar
       } catch (error) {
-        throw error;
+        throw error
       }
     },
 
     updateCoverImage: async (parent: any, args: any, context: any) => {
       try {
-        const { cover }: any = args;
-        const { userId }: any = context;
+        const { cover }: any = args
+        const { userId }: any = context
 
         if (!userId) {
-          throw new Error('You need to login first');
+          throw new Error('You need to login first')
         }
 
         const newCoverImage = await Profile.findOneAndUpdate(
           { user: userId },
           { cover: cover },
           { new: true, upsert: true }
-        );
-        return newCoverImage;
+        )
+        return newCoverImage
       } catch (error) {
-        throw error;
+        throw error
       }
     },
   },
-};
+}
 
-export default profileResolvers;
+export default profileResolvers

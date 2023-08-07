@@ -24,6 +24,8 @@ import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
+export type UserType = InstanceType<typeof User>
+
 const SECRET: string = process.env.SECRET || 'test_secret'
 export type OrganizationType = InstanceType<typeof Organization>
 
@@ -894,6 +896,15 @@ const resolvers: any = {
         return null
       } else {
         return profile
+      }
+    },
+
+    async team(parent: UserType) {
+      const team = await Team.findOne({ members: parent._id })
+      if (!team) {
+        return null
+      } else {
+        return team
       }
     },
   },
