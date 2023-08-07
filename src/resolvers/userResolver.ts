@@ -532,9 +532,10 @@ const resolvers: any = {
       return newRole
     },
 
+    //This section is to make org name login to be case insensitive
     async loginOrg(_: any, { orgInput: { name } }: any) {
-      const organization: any = await Organization.findOne({ name })
-
+      const organization: any = await Organization.findOne({ name: { $regex: new RegExp('^' + name + '$', 'i') } })
+    
       if (organization) {
         if (
           organization.status == Status.pending ||
@@ -546,7 +547,7 @@ const resolvers: any = {
           )
         }
       }
-
+    
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -558,11 +559,13 @@ const resolvers: any = {
         return data
       } else {
         throw new ApolloError(
-          `we do not recognize this organization ${name}`,
+          `We do not recognize this organization ${name}`,
           'UserInputError'
         )
       }
     },
+  
+    // end of making org name to be case insensitive
 
     async requestOrganization(
       _: any,
