@@ -551,10 +551,15 @@ const resolvers: any = {
 
     //This section is to make org name login to be case insensitive
     async loginOrg(_: any, { orgInput: { name } }: any) {
+<<<<<<< HEAD
       const organization: any = await Organization.findOne({
         name: { $regex: new RegExp('^' + name + '$', 'i') },
       })
 
+=======
+      const organization: any = await Organization.findOne({ name: { $regex: new RegExp('^' + name + '$', 'i') } })
+    
+>>>>>>> fadc327 ( feat(case insensitive): devpulse orgname login (#225) (#125))
       if (organization) {
         if (
           organization.status == Status.pending ||
@@ -566,7 +571,7 @@ const resolvers: any = {
           )
         }
       }
-
+    
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -583,6 +588,8 @@ const resolvers: any = {
         )
       }
     },
+  
+    // end of making org name to be case insensitive
 
     // end of making org name to be case insensitive
 
