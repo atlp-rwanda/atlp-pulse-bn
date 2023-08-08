@@ -31,6 +31,7 @@ import { context } from './context'
 import notificationResolver from './resolvers/notification.resolvers'
 import eventResolvers from './resolvers/eventResolver'
 import ticketResolver from './resolvers/ticket.resolver'
+import DocumentationResolvers from './resolvers/DocumentationResolvers';
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -46,7 +47,9 @@ export const resolvers = mergeResolvers([
   notificationResolver,
   eventResolvers,
   ticketResolver,
-])
+  DocumentationResolvers
+
+]);
 export const typeDefs = mergeTypeDefs([
   schemas,
   cohortSchema,
