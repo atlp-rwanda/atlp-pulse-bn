@@ -20,8 +20,29 @@ const ticketSchema = new Schema(
       enum: ['open', 'customer-reply', 'admin-reply', 'closed'],
       default: 'open',
     },
+    replies: [
+      {
+        sender: {
+          type: mongoose.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        receiver: {
+          type: mongoose.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        replyMessage: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true },
     timestamps: true,
   }
 );
