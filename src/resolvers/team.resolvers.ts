@@ -285,12 +285,12 @@ const resolvers = {
       (await checkUserLoggedIn(context))(['admin', 'manager']);
       const findTeam = await Team.findById(args.id);
       if (!findTeam)
-        throw new Error('The Team you want to delete does not exist')
+        throw new Error('The Team you want to delete does not exist');
 
       if (findTeam.members.length > 0) {
         throw new ValidationError(
           `you can't delete ${findTeam.name} becouse it has members`
-        )
+        );
       }
 
       const cohort = await Cohort.findById(findTeam.cohort)
@@ -344,7 +344,7 @@ const resolvers = {
         name !== team.name &&
         (await Team.findOne({ name, organization: org?.id }))
       ) {
-        throw new ValidationError(`Team with name ${name} already exist`)
+        throw new ValidationError(`Team with name ${name} already exist`);
       }
 
       if (role !== 'superAdmin') {

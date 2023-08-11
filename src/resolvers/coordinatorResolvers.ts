@@ -21,20 +21,21 @@ const manageStudentResolvers = {
         ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
 
         // Fetch coordinators based on the role
+        // Fetch coordinators based on the role
         const coordinators = await User.find({
           role: 'coordinator',
-        })
+        });
 
         return coordinators || []
       } catch (error) {
-        const { message } = error as { message: any }
+        const { message } = error as { message: any };
         throw new ApolloError(
           'An error occurred while fetching coordinators.',
           'INTERNAL_SERVER_ERROR',
           {
             detailedMessage: message.toString(),
           }
-        )
+        );
       }
     },
 
@@ -564,7 +565,7 @@ const manageStudentResolvers = {
         await checkLoggedInOrganization(orgToken)
 
       if (!org.name) {
-        throw new Error('You are not logged into an organization')
+        throw new Error('You are not logged into an organization');
       }
 
       const teamToChange = await Team.findOne({
@@ -584,18 +585,18 @@ const manageStudentResolvers = {
       })
 
       if (member && teamToChange && newTeam) {
-        member.team = newTeam?.id
-        member.cohort = newTeam?.cohort
-        await member.save()
+        member.team = newTeam?.id;
+        member.cohort = newTeam?.cohort;
+        await member.save();
         teamToChange.members = teamToChange?.members.filter((user: any) => {
-          return user.toString() !== member?.id.toString()
-        })
-        await teamToChange?.save()
-        newTeam?.members.push(member?.id)
-        await newTeam?.save()
-        return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`
+          return user.toString() !== member?.id.toString();
+        });
+        await teamToChange?.save();
+        newTeam?.members.push(member?.id);
+        await newTeam?.save();
+        return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`;
       } else {
-        throw new Error('This member does not exist')
+        throw new Error('This member does not exist');
       }
     },
     async inviteUser(_: any, { email, orgToken, type }: any, context: any) {
@@ -616,12 +617,12 @@ const manageStudentResolvers = {
       } else {
         const token: any = jwt.sign({ name: org.name, email: email }, SECRET, {
           expiresIn: '2d',
-        })
-        const newToken: any = token.replace(/\./g, '*')
+        });
+        const newToken: any = token.replace(/\./g, '*');
         const link =
           type == 'user'
             ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
-            : `${process.env.REGISTER_ORG_FRONTEND_URL}`
+            : `${process.env.REGISTER_ORG_FRONTEND_URL}`;
         const content = inviteUserTemplate(
           org?.name || '',
           user.email,

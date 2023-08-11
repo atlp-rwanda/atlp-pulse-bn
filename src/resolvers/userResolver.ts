@@ -452,10 +452,10 @@ const resolvers: any = {
       let checkUserOrganization = 0
 
       getAllUsers.forEach((user) => {
-        if (user.organizations.includes(org?.name || '')) {
-          checkUserOrganization++
+        if (user.organizations.includes(org.name)) {
+          checkUserOrganization++;
         }
-      })
+      });
 
       if (checkUserOrganization == 1 && userExists.role == 'admin') {
         throw new Error('There must be at least one admin in the organization')
@@ -534,8 +534,9 @@ const resolvers: any = {
 
     //This section is to make org name login to be case insensitive
     async loginOrg(_: any, { orgInput: { name } }: any) {
-      const organization: any = await Organization.findOne({ name: { $regex: new RegExp('^' + name + '$', 'i') } })
-    
+      const organization: any = await Organization.findOne({ name });
+      console.log(name);
+      // name.lowerCase()
       if (organization) {
         if (
           organization.status == Status.pending ||
@@ -544,10 +545,10 @@ const resolvers: any = {
           throw new ApolloError(
             'Your organization is not approved yet',
             'UserInputError'
-          )
+          );
         }
       }
-    
+
       if (organization) {
         const token = jwt.sign({ name: organization.name }, SECRET, {
           expiresIn: '336h',
@@ -559,13 +560,11 @@ const resolvers: any = {
         return data
       } else {
         throw new ApolloError(
-          `We do not recognize this organization ${name}`,
+          `we do not recognize this organization ${name}`,
           'UserInputError'
-        )
+        );
       }
     },
-  
-    // end of making org name to be case insensitive
 
     async requestOrganization(
       _: any,
@@ -573,60 +572,60 @@ const resolvers: any = {
     ) {
       try {
         // Check if organization name already exists
-        const orgExists = await Organization.findOne({ name })
+        const orgExists = await Organization.findOne({ name });
         if (orgExists) {
           throw new ApolloError(
             `Organization name '${name}' already taken`,
             'UserInputError'
-          )
+          );
         }
 
         // Validate email format
-        const emailExpression = EmailPattern
-        const isValidEmail = emailExpression.test(String(email).toLowerCase())
+        const emailExpression = EmailPattern;
+        const isValidEmail = emailExpression.test(String(email).toLowerCase());
         if (!isValidEmail) {
-          throw new ApolloError('Invalid email format', 'ValidationError')
+          throw new ApolloError('Invalid email format', 'ValidationError');
         }
 
         const existingUser = await User.findOne({
           email,
           role: { $ne: 'admin' },
-        })
-        const admin = await User.findOne({ email, role: 'admin' })
+        });
+        const admin = await User.findOne({ email, role: 'admin' });
         if (existingUser) {
           throw new ApolloError(
             `User with email '${email}' exists and is not an admin. Please use another email.`,
             'UserInputError'
-          )
+          );
         }
         if (admin)
           throw new ApolloError(
             `User with ${email} exists.  Please use another email`,
             'UserInputError'
-          )
+          );
 
-        const password: any = generateRandomPassword()
-        let newAdmin: any = undefined
+        let password: any = generateRandomPassword();
+        let newAdmin: any = undefined;
         if (!admin) {
           newAdmin = await User.create({
             email: email,
             password: password,
             role: 'admin',
             organizations: name,
-          })
+          });
 
           // Create the organization with 'pending' status
-          await Organization.create({
+          const organization = await Organization.create({
             admin: newAdmin._id,
             name,
             description,
             status: 'pending',
-          })
+          });
 
-          const superAdmin = await User.find({ role: 'superAdmin' })
+          const superAdmin = await User.find({ role: 'superAdmin' });
           // Get the email content
-          const content = registrationRequest(email, name, description)
-          const link = process.env.FRONTEND_LINK
+          const content = registrationRequest(email, name, description);
+          const link = 'https://metron-devpulse.vercel.app/';
 
           // Send registration request email to super admin
           await sendEmail(
@@ -636,12 +635,12 @@ const resolvers: any = {
             link,
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS
-          )
+          );
 
-          return 'Organization registration request sent successfully'
+          return 'Organization registration request sent successfully';
         }
       } catch (error) {
-        throw error
+        throw error;
       }
     },
 
@@ -650,31 +649,39 @@ const resolvers: any = {
       { organizationInput: { name, email }, action }: any,
       context: Context
     ) {
+    async RegisterNewOrganization(
+      _: any,
+      { organizationInput: { name, email }, action }: any,
+      context: Context
+    ) {
       // check if requester is super admin
-      ;(await checkUserLoggedIn(context))(['superAdmin'])
-      const orgExists = await Organization.findOne({ name: name, email: email })
+      (await checkUserLoggedIn(context))(['superAdmin']);
+      const orgExists = await Organization.findOne({
+        name: name,
+        email: email,
+      });
       if (action == 'approve') {
         if (!orgExists) {
-          throw new ApolloError('Organization Not found ', 'UserInputError')
+          throw new ApolloError('Organization Not found ', 'UserInputError');
         }
         if (orgExists) {
-          const password: any = generateRandomPassword()
-          const adminID = orgExists.admin
-          const admin = await User.findOne({ _id: adminID })
-          admin?.organizations.push(name)
+          let password: any = generateRandomPassword();
+          let adminID = orgExists.admin;
+          let admin = await User.findOne({ _id: adminID });
+          admin?.organizations.push(name);
 
-          const hash = await bcrypt.hash(password, 10)
-          await User.updateOne({ email: email }, { $set: { password: hash } })
+          const hash = await bcrypt.hash(password, 10);
+          await User.updateOne({ email: email }, { $set: { password: hash } });
 
-          orgExists.status = 'active'
-          await orgExists.save()
+          orgExists.status = 'active';
+          await orgExists.save();
 
           const content = organizationApprovedTemplate(
-            orgExists?.name as string,
+            orgExists.name,
             email,
             password
-          )
-          const link: any = process.env.FRONTEND_LINK
+          );
+          const link: any = 'https://metron-devpulse.vercel.app/';
           await sendEmail(
             email,
             'Organization Approved and created notice',
@@ -682,14 +689,14 @@ const resolvers: any = {
             link,
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS
-          )
+          );
         }
       }
       if (orgExists && action == 'reject') {
-        orgExists.status = 'rejected'
-        await orgExists.save()
-        const content = organizationRejectedTemplate(name)
-        const link: any = process.env.FRONTEND_LINK
+        orgExists.status = 'rejected';
+        await orgExists.save();
+        const content = organizationRejectedTemplate(name);
+        const link: any = 'https://metron-devpulse.vercel.app/';
         await sendEmail(
           email,
           'Organization Request rejected notice',
@@ -697,27 +704,29 @@ const resolvers: any = {
           link,
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS
-        )
+        );
       }
 
-      return orgExists
+      return orgExists;
     },
     async addOrganization(
       _: any,
       { organizationInput: { name, email, description }, action: action }: any,
+      { organizationInput: { name, email, description }, action: action }: any,
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))(['superAdmin'])
+      (await checkUserLoggedIn(context))(['superAdmin']);
       if (action == 'new') {
-        const orgExists = await Organization.findOne({ name: name })
+        const orgExists = await Organization.findOne({ name: name });
         if (orgExists) {
           throw new ApolloError(
             'Organization Name already taken ' + name,
             'UserInputError'
-          )
+          );
         }
       }
+
 
       // check if the requester is already an admin, if not create him
       const admin = await User.findOne({ email, role: 'admin' })
@@ -731,7 +740,7 @@ const resolvers: any = {
         })
       }
 
-      let org: any = await Organization.findOne({ admin: admin?._id })
+      let org: any = await Organization.findOne({ admin: admin?._id });
 
       if (action == 'new') {
         // create the organization
@@ -740,11 +749,11 @@ const resolvers: any = {
           name,
           description,
           status: 'active',
-        })
+        });
       }
       if (action !== 'new') {
-        const hash = await bcrypt.hash(password, 10)
-        await User.updateOne({ email: email }, { $set: { password: hash } })
+        const hash = await bcrypt.hash(password, 10);
+        await User.updateOne({ email: email }, { $set: { password: hash } });
       }
 
       // send the requester an email with his password
@@ -839,20 +848,23 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin'])
+      const { userId } = (await checkUserLoggedIn(context))([
+        'admin',
+        'superAdmin',
+      ]);
 
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error('This Organization doesn\'t exist')
-      await Cohort.deleteMany({ organization: id })
-      await Team.deleteMany({ organization: id })
-      await Phase.deleteMany({ organization: id })
+        throw new Error("This Organization doesn't exist");
+      await Cohort.deleteMany({ organization: id });
+      await Team.deleteMany({ organization: id });
+      await Phase.deleteMany({ organization: id });
       await User.deleteMany({
         organizations: organizationExists.name,
         role: { $ne: 'superAdmin' },
-      })
-      await User.deleteOne({ _id: organizationExists.admin[0] })
+      });
+      await User.deleteOne({ _id: organizationExists.admin[0] });
       const deleteOrg = await Organization.findOneAndDelete({
         _id: id,
       })
@@ -860,8 +872,8 @@ const resolvers: any = {
       if (!deleteOrg)
         throw new Error(
           'Not deleted, something went wrong, please try again later'
-        )
-      return deleteOrg
+        );
+      return deleteOrg;
     },
     async forgotPassword(_: any, { email }: any) {
       const userExists: any = await User.findOne({ email })
