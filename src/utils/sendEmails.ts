@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer'
 import generateTemplate from '../helpers/emailForTrainee.helper'
 
-const mode = process.env.NODE_ENV || 'development'
+// const mode = process.env.NODE_ENV || 'development'
 
 export const sendEmails = async (
   senderEmail: any,
@@ -19,7 +19,7 @@ export const sendEmails = async (
       user: senderEmail,
       pass: senderPassword,
     },
-  });
+  })
 
   const mailOptions = {
     from: senderEmail,

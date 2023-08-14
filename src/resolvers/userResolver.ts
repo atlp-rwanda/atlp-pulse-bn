@@ -17,14 +17,12 @@ import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
 import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
+import { error } from 'console'
 import bcrypt from 'bcryptjs'
 import Team from '../models/team.model'
 import Phase from '../models/phase.model'
-import { Octokit } from '@octokit/rest'
-import { checkloginAttepmts } from '../helpers/logintracker'
-const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET: string = process.env.SECRET || 'test_secret'
 export type OrganizationType = InstanceType<typeof Organization>
 
 enum Status {
@@ -52,108 +50,16 @@ const resolvers: any = {
       return organization[0]
     },
 
-    async getSignupOrganization(_: any, { orgToken }: any) {
-      const org: InstanceType<typeof Organization> =
-        await checkLoggedInOrganization(orgToken)
+    async getSignupOrganization(_: any, { orgToken }: any, context: Context) {
+      let org: InstanceType<typeof Organization>
+      org = await checkLoggedInOrganization(orgToken)
       return Organization.findOne({ name: org.name })
     },
-    async verifyResetPasswordToken(_: any, { token }: any) {
+    async verifyResetPasswordToken(_: any, { token }: any, context: any) {
       const { email } = verify(token, SECRET) as JwtPayload
       const user: any = await User.findOne({ email })
       if (!user) {
         throw new Error('Unauthorized to access the page! ')
-      }
-    },
-
-    async gitHubActivity(
-      _: any,
-      { organisation, username }: any,
-      context: Context
-    ) {
-      ;(await checkUserLoggedIn(context))([
-        'admin',
-        'coordinator',
-        'trainee',
-        'manager',
-      ])
-
-      const organisationExists = await Organization.findOne({
-        name: organisation,
-      })
-      if (!organisationExists)
-        throw new Error('This Organization doesn\'t exist')
-
-      organisation = organisationExists.gitHubOrganisation
-
-      const { data: checkOrg } = await octokit.orgs.get({ org: organisation })
-      if (!checkOrg) {
-        throw new ApolloError(
-          'Organization Not found On GitHub',
-          'UserInputError'
-        )
-      }
-      const { data: checkUser } = await octokit.users.getByUsername({
-        username: username,
-      })
-      if (!checkUser) {
-        throw new ApolloError('User Not found On Github', 'UserInputError')
-      }
-
-      let allRepos: any = []
-
-      allRepos = organisationExists.activeRepos
-
-      let pullRequestOpen = 0
-      let pullRequestClosed = 0
-      let pullRequestMerged = 0
-      let pullRequestTotal = 0
-      let allCommits = 0
-
-      try {
-        for (const repo of allRepos) {
-          try {
-            const response = await octokit.pulls.list({
-              owner: organisation,
-              repo: repo,
-              state: 'all',
-              sort: 'created',
-              direction: 'desc',
-              per_page: 200,
-            })
-
-            const pullRequests = response.data.filter(
-              (pullRequest: any) => pullRequest.user.login === username
-            )
-            pullRequestTotal += pullRequests.length
-            pullRequestOpen += pullRequests.filter(
-              (pullRequest: any) => pullRequest.state === 'open'
-            ).length
-            pullRequestClosed += pullRequests.filter(
-              (pullRequest: any) => pullRequest.state === 'closed'
-            ).length
-            pullRequestMerged += pullRequests.filter(
-              (pullRequest: any) => pullRequest.merged_at != null
-            ).length
-          } catch (error) {
-            console.error(
-              `Error retrieving commits for repository ${repo.name}:`,
-              error
-            )
-            throw new ApolloError(
-              'Error retrieving commits for repository ${repo.name}:'
-            )
-          }
-        }
-      } catch (error) {
-        console.error('Error retrieving repositories:', error)
-      }
-      return {
-        totalCommits: pullRequestMerged,
-        pullRequest: {
-          merged: pullRequestMerged,
-          closed: pullRequestClosed,
-          opened: pullRequestOpen,
-        },
       }
     },
   },
@@ -171,9 +77,9 @@ const resolvers: any = {
         orgToken,
       }: any
     ) {
+      let org: InstanceType<typeof Organization>
       // checkLoggedInOrganization checks if the organization token passed was valid
-      const org: InstanceType<typeof Organization> =
-        await checkLoggedInOrganization(orgToken)
+      org = await checkLoggedInOrganization(orgToken)
 
       const userExists = await User.findOne({ email: email })
       if (userExists)
@@ -240,14 +146,11 @@ const resolvers: any = {
     },
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken, activity } }: any
+      { loginInput: { email, password, orgToken } }: any
     ) {
-      //get location
-      const newActivity = activity || null
-      console.log(newActivity)
       // get the organization if someone  logs in
-      const org: InstanceType<typeof Organization> =
-        await checkLoggedInOrganization(orgToken)
+      let org: InstanceType<typeof Organization>
+      org = await checkLoggedInOrganization(orgToken)
 
       const user: any = await User.findOne({ email }).populate({
         path: 'cohort',
@@ -264,24 +167,11 @@ const resolvers: any = {
           },
         },
       })
-      let attempts = await checkloginAttepmts(Profile, user)
 
       if (await user?.checkPass(password)) {
-        await Profile.findOneAndUpdate(
-          { user },
-          {
-            $push: {
-              activity: { $each: [{ failed: 0, ...newActivity }] },
-            },
-          }
-        )
-        await Profile.findOneAndUpdate(
-          { user },
-          { $push: { activity: { $each: [newActivity] } } }
-        )
         if (
           user?.role === 'trainee' &&
-          user?.organizations?.includes(org?.name)
+          user?.cohort?.program?.organization?.name == org?.name
         ) {
           const token = jwt.sign(
             { userId: user._id, role: user._doc?.role || 'user' },
@@ -295,21 +185,6 @@ const resolvers: any = {
             user: user.toJSON(),
           }
           return data
-        }
-
-        if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
-          );
-          const data = {
-            token: token,
-            user: user.toJSON(),
-          };
-          return data;
         }
         const organization: any = await Organization.findOne({
           name: org?.name,
@@ -339,8 +214,8 @@ const resolvers: any = {
           })
           let checkProgramOrganization: any = false
 
-          for (const element of program) {
-            if (element.organization.name == org?.name) {
+          for (let i = 0; i < program.length; i++) {
+            if (program[i].organization.name == org?.name) {
               checkProgramOrganization = true
             }
           }
@@ -375,8 +250,8 @@ const resolvers: any = {
           })
           let checkCohortOrganization: any = false
 
-          for (const element of cohort) {
-            if (element.program.organization.name == org?.name) {
+          for (let i = 0; i < cohort.length; i++) {
+            if (cohort[i].program.organization.name == org?.name) {
               checkCohortOrganization = true
             }
           }
@@ -411,21 +286,9 @@ const resolvers: any = {
           }
           return superAdminData
         } else {
-          await Profile.findOneAndUpdate(
-            { user },
-            { $push: { activity: { $each: [newActivity] } } }
-          )
           throw new Error('You are not part of the organization you logged in.')
         }
       } else {
-        await Profile.findOneAndUpdate(
-          { user },
-          {
-            $push: {
-              activity: { $each: [{ failed: attempts, ...newActivity }] },
-            },
-          }
-        )
         throw new ApolloError('Invalid credential', 'UserInputError')
       }
     },
@@ -437,13 +300,12 @@ const resolvers: any = {
         'manager',
         'admin',
         'superAdmin',
-        'ttl',
-      ];
-      const org = await checkLoggedInOrganization(orgToken);
-      const roleExists = allRoles.includes(name);
-      if (!roleExists) throw new Error('This role doesn\'t exist');
-      const userExists = await User.findById(id);
-      if (!userExists) throw new Error('User doesn\'t exist');
+      ]
+      const org = await checkLoggedInOrganization(orgToken)
+      const roleExists = allRoles.includes(name)
+      if (!roleExists) throw new Error("This role doesn't exist")
+      const userExists = await User.findById(id)
+      if (!userExists) throw new Error("User doesn't exist")
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -453,16 +315,16 @@ const resolvers: any = {
 
       getAllUsers.forEach((user) => {
         if (user.organizations.includes(org.name)) {
-          checkUserOrganization++;
+          checkUserOrganization++
         }
-      });
+      })
 
       if (checkUserOrganization == 1 && userExists.role == 'admin') {
         throw new Error('There must be at least one admin in the organization')
       }
 
       if (userExists.role == 'coordinator') {
-        const userCohort: any = await Cohort.find({
+        let userCohort: any = await Cohort.find({
           coordinator: userExists?.id,
         })
         if (userCohort) {
@@ -476,7 +338,7 @@ const resolvers: any = {
           )
         }
       } else if (userExists.role == 'manager') {
-        const userProgram: any = await Program.find({ manager: userExists?.id })
+        let userProgram: any = await Program.find({ manager: userExists?.id })
         if (userProgram) {
           await Program.updateMany(
             { manager: userExists?.id },
@@ -487,20 +349,8 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'ttl') {
-        let teamttl: any = await Team.find({ ttl: userExists?.id });
-        if (teamttl) {
-          await Team.updateMany(
-            { ttl: userExists?.id },
-            {
-              $set: {
-                ttl: null,
-              },
-            }
-          );
-        }
       } else if (userExists.role == 'admin') {
-        const userOrg: any = await Organization.find({ admin: userExists?.id })
+        let userOrg: any = await Organization.find({ admin: userExists?.id })
         if (userOrg) {
           await Organization.findByIdAndUpdate(userOrg.id, {
             admin: userOrg[0].admin.filter(
@@ -526,16 +376,14 @@ const resolvers: any = {
       )
       return updatedUser
     },
-
     async createUserRole(_: any, { name }: any) {
       const newRole = await UserRole.create({ name })
       return newRole
     },
 
-    //This section is to make org name login to be case insensitive
     async loginOrg(_: any, { orgInput: { name } }: any) {
-      const organization: any = await Organization.findOne({ name });
-      console.log(name);
+      const organization: any = await Organization.findOne({ name })
+      console.log(name)
       // name.lowerCase()
       if (organization) {
         if (
@@ -545,7 +393,7 @@ const resolvers: any = {
           throw new ApolloError(
             'Your organization is not approved yet',
             'UserInputError'
-          );
+          )
         }
       }
 
@@ -562,7 +410,7 @@ const resolvers: any = {
         throw new ApolloError(
           `we do not recognize this organization ${name}`,
           'UserInputError'
-        );
+        )
       }
     },
 
@@ -572,47 +420,47 @@ const resolvers: any = {
     ) {
       try {
         // Check if organization name already exists
-        const orgExists = await Organization.findOne({ name });
+        const orgExists = await Organization.findOne({ name })
         if (orgExists) {
           throw new ApolloError(
             `Organization name '${name}' already taken`,
             'UserInputError'
-          );
+          )
         }
 
         // Validate email format
-        const emailExpression = EmailPattern;
-        const isValidEmail = emailExpression.test(String(email).toLowerCase());
+        const emailExpression = EmailPattern
+        const isValidEmail = emailExpression.test(String(email).toLowerCase())
         if (!isValidEmail) {
-          throw new ApolloError('Invalid email format', 'ValidationError');
+          throw new ApolloError('Invalid email format', 'ValidationError')
         }
 
         const existingUser = await User.findOne({
           email,
           role: { $ne: 'admin' },
-        });
-        const admin = await User.findOne({ email, role: 'admin' });
+        })
+        const admin = await User.findOne({ email, role: 'admin' })
         if (existingUser) {
           throw new ApolloError(
             `User with email '${email}' exists and is not an admin. Please use another email.`,
             'UserInputError'
-          );
+          )
         }
         if (admin)
           throw new ApolloError(
             `User with ${email} exists.  Please use another email`,
             'UserInputError'
-          );
+          )
 
-        let password: any = generateRandomPassword();
-        let newAdmin: any = undefined;
+        let password: any = generateRandomPassword()
+        let newAdmin: any = undefined
         if (!admin) {
           newAdmin = await User.create({
             email: email,
             password: password,
             role: 'admin',
             organizations: name,
-          });
+          })
 
           // Create the organization with 'pending' status
           const organization = await Organization.create({
@@ -620,12 +468,12 @@ const resolvers: any = {
             name,
             description,
             status: 'pending',
-          });
+          })
 
-          const superAdmin = await User.find({ role: 'superAdmin' });
+          const superAdmin = await User.find({ role: 'superAdmin' })
           // Get the email content
-          const content = registrationRequest(email, name, description);
-          const link = 'https://metron-devpulse.vercel.app/';
+          const content = registrationRequest(email, name, description)
+          const link = 'https://metron-devpulse.vercel.app/'
 
           // Send registration request email to super admin
           await sendEmail(
@@ -635,12 +483,12 @@ const resolvers: any = {
             link,
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS
-          );
+          )
 
-          return 'Organization registration request sent successfully';
+          return 'Organization registration request sent successfully'
         }
       } catch (error) {
-        throw error;
+        throw error
       }
     },
 
@@ -649,39 +497,34 @@ const resolvers: any = {
       { organizationInput: { name, email }, action }: any,
       context: Context
     ) {
-    async RegisterNewOrganization(
-      _: any,
-      { organizationInput: { name, email }, action }: any,
-      context: Context
-    ) {
       // check if requester is super admin
-      (await checkUserLoggedIn(context))(['superAdmin']);
+      ;(await checkUserLoggedIn(context))(['superAdmin'])
       const orgExists = await Organization.findOne({
         name: name,
         email: email,
-      });
+      })
       if (action == 'approve') {
         if (!orgExists) {
-          throw new ApolloError('Organization Not found ', 'UserInputError');
+          throw new ApolloError('Organization Not found ', 'UserInputError')
         }
         if (orgExists) {
-          let password: any = generateRandomPassword();
-          let adminID = orgExists.admin;
-          let admin = await User.findOne({ _id: adminID });
-          admin?.organizations.push(name);
+          let password: any = generateRandomPassword()
+          let adminID = orgExists.admin
+          let admin = await User.findOne({ _id: adminID })
+          admin?.organizations.push(name)
 
-          const hash = await bcrypt.hash(password, 10);
-          await User.updateOne({ email: email }, { $set: { password: hash } });
+          const hash = await bcrypt.hash(password, 10)
+          await User.updateOne({ email: email }, { $set: { password: hash } })
 
-          orgExists.status = 'active';
-          await orgExists.save();
+          orgExists.status = 'active'
+          await orgExists.save()
 
           const content = organizationApprovedTemplate(
             orgExists.name,
             email,
             password
-          );
-          const link: any = 'https://metron-devpulse.vercel.app/';
+          )
+          const link: any = 'https://metron-devpulse.vercel.app/'
           await sendEmail(
             email,
             'Organization Approved and created notice',
@@ -689,14 +532,14 @@ const resolvers: any = {
             link,
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS
-          );
+          )
         }
       }
       if (orgExists && action == 'reject') {
-        orgExists.status = 'rejected';
-        await orgExists.save();
-        const content = organizationRejectedTemplate(name);
-        const link: any = 'https://metron-devpulse.vercel.app/';
+        orgExists.status = 'rejected'
+        await orgExists.save()
+        const content = organizationRejectedTemplate(name)
+        const link: any = 'https://metron-devpulse.vercel.app/'
         await sendEmail(
           email,
           'Organization Request rejected notice',
@@ -704,33 +547,31 @@ const resolvers: any = {
           link,
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS
-        );
+        )
       }
 
-      return orgExists;
+      return orgExists
     },
     async addOrganization(
       _: any,
       { organizationInput: { name, email, description }, action: action }: any,
-      { organizationInput: { name, email, description }, action: action }: any,
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      (await checkUserLoggedIn(context))(['superAdmin']);
+      ;(await checkUserLoggedIn(context))(['superAdmin'])
       if (action == 'new') {
-        const orgExists = await Organization.findOne({ name: name });
+        const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
           throw new ApolloError(
             'Organization Name already taken ' + name,
             'UserInputError'
-          );
+          )
         }
       }
 
-
       // check if the requester is already an admin, if not create him
       const admin = await User.findOne({ email, role: 'admin' })
-      const password: any = generateRandomPassword()
+      let password: any = generateRandomPassword()
       let newAdmin: any = undefined
       if (!admin) {
         newAdmin = await User.create({
@@ -740,7 +581,7 @@ const resolvers: any = {
         })
       }
 
-      let org: any = await Organization.findOne({ admin: admin?._id });
+      let org: any = await Organization.findOne({ admin: admin?._id })
 
       if (action == 'new') {
         // create the organization
@@ -749,16 +590,16 @@ const resolvers: any = {
           name,
           description,
           status: 'active',
-        });
+        })
       }
       if (action !== 'new') {
-        const hash = await bcrypt.hash(password, 10);
-        await User.updateOne({ email: email }, { $set: { password: hash } });
+        const hash = await bcrypt.hash(password, 10)
+        await User.updateOne({ email: email }, { $set: { password: hash } })
       }
 
       // send the requester an email with his password
       const content = organizationCreatedTemplate(org.name, email, password)
-      const link: any = process.env.FRONTEND_LINK
+      const link: any = 'https://metron-devpulse.vercel.app/'
       // send an email to the user who desire the organization
       await sendEmail(
         email,
@@ -772,99 +613,24 @@ const resolvers: any = {
       return org
     },
 
-    async updateGithubOrganisation(
-      _: any,
-      { name, gitHubOrganisation }: any,
-      context: Context
-    ) {
-      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin'])
-
-      const org = await Organization.findOne({ name: name })
-      if (!org) {
-        throw new ApolloError('Organization Not found', 'UserInputError')
-      }
-
-      org.gitHubOrganisation = gitHubOrganisation
-      await org.save()
-
-      return {
-        admin: org.admin,
-        name: org.name,
-        description: org.description,
-        status: org.status,
-        gitHubOrganisation: org.gitHubOrganisation,
-      }
-    },
-
-    async addActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
-
-      const checkOrg = await Organization.findOne({ name: name })
-      if (!checkOrg) {
-        throw new ApolloError('Organization Not found', 'UserInputError')
-      }
-
-      const allRepos = checkOrg.activeRepos
-      if (allRepos.includes(repoUrl)) {
-        throw new ApolloError('Repository Already Exists', 'UserInputError')
-      }
-
-      checkOrg.activeRepos.push(repoUrl)
-      await checkOrg.save()
-
-      return {
-        admin: checkOrg.admin,
-        name: checkOrg.name,
-        description: checkOrg.description,
-        status: checkOrg.status,
-      }
-    },
-
-    async deleteActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
-
-      const org = await Organization.findOne({ name: name })
-      if (!org) {
-        throw new ApolloError('Organization Not found', 'UserInputError')
-      }
-
-      const allRepos = org.activeRepos
-      if (!allRepos.includes(repoUrl)) {
-        throw new ApolloError('Repository Not Found', 'UserInputError')
-      }
-
-      const index = allRepos.indexOf(repoUrl)
-
-      allRepos.splice(index, 1)
-
-      await org.save()
-
-      return {
-        admin: org.admin,
-        name: org.name,
-        description: org.description,
-        status: org.status,
-      }
-    },
-
     async deleteOrganization(_: any, { id }: any, context: Context) {
       const { userId } = (await checkUserLoggedIn(context))([
         'admin',
         'superAdmin',
-      ]);
+      ])
 
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist");
-      await Cohort.deleteMany({ organization: id });
-      await Team.deleteMany({ organization: id });
-      await Phase.deleteMany({ organization: id });
+        throw new Error("This Organization doesn't exist")
+      await Cohort.deleteMany({ organization: id })
+      await Team.deleteMany({ organization: id })
+      await Phase.deleteMany({ organization: id })
       await User.deleteMany({
         organizations: organizationExists.name,
         role: { $ne: 'superAdmin' },
-      });
-      await User.deleteOne({ _id: organizationExists.admin[0] });
+      })
+      await User.deleteOne({ _id: organizationExists.admin[0] })
       const deleteOrg = await Organization.findOneAndDelete({
         _id: id,
       })
@@ -872,10 +638,10 @@ const resolvers: any = {
       if (!deleteOrg)
         throw new Error(
           'Not deleted, something went wrong, please try again later'
-        );
-      return deleteOrg;
+        )
+      return deleteOrg
     },
-    async forgotPassword(_: any, { email }: any) {
+    async forgotPassword(_: any, { email }: any, context: any) {
       const userExists: any = await User.findOne({ email })
 
       if (userExists) {
@@ -885,7 +651,7 @@ const resolvers: any = {
         const newToken: any = token.replaceAll('.', '*')
         const link = `${process.env.RESET_PASSWORD_FRONTEND_URL}/${newToken}`
         const content = forgotPasswordTemplate(link)
-        const someSpace = process.env.FRONTEND_LINK
+        const someSpace = ' '
         await sendEmail(
           email,
           'Proceed With Reset Password',
@@ -900,12 +666,16 @@ const resolvers: any = {
         throw new Error('Something went wrong!\nCheck your credentials')
       }
     },
-    async resetUserPassword(_: any, { password, confirmPassword, token }: any) {
+    async resetUserPassword(
+      _: any,
+      { password, confirmPassword, token }: any,
+      context: any
+    ) {
       const { email } = verify(token, SECRET) as JwtPayload
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error('User doesn\'t exist! ')
+          throw new Error("User doesn't exist! ")
         }
         user.password = password
         await user.save()
@@ -942,3 +712,13 @@ const resolvers: any = {
   },
 }
 export default resolvers
+function decodeForgotPasswordToken(
+  _: any,
+  any: any,
+  arg2: { token: any },
+  any1: any,
+  context: any,
+  any2: any
+) {
+  throw new Error('Function not implemented.')
+}
