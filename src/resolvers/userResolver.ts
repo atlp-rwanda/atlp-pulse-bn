@@ -382,7 +382,10 @@ const resolvers: any = {
     },
 
     async loginOrg(_: any, { orgInput: { name } }: any) {
-      const organization: any = await Organization.findOne({ name })
+      const lowerCaseName = name.toLowerCase()
+      const organization: any = await Organization.findOne({
+        name: lowerCaseName,
+      })
       console.log(name)
       // name.lowerCase()
       if (organization) {
