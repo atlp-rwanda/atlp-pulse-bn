@@ -117,6 +117,7 @@ const resolvers = {
           'manager',
           'coordinator',
           'trainee',
+          'ttl',
           'users',
         ])
 
