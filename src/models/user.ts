@@ -39,6 +39,11 @@ const userSchema = new Schema(
       required: false,
       ref: 'Cohort',
     },
+    program: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref: 'Program',
+    },
     organizations: {
       type: [String],
       required: true,
