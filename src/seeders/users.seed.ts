@@ -4,8 +4,6 @@ import { User, Profile } from '../models/user'
 const organizations: any = {
   Andela: [],
   Irembo: [],
-  KLab: [],
-  BK: [],
 }
 
 const seedUsers = async () => {
