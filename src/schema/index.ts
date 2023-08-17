@@ -502,5 +502,58 @@ const Schema = gql`
   type Query {
     getEvents(authToken: String): [Event]
   }
+  type Doc{
+    title: String!
+    description: String!  
+  }
+
+  type Documentation {
+    id: ID!
+    title: String!
+    for: String!
+    description: String!
+    subDocuments: [Doc]!
+  }
+  
+  type DocumentationInput {
+    title: String!
+    for: String!
+    description: String!
+  }
+  type Query {
+    getDocumentations: [Documentation]
+
+  }
+
+  type Mutation {
+    addDocumentation(
+      title: String!
+      for: String!
+      description: String!
+    ): Documentation!
+    updateDocumentation(
+      id: ID!
+      title: String
+      for: String
+      description: String
+    ): Documentation!
+    deleteDocumentation(id: ID!): String!
+
+    addSubDocumentation(
+      id: ID!
+      title: String!
+      description: String!
+    ): Documentation!
+    deleteSubDocumentation(
+      id: ID!
+      title: String!
+      description: String!
+    ): Documentation!
+
+
+
+
+
+  }
 `
 export default Schema

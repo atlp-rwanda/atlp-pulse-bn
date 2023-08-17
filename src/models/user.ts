@@ -67,8 +67,10 @@ userSchema.methods.checkPass = async function (password: string) {
   return pass
 }
 
-userSchema.pre('remove', async function (next) {
-  const prof = await Profile.findOne({ user: this._id })
+
+
+userSchema.pre('deleteOne',{ document: true, query: false }, async function (next) {
+  const prof = await Profile.findOne({ user: this._id });
   if (prof) await prof.remove()
   return next()
 })
