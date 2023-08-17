@@ -542,7 +542,6 @@ const Schema = gql`
     description: String!
     subDocuments: [Doc]!
   }
-
   type DocumentationInput {
     title: String!
     for: String!
