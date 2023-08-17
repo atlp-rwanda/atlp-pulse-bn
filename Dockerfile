@@ -5,8 +5,8 @@ COPY package*.json ./
 RUN npm ci 
 ENV NODE_ENV=production
 ENV MONGO_PROD_DB=mongodb+srv://doadmin:e617MB4IVm5rC092@pulse-prod-db-70e37aa6.mongo.ondigitalocean.com/devpulse-backend-staging?tls=true&authSource=admin&replicaSet=pulse-prod-db
-ENV ADMIN_EMAIL=no-reply@devpulse.org
-ENV ADMIN_PASS=brHC7an5_2E)qW4
+ENV ADMIN_EMAIL=devpulseadmn@gmail.com
+ENV ADMIN_PASS=yptbizlxrzfnyzon
 ENV REGISTER_FRONTEND_URL=https://beta.devpulse.org/register
 ENV REGISTER_ORG_FRONTEND_URL=https://beta.devpulse.org/signup/org
 COPY . .
