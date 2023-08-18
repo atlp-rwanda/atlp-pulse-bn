@@ -41,17 +41,17 @@ const resolvers: any = {
 
       return Organization.find()
     },
-    async getUpdatedEmailNotifications(_: any, { id }: any, context: Context){
-      const user: any = await User.findOne({ _id: id });
+    async getUpdatedEmailNotifications(_: any, { id }: any, context: Context) {
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
       return user.emailNotifications
     },
-    async getUpdatedPushNotifications(_: any, { id }: any, context: Context){
-      const user: any = await User.findOne({ _id: id });
+    async getUpdatedPushNotifications(_: any, { id }: any, context: Context) {
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
       return user.pushNotifications
     },
@@ -905,33 +905,33 @@ const resolvers: any = {
       }
     },
     async updateEmailNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id });
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
-      const updatedEmailNotifications = !user.emailNotifications;
+      const updatedEmailNotifications = !user.emailNotifications
       const updateEmailPreference = await User.updateOne(
         { _id: id },
-    { emailNotifications: updatedEmailNotifications }
+        { emailNotifications: updatedEmailNotifications }
       )
-      return "updated successful"
+      return 'updated successful'
     },
     async updatePushNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id });
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
-      user.pushNotifications = !user.pushNotifications;
-      await user.save();
-      const updatedPushNotifications = user.pushNotifications;
-      return "updated successful"
+      user.pushNotifications = !user.pushNotifications
+      await user.save()
+      const updatedPushNotifications = user.pushNotifications
+      return 'updated successful'
     },
     async resetUserPassword(
       _: any,
       { password, confirmPassword, token }: any,
       context: any
     ) {
-      const { email } = verify(token, SECRET) as JwtPayload;
+      const { email } = verify(token, SECRET) as JwtPayload
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
