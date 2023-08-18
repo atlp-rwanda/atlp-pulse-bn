@@ -95,6 +95,7 @@ const Schema = gql`
     cover: String
     activity: [Activity]
     githubUsername: String
+    resume:String
   }
   type Activity {
     date: String!
@@ -275,6 +276,7 @@ const Schema = gql`
 
   type Mutation {
     createUserRole(name: String!): UserRole!
+    uploadResume(userId: ID!, resume: String!): Profile
     createUser(
       firstName: String!
       lastName: String!
