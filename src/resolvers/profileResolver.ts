@@ -64,6 +64,35 @@ const profileResolvers: any = {
     },
   },
   Mutation: {
+
+
+    uploadResume: async (parent: any, args: any, context: Context) => {
+      try {
+        const { userId, resume } = args;
+        
+       
+        if (!context.userId || context.userId !== userId) {
+          throw new Error('Unauthorized. You can only upload your own resume.');
+        }
+
+       
+        const profile = await Profile.findOne({ user: userId });
+
+        if (!profile) {
+          throw new Error('Profile not found for the user.');
+        }
+
+     
+        profile.resume = resume;
+        await profile.save();
+
+        return profile;
+      } catch (error) {
+        throw new Error('Failed to upload resume: ' + error);
+      }
+    },
+
+
     updateProfile: async (parent: any, args: any, context: any) => {
       try {
         const {
