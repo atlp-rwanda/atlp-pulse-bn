@@ -187,8 +187,38 @@ const organizationSchema = new Schema({
   },
 })
 
+const AttendanceSchema = new Schema({
+  week: {
+    type: String,
+    required: true,
+  },
+  coordinatorId: {
+    type: [mongoose.Types.ObjectId],
+    ref: 'User',
+  },
+  trainees: [
+    {
+      traineeId: {
+        type: [mongoose.Types.ObjectId],
+        ref: 'User',
+      },
+      traineeEmail: {
+        type: String,
+        requried: false,
+      },
+      status: [
+        {
+          days: String,
+          value: Number,
+        },
+      ],
+    },
+  ],
+})
+
 const User = model('User', userSchema)
 const Profile = mongoose.model('Profile', profileSchema)
 const Organization = model('Organization', organizationSchema)
+const Attendance = mongoose.model('Attendance', AttendanceSchema)
 
-export { User, Profile, UserRole, Organization }
+export { User, Profile, UserRole, Organization, Attendance }

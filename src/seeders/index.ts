@@ -9,6 +9,7 @@ import seedTeams from './teams.seed'
 import seedNotification from './notification.seed'
 import seedRatings from './rating.seed'
 import seedTickets from './ticket.seed'
+import seedAttendance from './attendance.seed';
 
 connect().then(async () => {
   try {
@@ -22,6 +23,7 @@ connect().then(async () => {
     await seedNotification()
     await seedsystemRatings()
     await seedRatings()
+    await seedAttendance()
 
     console.log('Database seeded Successfully')
     process.exit()
