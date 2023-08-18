@@ -1,6 +1,7 @@
-import { Notification } from '../models/notification.model'
-import { Context } from './../context'
-import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Notification } from '../models/notification.model';
+import { Context } from './../context';
+import { checkUserLoggedIn } from '../helpers/user.helpers';
+import { User} from '../models/user';
 
 const notificationResolver = {
   Mutation: {
