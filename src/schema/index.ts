@@ -388,7 +388,6 @@ const Schema = gql`
       token: String!
     ): String!
 
-
     addActiveRepostoOrganization(name: String!, repoUrl: String!): Organization!
 
     deleteActiveRepostoOrganization(
@@ -565,6 +564,61 @@ const Schema = gql`
   type Query {
       getUpdatedEmailNotifications(id: ID!): Boolean!
       getUpdatedPushNotifications(id: ID!): Boolean!
+    }
+
+    type Attendance {
+      id: ID!
+      week: String!
+      coordinator: [String!]
+      trainees: [TraineeAttendance!]!
+    }
+  
+    type TraineeAttendance {
+      traineeId: [String!]
+      traineeEmail: String!
+      status: [AttendanceStatus!]!
+    }
+  
+    type AttendanceStatus {
+      days: String!
+      value: Int!
+    }
+  
+    type AttendanceStats {
+      week: String!
+      traineesStatistics: [TraineeStats]
+    }
+  
+    type TraineeStats {
+      traineeId: [String!]
+      attendancePerc: String!
+    }
+  
+    type Query {
+      getTraineeAttendance(orgToken: String): [Attendance]
+      getAttendanceStats(orgToken: String!): [AttendanceStats]
+    }
+    type Mutation {
+      recordAttendance(
+        week: String!
+        days: String!
+        trainees: [TraineeInput!]!
+        orgToken: String!
+      ): Attendance
+  
+      deleteAttendance(
+        week: String!
+        days: String!
+        traineeId: ID!
+        orgToken: String!
+      ): Attendance
+    }
+    input StatusInput {
+      value: String!
+    }
+    input TraineeInput {
+      traineeId: ID!
+      status: [StatusInput]
     }
 `;
 export default Schema;

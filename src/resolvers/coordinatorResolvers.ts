@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server'
 import Cohort from '../models/cohort.model'
 import * as jwt from 'jsonwebtoken'
-import { Organization, User } from '../models/user'
+import { Attendance, Organization, User } from '../models/user'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
@@ -10,8 +10,20 @@ import { sendEmail } from '../utils/sendEmail'
 import { Context } from './../context'
 import Program from '../models/program.model'
 import Team from '../models/team.model'
+import mongoose from 'mongoose'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
+
+interface TraineeStatus {
+  days: string
+  value: number
+}
+
+interface Trainee {
+  traineeId: mongoose.Types.ObjectId
+  traineeEmail: string
+  status: TraineeStatus[]
+}
 
 const manageStudentResolvers = {
   Query: {
@@ -369,6 +381,55 @@ const manageStudentResolvers = {
           }
 
           if (!user.team) {
+            // add trainee to attendance
+
+            if (role === 'coordinator') {
+              const attendanceRecords: any = Attendance.find({
+                coordinatorId: userId,
+              })
+
+              const traineeArray = (await attendanceRecords).map(
+                (data: any) => data.trainees
+              )
+
+              let traineeEmailExists = false
+              for (const weekTrainees of traineeArray) {
+                for (const trainee of weekTrainees) {
+                  if (trainee.traineeEmail === email) {
+                    traineeEmailExists = true
+                    break
+                  }
+                }
+              }
+              if (!traineeEmailExists) {
+                // create new trainee
+                const newTrainee: Trainee = {
+                  traineeId: new mongoose.Types.ObjectId(),
+                  traineeEmail: email,
+                  status: [],
+                }
+
+                const attendanceLength: any = await Attendance.find({
+                  coordinatorId: userId,
+                })
+
+                if (attendanceLength.length > 0) {
+                  for (const attendData of attendanceLength) {
+                    attendData.trainees.push(newTrainee)
+                    await attendData.save()
+                  }
+                } else {
+                  // If no attendance record exists, create a new one
+                  const newAttendRecord = new Attendance({
+                    week: 1,
+                    coordinatorId: [userId],
+                    trainees: [newTrainee],
+                  })
+                  await newAttendRecord.save()
+                }
+              }
+            }
+
             user.team = team.id
             user.cohort = team.cohort.id
             user.role = 'trainee'
@@ -432,7 +493,7 @@ const manageStudentResolvers = {
       context: any
     ) {
       // coordinator validation
-      const { userId } = (await checkUserLoggedIn(context))([
+      const { userId, role } = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
         'coordinator',
@@ -487,6 +548,30 @@ const manageStudentResolvers = {
         })
 
         if (memberCheck[0].toString() == checkMember.id.toString()) {
+          // remove trainee to attendance
+          if (role === 'coordinator') {
+            const traineeAttendance: any = await Attendance.findOne({
+              coordinatorId: userId,
+            })
+            const Attendances: any[] = await Attendance.find({
+              coordinatorId: userId,
+            })
+            const traineeExist = traineeAttendance.trainees.findIndex(
+              (data: any) => data.traineeEmail === email
+            )
+
+            if (traineeExist !== -1) {
+              for (const attendance of Attendances) {
+                for (let i = 0; i < attendance.trainees.length; i++) {
+                  if (attendance.trainees[i].traineeEmail === email) {
+                    attendance.trainees.splice(i, 1)
+                    await attendance.save()
+                  }
+                }
+              }
+            }
+          }
+
           checkMember.team.members = checkMember.team?.members.filter(
             (member: any) => {
               return member.toString() !== checkMember.id.toString()
