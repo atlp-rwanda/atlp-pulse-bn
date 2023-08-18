@@ -41,6 +41,20 @@ const resolvers: any = {
 
       return Organization.find()
     },
+    async getUpdatedEmailNotifications(_: any, { id }: any, context: Context){
+      const user: any = await User.findOne({ _id: id });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user.emailNotifications
+    },
+    async getUpdatedPushNotifications(_: any, { id }: any, context: Context){
+      const user: any = await User.findOne({ _id: id });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user.pushNotifications
+    },
     async getOrganization(_: any, { name }: any, context: Context) {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'superAdmin',
@@ -891,8 +905,34 @@ const resolvers: any = {
         throw new Error('Something went wrong!\nCheck your credentials')
       }
     },
-    async resetUserPassword(_: any, { password, confirmPassword, token }: any) {
-      const { email } = verify(token, SECRET) as JwtPayload
+    async updateEmailNotifications(_: any, { id }: any, context: Context) {
+      const user: any = await User.findOne({ _id: id });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const updatedEmailNotifications = !user.emailNotifications;
+      const updateEmailPreference = await User.updateOne(
+        { _id: id },
+    { emailNotifications: updatedEmailNotifications }
+      )
+      return "updated successful"
+    },
+    async updatePushNotifications(_: any, { id }: any, context: Context) {
+      const user: any = await User.findOne({ _id: id });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      user.pushNotifications = !user.pushNotifications;
+      await user.save();
+      const updatedPushNotifications = user.pushNotifications;
+      return "updated successful"
+    },
+    async resetUserPassword(
+      _: any,
+      { password, confirmPassword, token }: any,
+      context: any
+    ) {
+      const { email } = verify(token, SECRET) as JwtPayload;
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {

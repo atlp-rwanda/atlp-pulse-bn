@@ -54,6 +54,8 @@ const Schema = gql`
     cohort: Cohort
     program: Program
     organizations: [String!]!
+    pushNotifications: Boolean!
+    emailNotifications: Boolean!
   }
   input RegisterInput {
     email: String!
@@ -551,11 +553,18 @@ const Schema = gql`
       title: String!
       description: String!
     ): Documentation!
-
-
-
-
-
   }
-`
-export default Schema
+  type Mutation{
+    updatePushNotifications(
+      id: ID!
+    ):String
+    updateEmailNotifications(
+      id: ID!
+    ):String
+  }
+  type Query {
+      getUpdatedEmailNotifications(id: ID!): Boolean!
+      getUpdatedPushNotifications(id: ID!): Boolean!
+    }
+`;
+export default Schema;

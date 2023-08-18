@@ -48,6 +48,14 @@ const userSchema = new Schema(
       type: [String],
       required: true,
     },
+    pushNotifications: {
+      type: Boolean, 
+      default: true, 
+    },
+    emailNotifications: {
+      type: Boolean, 
+      default: true, 
+    },
   },
 
   {
@@ -56,11 +64,11 @@ const userSchema = new Schema(
   }
 )
 
-userSchema.virtual('profile', {
-  ref: 'Profile',
-  foreignField: 'user',
-  localField: '_id',
-})
+  userSchema.virtual('profile', {
+    ref: 'Profile',
+    foreignField: 'user',
+    localField: '_id',
+  })
 
 userSchema.methods.checkPass = async function (password: string) {
   const pass = await bcrypt.compare(password, this.password)

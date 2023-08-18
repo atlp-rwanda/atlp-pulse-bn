@@ -200,12 +200,12 @@ const ratingResolvers: any = {
           context: { userId: string }
         ) => {
           // get the organization if someone  logs in
-          org = await checkLoggedInOrganization(orgToken)
-          const userExists = await User.findOne({ _id: user })
-          if (!userExists) throw new Error('User does not exist!')
-          const Kohort = await Cohort.findOne({ _id: cohort })
-          if (!Kohort) throw new Error('User does not exist!')
-          const findSprint = await Rating.find({ sprint: sprint, user: user })
+          org = await checkLoggedInOrganization(orgToken);
+          const userExists: any = await User.findOne({ _id: user });
+          if (!userExists) throw new Error('User does not exist!');
+          const Kohort = await Cohort.findOne({ _id: cohort });
+          if (!Kohort) throw new Error('User does not exist!');
+          const findSprint = await Rating.find({ sprint: sprint, user: user });
           if (findSprint.length !== 0)
             throw new Error('The sprint has recorded ratings')
 
@@ -236,8 +236,9 @@ const ratingResolvers: any = {
             average,
             coordinator: context.userId,
             organization: org,
-          })
-          const coordinator = await User.findOne({ _id: context.userId })
+          });
+          const coordinator = await User.findOne({ _id: context.userId });
+  
           const addNotifications = await Notification.create({
             receiver: user,
             message: 'Have rated you; check your scores.',
@@ -245,7 +246,7 @@ const ratingResolvers: any = {
             read: false,
             createdAt: new Date(),
           })
-
+          if (userExists.pushNotifications) {
           pubsub.publish('NEW_RATING', {
             newRating: {
               id: addNotifications._id,
@@ -255,7 +256,9 @@ const ratingResolvers: any = {
               read: false,
               createdAt: addNotifications.createdAt,
             },
-          })
+          });
+        }
+        if (userExists.emailNotifications) {
           await sendEmails(
             process.env.COORDINATOR_EMAIL,
             process.env.COORDINATOR_PASS,
@@ -269,6 +272,7 @@ const ratingResolvers: any = {
             populate: 'sender',
           })
         }
+      }
       )
     ),
     async deleteReply() {
@@ -421,14 +425,15 @@ const ratingResolvers: any = {
         )
 
         await TempData.deleteOne({ sprint: sprint, user: user })
-        await sendEmails(
+        if (userToNotify.emailNotifications) {
+          await sendEmails(
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS,
           userToNotify?.email,
           'Trainee ratings',
           `The updates for ${userToNotify?.email} has been approved, check new ratings `,
           'Dear Trainee'
-        )
+        )}
         return update
       })
     ),
@@ -462,6 +467,9 @@ const ratingResolvers: any = {
             user: user,
             sprint: sprint,
           })
+          if (!traineee) {
+            throw new Error('Traineee not found');
+          }
           const addNotifications = await Notification.create({
             receiver: rate?.coordinator
               ?.toString()
@@ -471,7 +479,8 @@ const ratingResolvers: any = {
             read: false,
             createdAt: new Date(),
           })
-
+          
+          if (traineee.pushNotifications) {
           pubsub.publish('NEW_RATING', {
             newRating: {
               id: addNotifications._id,
@@ -484,6 +493,7 @@ const ratingResolvers: any = {
               createdAt: addNotifications.createdAt,
             },
           })
+        }
           return [updateReply]
         }
       )
@@ -568,8 +578,12 @@ const ratingResolvers: any = {
         const findCoordinatorEmail = await User.findById(
           updatedData?.coordinator
         )
+        if (!findCoordinatorEmail) {
+          throw new Error('Traineee not found');
+        }
         if (!userX) throw new Error('User does not exist!')
         await TempData.deleteOne({ user: user, sprint: sprint })
+        if (findCoordinatorEmail.emailNotifications) {
         await sendEmails(
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS,
@@ -578,6 +592,7 @@ const ratingResolvers: any = {
           `The updates for ${userX?.email} has been rejected `,
           'Dear Trainee'
         )
+      }
         return `user ${userX?.email} deleted successfully`
       })
     ),
