@@ -8,6 +8,7 @@ import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Notification } from '../models/notification.model'
 import { authenticated, validateRole } from '../utils/validate-role'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
 const pubsub = new PubSub()
@@ -259,13 +260,20 @@ const ratingResolvers: any = {
             })
           }
           if (userExists.emailNotifications) {
+            const content = generalTemplate({
+              message: `We're excited to announce that your latest performance ratings are ready for review.`,
+              linkMessage: 'To access your new ratings, click the button below',
+              buttonText: 'View Ratings',
+              link: `${process.env.FRONTEND_LINK}/performance`,
+              closingText: `If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.`,
+            })
+
             await sendEmails(
               process.env.COORDINATOR_EMAIL,
               process.env.COORDINATOR_PASS,
               userExists.email,
-              'Trainee',
-              'This is to inform you that, new ratings are out now !',
-              'Dear Trainee'
+              'New Rating notice',
+              content
             )
             return saveUserRating.populate({
               path: 'feedbacks',
@@ -426,13 +434,19 @@ const ratingResolvers: any = {
 
         await TempData.deleteOne({ sprint: sprint, user: user })
         if (userToNotify.emailNotifications) {
+          const content = generalTemplate({
+            message: `We would like to inform you that your ratings have been updated. use the button below to check out your new ratings.`,
+            buttonText: 'View Ratings',
+            link: `${process.env.FRONTEND_LINK}/performance`,
+            closingText: `If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.`,
+          })
+
           await sendEmails(
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS,
             userToNotify?.email,
-            'Trainee ratings',
-            `The updates for ${userToNotify?.email} has been approved, check new ratings `,
-            'Dear Trainee'
+            'Ratings notice',
+            content
           )
         }
         return update
@@ -585,13 +599,17 @@ const ratingResolvers: any = {
         if (!userX) throw new Error('User does not exist!')
         await TempData.deleteOne({ user: user, sprint: sprint })
         if (findCoordinatorEmail.emailNotifications) {
+          const content = generalTemplate({
+            message: `We would like to inform you that the updates you made to the Trainee with email "${userX?.email}" have been rejected.`,
+            closingText: `If you have any questions or require additional information on the action, please reach out to your admin.`,
+          })
+
           await sendEmails(
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS,
             findCoordinatorEmail?.email,
-            'Trainee ratings',
-            `The updates for ${userX?.email} has been rejected `,
-            'Dear Trainee'
+            'Ratings notice',
+            content
           )
         }
         return `user ${userX?.email} deleted successfully`

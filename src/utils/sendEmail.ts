@@ -23,7 +23,6 @@ export const sendEmail = async (
     html: generateTemplate({
       message: content,
       title: subject,
-      link: link,
     }),
     from: {
       name: 'Devpulse',
