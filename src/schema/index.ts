@@ -278,6 +278,9 @@ const Schema = gql`
 
   type Mutation {
     createUserRole(name: String!): UserRole!
+    enableTwoFactorAuth(email: String!): String  
+    disableTwoFactorAuth(email: String!): String  
+    verifyOneTimeCode(email: String!, code: String!): String 
     uploadResume(userId: ID!, resume: String!): Profile
     createUser(
       firstName: String!
@@ -292,6 +295,7 @@ const Schema = gql`
     loginUser(loginInput: LoginInput): Login!
     loginOrg(orgInput: OrgInput): OrgLogin!
     requestOrganization(organizationInput: OrganizationInput!): String!
+    
     addOrganization(
       organizationInput: OrganizationInput
       action: String

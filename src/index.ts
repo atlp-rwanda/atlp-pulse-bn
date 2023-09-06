@@ -33,8 +33,10 @@ import eventResolvers from './resolvers/eventResolver'
 import ticketResolver from './resolvers/ticket.resolver'
 import DocumentationResolvers from './resolvers/DocumentationResolvers';
 import attendanceResolver from './resolvers/attendance.resolvers';
+import faMutation from './resolvers/2faresolvers.resolver';
 
 export const resolvers = mergeResolvers([
+  faMutation,
   userResolvers,
   profileResolvers,
   programResolvers,

@@ -16,6 +16,13 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
+    twoFactorAuth: {
+      type: Boolean,
+      default: false
+    },
+    twoFactorSecret: {
+      type: String
+    },
     password: {
       type: String,
       required: true,
