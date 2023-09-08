@@ -17,7 +17,6 @@ const Schema = gql`
       email: String!
       orgToken: String!
     ): String
-
     removeMemberFromCohort(
       teamName: String!
       email: String!
