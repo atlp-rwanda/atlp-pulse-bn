@@ -11,6 +11,7 @@ import { Context } from './../context'
 import Program from '../models/program.model'
 import Team from '../models/team.model'
 import mongoose from 'mongoose'
+import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -595,21 +596,16 @@ const manageStudentResolvers = {
       { removedFromTeamName, addedToTeamName, email, orgToken }: any,
       context: any
     ) {
-      // coordinator validation
+      // Coordinator validation
       ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
 
-      // get the organization if someone  logs in
+      // Get the organization if someone logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
 
       if (!org.name) {
         throw new Error('You are not logged into an organization')
       }
-
-      const teamToChange = await Team.findOne({
-        organization: org?.id,
-        name: removedFromTeamName,
-      })
 
       const newTeam = await Team.findOne({
         organization: org?.id,
@@ -622,21 +618,56 @@ const manageStudentResolvers = {
         strictPopulate: false,
       })
 
-      if (member && teamToChange && newTeam) {
+      if (member && newTeam) {
+        // Check if the new team contains a TTL user
+        const existingTTL = await User.findOne({
+          team: newTeam.id,
+          role: 'ttl',
+        })
+
+        if (existingTTL) {
+          throw new Error('This team already has a TTL assigned.')
+        }
+
         member.team = newTeam?.id
         member.cohort = newTeam?.cohort
         await member.save()
-        teamToChange.members = teamToChange?.members.filter((user: any) => {
-          return user.toString() !== member?.id.toString()
-        })
-        await teamToChange?.save()
+        newTeam.ttl = member.id
+        await newTeam.save()
+        if (removedFromTeamName !== '') {
+          const teamToChange = await Team.findOne({
+            organization: org?.id,
+            name: removedFromTeamName,
+          })
+
+          if (teamToChange) {
+            teamToChange.members = teamToChange?.members.filter((user: any) => {
+              return user.toString() !== member?.id.toString()
+            })
+            await teamToChange?.save()
+          }
+        }
+
         newTeam?.members.push(member?.id)
         await newTeam?.save()
-        return `member with email ${email} is successfully moved from team '${teamToChange?.name}' to team '${newTeam?.name}'`
+        await sendEmail(
+          email,
+          'Team Assigned',
+          `Member with email ${email} is successfully moved ${
+            removedFromTeamName ? `from team '${removedFromTeamName}' ` : ''
+          }to team '${newTeam?.name}'`,
+          '',
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        )
+        return `Member with email ${email} is successfully moved ${
+          removedFromTeamName ? `from team '${removedFromTeamName}' ` : ''
+        }to team '${newTeam?.name}'`
       } else {
         throw new Error('This member does not exist')
       }
     },
+
     async inviteUser(_: any, { email, orgToken, type }: any, context: any) {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'admin',
