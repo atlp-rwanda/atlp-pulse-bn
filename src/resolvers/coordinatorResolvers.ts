@@ -27,6 +27,10 @@ interface Trainee {
   status: TraineeStatus[]
 }
 
+enum UserRoles {
+  TTL = 'ttl',
+}
+
 const manageStudentResolvers = {
   Query: {
     getAllCoordinators: async (_: any, __: any, context: Context) => {
@@ -623,7 +627,7 @@ const manageStudentResolvers = {
         // Check if the new team contains a TTL user
         const existingTTL = await User.findOne({
           team: newTeam.id,
-          role: 'ttl',
+          role: UserRoles.TTL,
         })
 
         if (existingTTL) {
