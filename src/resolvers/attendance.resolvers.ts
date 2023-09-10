@@ -57,9 +57,9 @@ const attendanceResolver = {
             if (recods.value === 2) {
               attendedCount++
             }
-            if (recods.value !== 0) {
-              totalCount++
-            }
+            // if (recods.value !== 0) {
+            //   totalCount++
+            // }
           })
 
           // calculate attendance per trainee  in one week

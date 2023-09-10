@@ -104,7 +104,7 @@ const seedUsers = async () => {
     admin: 1,
     manager: 1,
     coordinators: 1,
-    trainees: 2,
+    users: 2,
     ttl: 2,
   }
 
@@ -176,22 +176,22 @@ const seedUsers = async () => {
       })
     }
 
-    // Tranee
+    // Tranee change into Users
     for (const element of org[1]) {
       if (registerUsers.find((user) => user.email === element.email)) continue
-
+  
       if (
         registerUsers.filter(
           (user) =>
-            user.organizations.includes(org[0]) && user.role === 'trainee'
-        ).length === usersTypes.trainees
+            user.organizations.includes(org[0]) && user.role === 'user'
+        ).length === usersTypes.users
       )
         break
-
+  
       registerUsers.push({
         email: element.email,
         password: hashSync('Test@12345'),
-        role: 'trainee',
+        role: 'user', 
         organizations: [org[0]],
       })
     }
