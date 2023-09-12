@@ -20,6 +20,12 @@ const Schema = gql`
     data: RatingMessageTemp!
   }
 
+  type StatusType {
+    status: String
+    date: DateTime
+    reason: String
+  }
+
   type Notification {
     id: ID!
     receiver: ID!
@@ -56,6 +62,7 @@ const Schema = gql`
     organizations: [String!]!
     pushNotifications: Boolean!
     emailNotifications: Boolean!
+    status: StatusType
   }
   input RegisterInput {
     email: String!
@@ -97,7 +104,7 @@ const Schema = gql`
     cover: String
     activity: [Activity]
     githubUsername: String
-    resume:String
+    resume: String
   }
   type Activity {
     date: String!
@@ -508,9 +515,9 @@ const Schema = gql`
   type Query {
     getEvents(authToken: String): [Event]
   }
-  type Doc{
+  type Doc {
     title: String!
-    description: String!  
+    description: String!
   }
 
   type Documentation {
@@ -520,7 +527,7 @@ const Schema = gql`
     description: String!
     subDocuments: [Doc]!
   }
-  
+
   type DocumentationInput {
     title: String!
     for: String!
@@ -528,7 +535,6 @@ const Schema = gql`
   }
   type Query {
     getDocumentations: [Documentation]
-
   }
 
   type Mutation {
@@ -556,72 +562,68 @@ const Schema = gql`
       description: String!
     ): Documentation!
   }
-  type Mutation{
-    updatePushNotifications(
-      id: ID!
-    ):String
-    updateEmailNotifications(
-      id: ID!
-    ):String
+  type Mutation {
+    updatePushNotifications(id: ID!): String
+    updateEmailNotifications(id: ID!): String
   }
   type Query {
-      getUpdatedEmailNotifications(id: ID!): Boolean!
-      getUpdatedPushNotifications(id: ID!): Boolean!
-    }
+    getUpdatedEmailNotifications(id: ID!): Boolean!
+    getUpdatedPushNotifications(id: ID!): Boolean!
+  }
 
-    type Attendance {
-      id: ID!
+  type Attendance {
+    id: ID!
+    week: String!
+    coordinator: [String!]
+    trainees: [TraineeAttendance!]!
+  }
+
+  type TraineeAttendance {
+    traineeId: [String!]
+    traineeEmail: String!
+    status: [AttendanceStatus!]!
+  }
+
+  type AttendanceStatus {
+    days: String!
+    value: Int!
+  }
+
+  type AttendanceStats {
+    week: String!
+    traineesStatistics: [TraineeStats]
+  }
+
+  type TraineeStats {
+    traineeId: [String!]
+    attendancePerc: String!
+  }
+
+  type Query {
+    getTraineeAttendance(orgToken: String): [Attendance]
+    getAttendanceStats(orgToken: String!): [AttendanceStats]
+  }
+  type Mutation {
+    recordAttendance(
       week: String!
-      coordinator: [String!]
-      trainees: [TraineeAttendance!]!
-    }
-  
-    type TraineeAttendance {
-      traineeId: [String!]
-      traineeEmail: String!
-      status: [AttendanceStatus!]!
-    }
-  
-    type AttendanceStatus {
       days: String!
-      value: Int!
-    }
-  
-    type AttendanceStats {
+      trainees: [TraineeInput!]!
+      orgToken: String!
+    ): Attendance
+
+    deleteAttendance(
       week: String!
-      traineesStatistics: [TraineeStats]
-    }
-  
-    type TraineeStats {
-      traineeId: [String!]
-      attendancePerc: String!
-    }
-  
-    type Query {
-      getTraineeAttendance(orgToken: String): [Attendance]
-      getAttendanceStats(orgToken: String!): [AttendanceStats]
-    }
-    type Mutation {
-      recordAttendance(
-        week: String!
-        days: String!
-        trainees: [TraineeInput!]!
-        orgToken: String!
-      ): Attendance
-  
-      deleteAttendance(
-        week: String!
-        days: String!
-        traineeId: ID!
-        orgToken: String!
-      ): Attendance
-    }
-    input StatusInput {
-      value: String!
-    }
-    input TraineeInput {
+      days: String!
       traineeId: ID!
-      status: [StatusInput]
-    }
-`;
-export default Schema;
+      orgToken: String!
+    ): Attendance
+  }
+  input StatusInput {
+    value: String!
+  }
+  input TraineeInput {
+    traineeId: ID!
+    status: [StatusInput]
+  }
+`
+export default Schema

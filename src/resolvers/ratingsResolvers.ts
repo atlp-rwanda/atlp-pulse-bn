@@ -200,12 +200,12 @@ const ratingResolvers: any = {
           context: { userId: string }
         ) => {
           // get the organization if someone  logs in
-          org = await checkLoggedInOrganization(orgToken);
-          const userExists: any = await User.findOne({ _id: user });
-          if (!userExists) throw new Error('User does not exist!');
-          const Kohort = await Cohort.findOne({ _id: cohort });
-          if (!Kohort) throw new Error('User does not exist!');
-          const findSprint = await Rating.find({ sprint: sprint, user: user });
+          org = await checkLoggedInOrganization(orgToken)
+          const userExists: any = await User.findOne({ _id: user })
+          if (!userExists) throw new Error('User does not exist!')
+          const Kohort = await Cohort.findOne({ _id: cohort })
+          if (!Kohort) throw new Error('User does not exist!')
+          const findSprint = await Rating.find({ sprint: sprint, user: user })
           if (findSprint.length !== 0)
             throw new Error('The sprint has recorded ratings')
 
@@ -236,9 +236,9 @@ const ratingResolvers: any = {
             average,
             coordinator: context.userId,
             organization: org,
-          });
-          const coordinator = await User.findOne({ _id: context.userId });
-  
+          })
+          const coordinator = await User.findOne({ _id: context.userId })
+
           const addNotifications = await Notification.create({
             receiver: user,
             message: 'Have rated you; check your scores.',
@@ -247,32 +247,32 @@ const ratingResolvers: any = {
             createdAt: new Date(),
           })
           if (userExists.pushNotifications) {
-          pubsub.publish('NEW_RATING', {
-            newRating: {
-              id: addNotifications._id,
-              receiver: user,
-              message: 'Have rated you; check your scores.',
-              sender: coordinator,
-              read: false,
-              createdAt: addNotifications.createdAt,
-            },
-          });
+            pubsub.publish('NEW_RATING', {
+              newRating: {
+                id: addNotifications._id,
+                receiver: user,
+                message: 'Have rated you; check your scores.',
+                sender: coordinator,
+                read: false,
+                createdAt: addNotifications.createdAt,
+              },
+            })
+          }
+          if (userExists.emailNotifications) {
+            await sendEmails(
+              process.env.COORDINATOR_EMAIL,
+              process.env.COORDINATOR_PASS,
+              userExists.email,
+              'Trainee',
+              'This is to inform you that, new ratings are out now !',
+              'Dear Trainee'
+            )
+            return saveUserRating.populate({
+              path: 'feedbacks',
+              populate: 'sender',
+            })
+          }
         }
-        if (userExists.emailNotifications) {
-          await sendEmails(
-            process.env.COORDINATOR_EMAIL,
-            process.env.COORDINATOR_PASS,
-            userExists.email,
-            'Trainee',
-            'This is to inform you that, new ratings are out now !',
-            'Dear Trainee'
-          )
-          return saveUserRating.populate({
-            path: 'feedbacks',
-            populate: 'sender',
-          })
-        }
-      }
       )
     ),
     async deleteReply() {
@@ -333,9 +333,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                    `${oldData?.quantityRemark} ->`,
-                    quantityRemark?.toString(),
-                  ],
+                      `${oldData?.quantityRemark} ->`,
+                      quantityRemark?.toString(),
+                    ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -349,16 +349,16 @@ const ratingResolvers: any = {
                 professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                    `${oldData?.professional_Skills} ->`,
-                    professional_Skills?.toString(),
-                  ],
+                      `${oldData?.professional_Skills} ->`,
+                      professional_Skills?.toString(),
+                    ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                    `${oldData?.professionalRemark} ->`,
-                    professionalRemark?.toString(),
-                  ],
+                      `${oldData?.professionalRemark} ->`,
+                      professionalRemark?.toString(),
+                    ],
               coordinator: context.userId,
               cohort: oldData?.cohort,
               average: oldData?.average,
@@ -427,13 +427,14 @@ const ratingResolvers: any = {
         await TempData.deleteOne({ sprint: sprint, user: user })
         if (userToNotify.emailNotifications) {
           await sendEmails(
-          process.env.ADMIN_EMAIL,
-          process.env.ADMIN_PASS,
-          userToNotify?.email,
-          'Trainee ratings',
-          `The updates for ${userToNotify?.email} has been approved, check new ratings `,
-          'Dear Trainee'
-        )}
+            process.env.ADMIN_EMAIL,
+            process.env.ADMIN_PASS,
+            userToNotify?.email,
+            'Trainee ratings',
+            `The updates for ${userToNotify?.email} has been approved, check new ratings `,
+            'Dear Trainee'
+          )
+        }
         return update
       })
     ),
@@ -468,7 +469,7 @@ const ratingResolvers: any = {
             sprint: sprint,
           })
           if (!traineee) {
-            throw new Error('Traineee not found');
+            throw new Error('Traineee not found')
           }
           const addNotifications = await Notification.create({
             receiver: rate?.coordinator
@@ -479,21 +480,21 @@ const ratingResolvers: any = {
             read: false,
             createdAt: new Date(),
           })
-          
+
           if (traineee.pushNotifications) {
-          pubsub.publish('NEW_RATING', {
-            newRating: {
-              id: addNotifications._id,
-              receiver: rate?.coordinator
-                ?.toString()
-                ?.replace(/ObjectId\("(.*)"\)/, '$1'),
-              message: addNotifications.message,
-              sender: traineee,
-              read: false,
-              createdAt: addNotifications.createdAt,
-            },
-          })
-        }
+            pubsub.publish('NEW_RATING', {
+              newRating: {
+                id: addNotifications._id,
+                receiver: rate?.coordinator
+                  ?.toString()
+                  ?.replace(/ObjectId\("(.*)"\)/, '$1'),
+                message: addNotifications.message,
+                sender: traineee,
+                read: false,
+                createdAt: addNotifications.createdAt,
+              },
+            })
+          }
           return [updateReply]
         }
       )
@@ -579,20 +580,20 @@ const ratingResolvers: any = {
           updatedData?.coordinator
         )
         if (!findCoordinatorEmail) {
-          throw new Error('Traineee not found');
+          throw new Error('Traineee not found')
         }
         if (!userX) throw new Error('User does not exist!')
         await TempData.deleteOne({ user: user, sprint: sprint })
         if (findCoordinatorEmail.emailNotifications) {
-        await sendEmails(
-          process.env.ADMIN_EMAIL,
-          process.env.ADMIN_PASS,
-          findCoordinatorEmail?.email,
-          'Trainee ratings',
-          `The updates for ${userX?.email} has been rejected `,
-          'Dear Trainee'
-        )
-      }
+          await sendEmails(
+            process.env.ADMIN_EMAIL,
+            process.env.ADMIN_PASS,
+            findCoordinatorEmail?.email,
+            'Trainee ratings',
+            `The updates for ${userX?.email} has been rejected `,
+            'Dear Trainee'
+          )
+        }
         return `user ${userX?.email} deleted successfully`
       })
     ),
