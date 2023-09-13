@@ -234,12 +234,12 @@ const seedUsers = async () => {
   const dbUsers = await User.find().select('_id email')
 
   // For every db user, generate a profile
-  for (let i = 0; i < dbUsers.length; i++) {
-    const userProfile = users.find((user) => user.email === dbUsers[i].email)
+  for (const element of dbUsers) {
+    const userProfile = users.find((user) => user.email === element.email)
 
     if (userProfile) {
       profiles.push({
-        user: dbUsers[i]._id,
+        user: element._id,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
         githubUsername: userProfile
