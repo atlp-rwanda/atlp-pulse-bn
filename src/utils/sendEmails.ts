@@ -1,15 +1,12 @@
 import nodemailer from 'nodemailer'
-import generateTemplate from '../helpers/emailForTrainee.helper'
-
-const mode = process.env.NODE_ENV || 'development'
+import generateTemplate from '../helpers/emailTemplate.helper'
 
 export const sendEmails = async (
   senderEmail: any,
   senderPassword: any,
   receiver: any,
   subject: any,
-  content: any,
-  title: any
+  content: any
 ) => {
   const transport = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -19,13 +16,16 @@ export const sendEmails = async (
       user: senderEmail,
       pass: senderPassword,
     },
-  });
+  })
 
   const mailOptions = {
-    from: senderEmail,
+    from: {
+      name: 'Devpulse',
+      address: senderEmail,
+    },
     to: receiver,
     subject: subject,
-    html: generateTemplate(content, title),
+    html: generateTemplate({ message: content }),
   }
 
   transport.sendMail(mailOptions, (error, info) => {

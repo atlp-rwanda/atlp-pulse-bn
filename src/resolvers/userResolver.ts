@@ -888,12 +888,12 @@ const resolvers: any = {
           expiresIn: '2d',
         })
         const newToken: any = token.replaceAll('.', '*')
-        const link = `${process.env.RESET_PASSWORD_FRONTEND_URL}/${newToken}`
+        const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
         const content = forgotPasswordTemplate(link)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
-          'Proceed With Reset Password',
+          'Reset your Password',
           content,
           someSpace,
           process.env.ADMIN_EMAIL,
