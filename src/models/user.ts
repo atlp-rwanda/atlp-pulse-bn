@@ -76,6 +76,12 @@ userSchema.virtual('profile', {
   localField: '_id',
 })
 
+userSchema.virtual('ratings', {
+  localField: '_id',
+  foreignField: 'user',
+  ref: 'Rating',
+})
+
 userSchema.methods.checkPass = async function (password: string) {
   const pass = await bcrypt.compare(password, this.password)
   return pass

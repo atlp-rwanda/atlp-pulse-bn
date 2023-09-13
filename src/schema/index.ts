@@ -63,6 +63,7 @@ const Schema = gql`
     pushNotifications: Boolean!
     emailNotifications: Boolean!
     status: StatusType
+    ratings: [Rating]
   }
   input RegisterInput {
     email: String!
