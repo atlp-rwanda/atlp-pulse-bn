@@ -71,9 +71,9 @@ const Schema = gql`
     role: String
   }
   input ActivityInput {
-    date: String!
+    date: String
     country_code: String
-    country_name: String!
+    country_name: String
     city: String
     postal: String
     latitude: Float
