@@ -71,7 +71,7 @@
     "graphql-subscriptions": "^2.0.0",
     "graphql-ws": "^5.11.2",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^4.8.1",
+    "mongodb": "^4.17.1",
     "mongoose": "^6.6.1",
     "node-fetch": "^2.6.12",
     "nodemailer": "^6.7.8",
