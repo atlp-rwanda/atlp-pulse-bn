@@ -10,6 +10,10 @@ const RatingSchema = new Schema({
     type: Number,
     required: true,
   },
+  phase: {
+    type:String,
+    required: true,
+  },
   quantity: {
     type: String,
     required: true,
