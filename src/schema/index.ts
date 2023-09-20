@@ -167,6 +167,7 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
+    phase:String!
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -188,6 +189,7 @@ const Schema = gql`
     user: User!
     sprint: Int!
     cohort: Cohort!
+    phase: String!
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
