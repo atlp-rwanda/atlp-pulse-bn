@@ -448,7 +448,7 @@ const manageStudentResolvers = {
               await sendEmailOnAddMember(role, org, userId, user)
             } catch (error: any) {
               throw new Error(
-                'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
+                'Trainee added but there was an error sending email to him. Find other way to notify him/her.'
               )
             }
 

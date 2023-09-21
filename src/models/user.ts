@@ -218,7 +218,7 @@ const AttendanceSchema = new Schema({
       },
       traineeEmail: {
         type: String,
-        requried: false,
+        required: false,
       },
       status: [
         {

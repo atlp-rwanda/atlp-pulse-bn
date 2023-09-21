@@ -202,21 +202,21 @@ const ratingResolvers: any = {
           context: { userId: string }
         ) => {
           // get the organization if someone  logs in
-          org = await checkLoggedInOrganization(orgToken);
-          const userExists: any = await User.findOne({ _id: user });
-          if (!userExists) throw new Error('User does not exist!');
-          const Kohort = await Cohort.findOne({ _id: cohort });
-          const Phase = await Cohort.findOne({ _id: cohort }).populate('phase','name');
-          
+          org = await checkLoggedInOrganization(orgToken)
+          const userExists: any = await User.findOne({ _id: user })
+          if (!userExists) throw new Error('User does not exist!')
+          const Kohort = await Cohort.findOne({ _id: cohort })
+          const Phase = await Cohort.findOne({ _id: cohort }).populate(
+            'phase',
+            'name'
+          )
 
-          if (!Kohort) throw new Error('User does not exist!');
-          if (!Phase) throw new Error('Phase does not exist!');
+          if (!Kohort) throw new Error('User does not exist!')
+          if (!Phase) throw new Error('Phase does not exist!')
 
-          const phaseName =await (Phase as any).phase.name;
-  
-          
-          
-          const findSprint = await Rating.find({ sprint: sprint, user: user });
+          const phaseName = await (Phase as any).phase.name
+
+          const findSprint = await Rating.find({ sprint: sprint, user: user })
           if (findSprint.length !== 0)
             throw new Error('The sprint has recorded ratings')
 
@@ -248,10 +248,10 @@ const ratingResolvers: any = {
             average,
             coordinator: context.userId,
             organization: org,
-          });
+          })
 
-          const coordinator = await User.findOne({ _id: context.userId });
-  
+          const coordinator = await User.findOne({ _id: context.userId })
+
           const addNotifications = await Notification.create({
             receiver: user,
             message: 'Have rated you; check your scores.',
@@ -273,11 +273,13 @@ const ratingResolvers: any = {
           }
           if (userExists.emailNotifications) {
             const content = generalTemplate({
-              message: 'We\'re excited to announce that your latest performance ratings are ready for review.',
+              message:
+                "We're excited to announce that your latest performance ratings are ready for review.",
               linkMessage: 'To access your new ratings, click the button below',
               buttonText: 'View Ratings',
               link: `${process.env.FRONTEND_LINK}/performance`,
-              closingText: 'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
+              closingText:
+                "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
             })
 
             await sendEmails(
@@ -353,9 +355,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                    `${oldData?.quantityRemark} ->`,
-                    quantityRemark?.toString(),
-                  ],
+                      `${oldData?.quantityRemark} ->`,
+                      quantityRemark?.toString(),
+                    ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -369,16 +371,16 @@ const ratingResolvers: any = {
                 professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                    `${oldData?.professional_Skills} ->`,
-                    professional_Skills?.toString(),
-                  ],
+                      `${oldData?.professional_Skills} ->`,
+                      professional_Skills?.toString(),
+                    ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                    `${oldData?.professionalRemark} ->`,
-                    professionalRemark?.toString(),
-                  ],
+                      `${oldData?.professionalRemark} ->`,
+                      professionalRemark?.toString(),
+                    ],
               coordinator: context.userId,
               cohort: oldData?.cohort,
               average: oldData?.average,
@@ -447,10 +449,12 @@ const ratingResolvers: any = {
         await TempData.deleteOne({ sprint: sprint, user: user })
         if (userToNotify.emailNotifications) {
           const content = generalTemplate({
-            message: 'We would like to inform you that your ratings have been updated. use the button below to check out your new ratings.',
+            message:
+              'We would like to inform you that your ratings have been updated. use the button below to check out your new ratings.',
             buttonText: 'View Ratings',
             link: `${process.env.FRONTEND_LINK}/performance`,
-            closingText: 'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
+            closingText:
+              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
           })
 
           await sendEmails(
@@ -613,7 +617,8 @@ const ratingResolvers: any = {
         if (findCoordinatorEmail.emailNotifications) {
           const content = generalTemplate({
             message: `We would like to inform you that the updates you made to the Trainee with email "${userX?.email}" have been rejected.`,
-            closingText: 'If you have any questions or require additional information on the action, please reach out to your admin.',
+            closingText:
+              'If you have any questions or require additional information on the action, please reach out to your admin.',
           })
 
           await sendEmails(

@@ -20,10 +20,23 @@ interface Trainee {
 const attendanceResolver = {
   Query: {
     async getTraineeAttendance(_: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['coordinator'])
-      const { userId } = (await checkUserLoggedIn(context))(['coordinator'])
-      const replies = await Attendance.find({ coordinatorId: userId })
-      return replies
+      ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
+      const { userId, role } = (await checkUserLoggedIn(context))([
+        'coordinator',
+        'trainee',
+      ])
+      let attendances
+      if (role === 'coordinator') {
+        attendances = await Attendance.find({ coordinatorId: userId })
+      } else {
+        attendances = await Attendance.find({})
+        attendances = attendances.filter((item: any) => {
+          return item.trainees.some(
+            (trainee: any) => trainee.traineeId == userId
+          )
+        })
+      }
+      return attendances
     },
 
     async getAttendanceStats(_: any, args: any, context: Context) {
@@ -50,7 +63,7 @@ const attendanceResolver = {
           const traineeId = trainee.traineeId
           const attendanceRecods = trainee.status
           let attendedCount: any = 0
-          let totalCount: any = 0
+          const totalCount: any = 0
 
           //count attendance recods
           attendanceRecods.forEach((recods: any) => {

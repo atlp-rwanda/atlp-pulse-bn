@@ -163,22 +163,21 @@ const seedUsers = async () => {
       })
     }
 
-    // Tranee change into Users
+    // Trainee change into Users
     for (const element of org[1]) {
       if (registerUsers.find((user) => user.email === element.email)) continue
-  
+
       if (
         registerUsers.filter(
-          (user) =>
-            user.organizations.includes(org[0]) && user.role === 'user'
+          (user) => user.organizations.includes(org[0]) && user.role === 'user'
         ).length === usersTypes.users
       )
         break
-  
+
       registerUsers.push({
         email: element.email,
         password: hashSync('Test@12345'),
-        role: 'user', 
+        role: 'user',
         organizations: [org[0]],
       })
     }
