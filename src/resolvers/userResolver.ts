@@ -431,7 +431,7 @@ const resolvers: any = {
             { user },
             { $push: { activity: { $each: [newActivity] } } }
           )
-          throw new Error('You are not part of the organization you logged in.')
+          throw new Error('Please wait to be added to a program or cohort')
         }
       } else {
         await Profile.findOneAndUpdate(
