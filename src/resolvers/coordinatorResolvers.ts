@@ -1,6 +1,7 @@
 import { ApolloError } from 'apollo-server'
 import Cohort from '../models/cohort.model'
 import * as jwt from 'jsonwebtoken'
+import { ValidationError } from 'apollo-server'
 import { Attendance, Organization, User } from '../models/user'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
@@ -488,6 +489,38 @@ const manageStudentResolvers = {
         }
 
         // CATCH ERROR
+      } catch (error: any) {
+        throw new ApolloError(error.message, '500')
+      }
+    },
+
+    async dropTrainee(_: any, args: any, context: Context) {
+      try {
+        // coordinator validation
+        ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
+
+        const logedInUserOrg = await User.findById(context.userId).select(
+          'organizations'
+        )
+        const orgName = logedInUserOrg?.organizations[0]
+
+        const trainee = await User.findOneAndUpdate(
+          { _id: args.traineeId, organizations: orgName },
+          {
+            status: {
+              status: 'drop',
+              reason: args.reason,
+              date: args.date,
+            },
+          },
+          {
+            new: true,
+          }
+        )
+
+        if (!trainee) return new ValidationError('Trainee not found')
+
+        return 'Trainee dropped successfully!'
       } catch (error: any) {
         throw new ApolloError(error.message, '500')
       }
