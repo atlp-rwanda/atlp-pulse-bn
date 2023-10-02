@@ -8,8 +8,10 @@ import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Notification } from '../models/notification.model'
 import { authenticated, validateRole } from '../utils/validate-role'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
+import phaseSchema from '../schema/phase.schema'
 const pubsub = new PubSub()
 
 let org: InstanceType<typeof Organization>
@@ -225,6 +227,7 @@ const ratingResolvers: any = {
             quantity,
             quantityRemark,
             quality,
+            phase: phaseName,
             cohort: Kohort,
             qualityRemark,
             feedbacks: [],
@@ -426,6 +429,15 @@ const ratingResolvers: any = {
 
         await TempData.deleteOne({ sprint: sprint, user: user })
         if (userToNotify.emailNotifications) {
+          const content = generalTemplate({
+            message:
+              'We would like to inform you that your ratings have been updated. use the button below to check out your new ratings.',
+            buttonText: 'View Ratings',
+            link: `${process.env.FRONTEND_LINK}/performance`,
+            closingText:
+              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+          })
+
           await sendEmails(
             process.env.ADMIN_EMAIL,
             process.env.ADMIN_PASS,

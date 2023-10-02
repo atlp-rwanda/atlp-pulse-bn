@@ -30,9 +30,15 @@ const userSchema = new Schema(
       ref: 'Team',
     },
     status: {
-      type: String,
-      enum: ['active', 'drop'],
-      default: 'active',
+      status: {
+        type: String,
+        enum: ['active', 'drop'],
+        default: 'active',
+      },
+      reason: String,
+      date: {
+        type: Date,
+      },
     },
     cohort: {
       type: mongoose.Types.ObjectId,
@@ -68,6 +74,12 @@ userSchema.virtual('profile', {
   ref: 'Profile',
   foreignField: 'user',
   localField: '_id',
+})
+
+userSchema.virtual('ratings', {
+  localField: '_id',
+  foreignField: 'user',
+  ref: 'Rating',
 })
 
 userSchema.methods.checkPass = async function (password: string) {

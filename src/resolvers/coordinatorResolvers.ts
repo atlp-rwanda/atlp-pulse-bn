@@ -5,6 +5,7 @@ import { Attendance, Organization, User } from '../models/user'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
+import generalTemplate from '../utils/templates/generalTemplate'
 import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import { sendEmail } from '../utils/sendEmail'
 import { Context } from './../context'
@@ -24,6 +25,10 @@ interface Trainee {
   traineeId: mongoose.Types.ObjectId
   traineeEmail: string
   status: TraineeStatus[]
+}
+
+enum UserRoles {
+  TTL = 'ttl',
 }
 
 const manageStudentResolvers = {
@@ -622,7 +627,7 @@ const manageStudentResolvers = {
         // Check if the new team contains a TTL user
         const existingTTL = await User.findOne({
           team: newTeam.id,
-          role: 'ttl',
+          role: UserRoles.TTL,
         })
 
         if (existingTTL) {
@@ -648,14 +653,20 @@ const manageStudentResolvers = {
           }
         }
 
+        const content = generalTemplate({
+          message: `We'd like to inform you that your account has been updated, and you've been moved ${
+            removedFromTeamName ? `from team ${removedFromTeamName} ` : ''
+          }to team ${
+            newTeam?.name
+          }. If you have any questions or concerns about this move, please don't hesitate to reach out.`,
+        })
+
         newTeam?.members.push(member?.id)
         await newTeam?.save()
         await sendEmail(
           email,
-          'Team Assigned',
-          `Member with email ${email} is successfully moved ${
-            removedFromTeamName ? `from team '${removedFromTeamName}' ` : ''
-          }to team '${newTeam?.name}'`,
+          'Team changed notice',
+          content,
           '',
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS
@@ -682,7 +693,7 @@ const manageStudentResolvers = {
       const userExists: any = await User.findOne({ email })
 
       if (userExists) {
-        throw new Error('This user already exists in DevPulse')
+        throw new Error(`This user already exists in ${org.name}`)
       } else {
         const token: any = jwt.sign({ name: org.name, email: email }, SECRET, {
           expiresIn: '2d',
@@ -692,12 +703,7 @@ const manageStudentResolvers = {
           type == 'user'
             ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
-        const content = inviteUserTemplate(
-          org?.name || '',
-          user.email,
-          user.role,
-          link
-        )
+        const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
         await sendEmail(
@@ -732,7 +738,10 @@ async function sendEmailOnAddMember(
       throw new Error("You don't have an organization yet")
     }
     if (organization.admin.includes(userId) && organization.name == org.name) {
-      const content = getOrganizationTemplate(org?.name || '')
+      const content = getOrganizationTemplate(
+        org!.name,
+        `${process.env.FRONTEND_LINK}/login/org`
+      )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
 
       await sendEmail(
@@ -754,7 +763,10 @@ async function sendEmailOnAddMember(
       throw new Error("You dont't have a program yet")
     }
     if (program.organization._id.toString() == org?.id.toString()) {
-      const content = getOrganizationTemplate(org?.name || '')
+      const content = getOrganizationTemplate(
+        org!.name,
+        `${process.env.FRONTEND_LINK}/login/org`
+      )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
       await sendEmail(
         user.email,
@@ -772,13 +784,16 @@ async function sendEmailOnAddMember(
   if (role === 'coordinator') {
     const cohort: any = await Cohort.findOne({ coordinator: userId })
     if (!cohort) {
-      throw new Error("You dont't have a coordinator yet")
+      throw new Error("You don't have a coordinator yet")
     }
     const program: any = await Program.findOne({
       _id: cohort.program,
     })
     if (program.organization._id.toString() == org?.id.toString()) {
-      const content = getOrganizationTemplate(org?.name || '')
+      const content = getOrganizationTemplate(
+        org!.name,
+        `${process.env.FRONTEND_LINK}/login/org`
+      )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
       await sendEmail(
         user.email,

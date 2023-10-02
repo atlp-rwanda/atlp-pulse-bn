@@ -10,10 +10,22 @@ const seedUsers = async () => {
   // Random Users
   const users: Array<any> = [
     {
-      firstName: 'Olivier',
-      lastName: 'Ganishuri',
-      email: 'oliviertech212@gmail.com',
-      guthubUserName: 'oliviertech212',
+      firstName: 'Japhet',
+      lastName: 'Japhet',
+      email: 'kylesjet1@gmail.com',
+      guthubUserName: 'rwamugema',
+    },
+    {
+      firstName: 'Muhawenimana',
+      lastName: 'Lydia',
+      email: 'gatarelydie370@gmail.com',
+      guthubUserName: '',
+    },
+    {
+      firstName: 'Leivin',
+      lastName: 'NIYOYANDIKA',
+      email: 'niyoyandikalie@gmail.com',
+      guthubUserName: '',
     },
     {
       firstName: 'Martha',
@@ -22,40 +34,28 @@ const seedUsers = async () => {
       guthubUserName: 'Marthatwesi',
     },
     {
-      firstName: 'Aline',
-      lastName: 'Uwera',
-      email: 'alineuwera00@gmail.com',
+      firstName: 'Nshuti',
+      lastName: 'Parfait',
+      email: 'nshutiparfait99@gmail.com',
       guthubUserName: '',
     },
     {
-      firstName: 'Christella',
-      lastName: 'Ufiteyezu',
-      email: 'ufiteyezuchristella@gmail.com',
-      guthubUserName: 'chrill-christella',
+      firstName: 'Muheto',
+      lastName: 'Darius',
+      email: 'muhedarius96@gmail.com',
+      guthubUserName: '',
     },
     {
-      firstName: 'Patrick',
-      lastName: 'MANIBAHO',
-      email: 'patsicko@gmail.com',
-      guthubUserName: 'patsicko',
+      firstName: 'Ndayambaje',
+      lastName: 'Virgile',
+      email: 'ndayambajevgschooling@gmail.com',
+      guthubUserName: '',
     },
     {
-      firstName: 'Abdulkhaliq',
-      lastName: 'Kananura',
-      email: 'kananuraabdulkhaliq59@gmail.com',
-      guthubUserName: 'AbdulKhaliq59',
-    },
-    {
-      firstName: 'Benn Dalton',
-      lastName: 'IRADUKUNDA',
-      email: 'irabd44@gmail.com',
+      firstName: 'NDATIMANA',
+      lastName: 'Samuel',
+      email: 'ndatimanasamuel1@gmail.com',
       guthubUserName: 'blackd44',
-    },
-    {
-      firstName: 'Patience',
-      lastName: 'INEZA',
-      email: 'inezapatience2@gmail.com',
-      guthubUserName: 'Patienceineza',
     },
     {
       firstName: 'Lucie',
@@ -70,28 +70,15 @@ const seedUsers = async () => {
       guthubUserName: 'Habihirwe',
     },
     {
-      firstName: 'Marie Rose Mystica',
-      lastName: 'Dukuzeyezu',
-      email: 'dukumystica20@gmail.com',
-      guthubUserName: 'Mystica52',
+      firstName: 'Ntwari',
+      lastName: 'Charles',
+      email: 'ntwarichar@gmail.com',
     },
     {
-      firstName: 'Martha',
-      lastName: 'Iradukunda',
-      email: 'marthairadukunda1@gmail.com',
+      firstName: 'Elissa',
+      lastName: 'NTIHINDUKA',
+      email: 'ntihindukaelissa77@gmail.com',
       guthubUserName: '',
-    },
-    {
-      firstName: 'Eric',
-      lastName: 'Ndungutse',
-      email: 'dav.ndungutse@gmail.com',
-      guthubUserName: 'ericndungutse',
-    },
-    {
-      firstName: 'Eric',
-      lastName: 'Tuyizere',
-      email: 'eric.tuyizere.ndungutse@gmail.com',
-      guthubUserName: 'ericndungutse',
     },
   ]
 
@@ -104,7 +91,7 @@ const seedUsers = async () => {
     admin: 1,
     manager: 1,
     coordinators: 1,
-    trainees: 2,
+    users: 2,
     ttl: 2,
   }
 
@@ -176,22 +163,21 @@ const seedUsers = async () => {
       })
     }
 
-    // Tranee
+    // Tranee change into Users
     for (const element of org[1]) {
       if (registerUsers.find((user) => user.email === element.email)) continue
 
       if (
         registerUsers.filter(
-          (user) =>
-            user.organizations.includes(org[0]) && user.role === 'trainee'
-        ).length === usersTypes.trainees
+          (user) => user.organizations.includes(org[0]) && user.role === 'user'
+        ).length === usersTypes.users
       )
         break
 
       registerUsers.push({
         email: element.email,
         password: hashSync('Test@12345'),
-        role: 'trainee',
+        role: 'user',
         organizations: [org[0]],
       })
     }
@@ -234,12 +220,12 @@ const seedUsers = async () => {
   const dbUsers = await User.find().select('_id email')
 
   // For every db user, generate a profile
-  for (let i = 0; i < dbUsers.length; i++) {
-    const userProfile = users.find((user) => user.email === dbUsers[i].email)
+  for (const element of dbUsers) {
+    const userProfile = users.find((user) => user.email === element.email)
 
     if (userProfile) {
       profiles.push({
-        user: dbUsers[i]._id,
+        user: element._id,
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
         githubUsername: userProfile
