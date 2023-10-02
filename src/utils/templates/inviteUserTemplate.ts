@@ -1,33 +1,53 @@
-export default function Template(
-  orgName: string,
-  requesterEmail: string,
-  requesterRole: string,
-  link: string
-) {
-  return `
-    <table style="text-align: left;">
-    <tr>
+export default function Template(orgName: string, link: string) {
+  return /* html */ `
+    <table style="font-size: 16px; font-family: 'Rubik'; text-align: left">
+      <tbody>
+        <tr>
+          <td>
+            <p style="margin-bottom: 20px">Hello,</p>
+            <br />
 
-      <td>
+            <p style="margin-bottom: 5px">
+              You have been invited to join a Pulse organization called
+              <strong>${orgName}</strong>.
+            </p>
+            <p style="margin-bottom: 10px">
+              The link below will take you to the registration page where you can create
+              an account.
+            </p>
 
-            <p style="font-size: 18px; font-family: 'Rubik';text-align: left;"> Hello, <p>
+            <a href="${link}" style="text-decoration: none; cursor: pointer">
+              <button
+                style="
+                  font-size: 16px;
+                  background-color: rgb(134, 103, 242);
+                  font-family: 'Rubik';
+                  text-align: center;
+                  border: none;
+                  border-radius: 3px;
+                  padding: 5px;
+                  cursor: pointer;
+                  color: whitesmoke;
+                "
+              >
+                Join ${orgName}
+              </button>
+            </a>
+            <br />
+            <br />
 
-        <p style="font-size: 18px; font-family: 'Rubik';margin-top: 10px; line-height: 20px;">
-          You have been invited to join DevPulse by <strong>${requesterRole}</strong> '<strong>${requesterEmail}</strong>'.
-        </p>
-        </br>
-        <p style="font-size: 18px; font-family: 'Rubik'; margin-top: 10px">
-           Best,
-        </p>
-        <p style="font-size: 18px; font-family: 'Rubik'">
-           Team <strong>DevPulse</strong>,
-        </p>
-        <p style="font-size: 14px; font-family: 'Rubik'; margin-top: 10px">The link below will take you to the registration page where you can create an account</p>
-        <br />
-        <a href=${link} style="display: inline-block; backgroundColor: blue; font-size: 18px; font-family: 'Rubik';text-align: center;">Join Us</a>
-      </td>
-    </tr>
+            <p>
+              If you did not initiate the request or you think this email reached your
+              inbox by mistake, simply ignore it.
+            </p>
+            <br />
+            <br />
 
-  </table>
-  `;
+            <p>Best Regard,</p>
+            <p>Pulse team</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  `
 }

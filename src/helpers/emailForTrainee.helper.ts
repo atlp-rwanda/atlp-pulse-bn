@@ -1,3 +1,5 @@
+const link = process.env.FRONTEND_LINK + '/login/org'
+
 export default function generateTemplate(content: any, title: any) {
   return `
     <!doctype html>
@@ -22,11 +24,11 @@ export default function generateTemplate(content: any, title: any) {
                             <td style="height:80px;">&nbsp;</td>
                         </tr>
                         <tr>
-                            <td style="text-align:center;">
-                              <a href=""  target="_blank">
-                             <img src="https://www.google.com/imgres?imgurl=https%3A%2F%2Flookaside.fbsbx.com%2Flookaside%2Fcrawler%2Fmedia%2F%3Fmedia_id%3D10150098692763815&imgrefurl=https%3A%2F%2Fwww.facebook.com%2Fdevpulse%2F&tbnid=UawxjefCVdnTOM&vet=12ahUKEwih4c_Ww-76AhUMyRoKHbIUDsYQMygAegQIARBL..i&docid=9vq-vhN23MOG8M&w=720&h=172&q=devpulse%20image&ved=2ahUKEwih4c_Ww-76AhUMyRoKHbIUDsYQMygAegQIARBL" />
+                           <td style="text-align: center">
+                              <a href="${process.env.FRONTEND_LINK}" target="_blank">
+                                 <img src="${process.env.FRONTEND_LINK}/images/logo.png" />
                               </a>
-                            </td>
+                          </td>
                         </tr>
                         <tr>
                             <td style="height:20px;">&nbsp;</td>
@@ -50,7 +52,11 @@ export default function generateTemplate(content: any, title: any) {
                                             <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
                                                view your ratings via the link below
                                             </p>
-                                                </p>
+                                            <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
+                                            <a href="${process.env.FRONTEND_LINK}/login/org" style="text-decoration: none; cursor: pointer;">
+                                            ${process.env.FRONTEND_LINK}/login/org
+                                             </a>
+                                            </p>
                                         </td>
                                     </tr>
                                     <tr>
@@ -62,11 +68,6 @@ export default function generateTemplate(content: any, title: any) {
                             <td style="height:20px;">&nbsp;</td>
                         </tr>
                         <tr>
-                            <td style="text-align:center;">
-                                <p style="font-size:14px; color:rgba(69, 80, 86, 0.7411764705882353); line-height:18px; margin:0 0 0;">&copy; <strong>https://metron-devpulse.vercel.app/</strong></p>
-                            </td>
-                        </tr>
-                        <tr>
                             <td style="height:80px;">&nbsp;</td>
                         </tr>
                     </table>
@@ -76,5 +77,5 @@ export default function generateTemplate(content: any, title: any) {
         <!-- body table-->
     </body>
     </html>
-`;
+`
 }

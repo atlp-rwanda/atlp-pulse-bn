@@ -22,6 +22,7 @@ import Team from '../models/team.model'
 import Phase from '../models/phase.model'
 import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
+import { Rating } from '../models/ratings'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -888,12 +889,12 @@ const resolvers: any = {
           expiresIn: '2d',
         })
         const newToken: any = token.replaceAll('.', '*')
-        const link = `${process.env.RESET_PASSWORD_FRONTEND_URL}/${newToken}`
+        const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
         const content = forgotPasswordTemplate(link)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
-          'Proceed With Reset Password',
+          'Reset your Password',
           content,
           someSpace,
           process.env.ADMIN_EMAIL,
@@ -974,13 +975,27 @@ const resolvers: any = {
         return cohort
       }
     },
-
     async team(parent: UserType) {
       const team = await Team.findOne({ members: parent._id })
       if (!team) {
         return null
       } else {
         return team
+      }
+    },
+    async ratings(parent: UserType) {
+      const ratings = await Rating.find({ user: parent._id }).populate([
+        'user',
+        'cohort',
+        {
+          path: 'feedbacks',
+          populate: 'sender',
+        },
+      ])
+      if (!ratings) {
+        return null
+      } else {
+        return ratings
       }
     },
   },
