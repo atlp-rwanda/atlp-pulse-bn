@@ -126,7 +126,6 @@ export const typeDefs = mergeTypeDefs([
     path: '/',
   })
 
-  // Modified server startup
   const PORT: number = parseInt(process.env.PORT!) || 4000
 
   connect().then(() => {
