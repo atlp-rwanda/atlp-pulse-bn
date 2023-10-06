@@ -50,7 +50,7 @@ const attendanceResolver = {
           const traineeId = trainee.traineeId
           const attendanceRecods = trainee.status
           let attendedCount: any = 0
-          let totalCount: any = 0
+          const totalCount: any = 0
 
           //count attendance recods
           attendanceRecods.forEach((recods: any) => {
