@@ -52,7 +52,8 @@ export default function Template({
               ${
                 closingText
                   ? `<p>${closingText}</p>`
-                  : '<p>If you think this email reached your inbox by mistake, simply ignore it.</p>'
+
+                  : `<p>If you think this email reached your inbox by mistake, simply ignore it.</p>`
               }
               <br />
               <br />

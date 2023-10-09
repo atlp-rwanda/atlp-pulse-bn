@@ -2,12 +2,16 @@ FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-# ENV NODE_ENV=production
-ENV NODE_ENV=development
-ENV ADMIN_EMAIL=devpulseadmn@gmail.com
-ENV ADMIN_PASS=yptbizlxrzfnyzon
-ENV COORDINATOR_EMAIL=coordinatordevpulse@gmail.com
-ENV COORDINATOR_PASS=zrvxpvihyyyhdxcp
+
+ENV NODE_ENV=process.env.NODE_ENV
+ENV MONGO_PROD_DB=process.env.MONGO_PROD_DB
+ENV MONGO_DEV_DB=process.env.MONGO_DEV_DB
+ENV ADMIN_EMAIL=process.env.ADMIN_EMAIL
+ENV ADMIN_PASS=process.env.ADMIN_PASS
+
+ENV COORDINATOR_EMAIL=process.env.COORDINATOR_EMAIL
+ENV COORDINATOR_PASS=process.env.COORDINATOR_PASS
+
 COPY . .
 RUN npm run build
 RUN npm run seed

@@ -12,6 +12,7 @@ const RatingSchema = new Schema({
   },
   phase: {
     type: String,
+
     required: true,
   },
   quantity: {

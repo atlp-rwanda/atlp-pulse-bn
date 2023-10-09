@@ -55,6 +55,8 @@ export default function generateTemplate(content: any, title: any) {
                                             <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
                                             <a href="${process.env.FRONTEND_LINK}/login/org" style="text-decoration: none; cursor: pointer;">
                                             ${process.env.FRONTEND_LINK}/login/org
+                                            <a href="${process.env.FRONTEND_LINK }/login/org" style="text-decoration: none; cursor: pointer;">
+                                            ${process.env.FRONTEND_LINK }/login/org
                                              </a>
                                             </p>
                                         </td>
