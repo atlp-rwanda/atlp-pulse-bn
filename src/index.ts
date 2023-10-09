@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { formatError } from './ErrorMsg'
-const { ApolloServer } = require('apollo-server-express')
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
-const { execute, subscribe } = require('graphql')
-const { SubscriptionServer } = require('subscriptions-transport-ws')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const express = require('express')
-const http = require('http')
-const { PubSub } = require('graphql-subscriptions')
+import { ApolloServer } from 'apollo-server-express'
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core'
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import express from 'express'
+import http from 'http'
+import { PubSub } from 'graphql-subscriptions'
 import cohortResolvers from './resolvers/cohort.resolvers'
 import manageStudentResolvers from './resolvers/coordinatorResolvers'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
@@ -51,6 +51,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
 ])
+
 export const typeDefs = mergeTypeDefs([
   schemas,
   cohortSchema,
@@ -59,6 +60,7 @@ export const typeDefs = mergeTypeDefs([
   phaseSchema,
   ticketSchema,
 ])
+
 ;(async function startApolloServer(typeDefs, resolvers) {
   console.log(process.env.NODE_ENV)
   // Required logic for integrating with Express
@@ -127,7 +129,7 @@ export const typeDefs = mergeTypeDefs([
   })
 
   // Modified server startup
-  const PORT: number = parseInt(process.env.PORT!) || 4000
+  const PORT = parseInt(process.env.PORT!) || 4000
 
   connect().then(() => {
     console.log('Database Connected')
