@@ -342,7 +342,7 @@ const manageStudentResolvers = {
         if (team && user) {
           if (team.cohort.program.organization.name !== org?.name) {
             throw new Error(
-              " You logged into an organization that doesn't have such a team"
+              ' You logged into an organization that doesn\'t have such a team'
             )
           }
           const programId = team.cohort.program.id
@@ -630,7 +630,7 @@ const manageStudentResolvers = {
           role: UserRoles.TTL,
         })
 
-        if (existingTTL) {
+        if (existingTTL && member.role !== 'trainee') {
           throw new Error('This team already has a TTL assigned.')
         }
 
@@ -735,7 +735,7 @@ async function sendEmailOnAddMember(
       _id: org.id,
     })
     if (!organization) {
-      throw new Error("You don't have an organization yet")
+      throw new Error('You don\'t have an organization yet')
     }
     if (organization.admin.includes(userId) && organization.name == org.name) {
       const content = getOrganizationTemplate(
@@ -760,7 +760,7 @@ async function sendEmailOnAddMember(
   if (role === 'manager') {
     const program: any = await Program.findOne({ manager: userId })
     if (!program) {
-      throw new Error("You dont't have a program yet")
+      throw new Error('You dont\'t have a program yet')
     }
     if (program.organization._id.toString() == org?.id.toString()) {
       const content = getOrganizationTemplate(
@@ -784,7 +784,7 @@ async function sendEmailOnAddMember(
   if (role === 'coordinator') {
     const cohort: any = await Cohort.findOne({ coordinator: userId })
     if (!cohort) {
-      throw new Error("You don't have a coordinator yet")
+      throw new Error('You don\'t have a coordinator yet')
     }
     const program: any = await Program.findOne({
       _id: cohort.program,
