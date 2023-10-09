@@ -31,8 +31,8 @@ import { context } from './context'
 import notificationResolver from './resolvers/notification.resolvers'
 import eventResolvers from './resolvers/eventResolver'
 import ticketResolver from './resolvers/ticket.resolver'
-import DocumentationResolvers from './resolvers/DocumentationResolvers';
-import attendanceResolver from './resolvers/attendance.resolvers';
+import DocumentationResolvers from './resolvers/DocumentationResolvers'
+import attendanceResolver from './resolvers/attendance.resolvers'
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -49,8 +49,8 @@ export const resolvers = mergeResolvers([
   eventResolvers,
   ticketResolver,
   DocumentationResolvers,
-  attendanceResolver
-]);
+  attendanceResolver,
+])
 export const typeDefs = mergeTypeDefs([
   schemas,
   cohortSchema,
@@ -115,6 +115,9 @@ export const typeDefs = mergeTypeDefs([
       path: '/',
     }
   )
+
+  // Setup serving of static files or images.
+  app.use('/images', express.static('public'))
 
   // More required logic for integrating with Express
   await server.start()

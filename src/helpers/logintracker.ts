@@ -41,7 +41,7 @@ const emailtemp = (trials: any, date: any, country: any, city: any) => {
             margin: 0;
             padding: 0;
         }
-        
+
         .container {
             max-width: 600px;
             margin: 20px auto;
@@ -50,20 +50,20 @@ const emailtemp = (trials: any, date: any, country: any, city: any) => {
             border-radius: 4px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         h1 {
             color: #333333;
             font-size: 24px;
             margin: 0;
         }
-        
+
         p {
             color: #666666;
             font-size: 16px;
             line-height: 1.6;
             margin: 10px 0;
         }
-        
+
         .cta-button {
             display: inline-block;
             margin-top: 20px;
@@ -74,7 +74,7 @@ const emailtemp = (trials: any, date: any, country: any, city: any) => {
             padding: 10px 20px;
             border-radius: 4px;
         }
-        
+
         .cta-button:hover {
             background-color: #45a049;
         }
@@ -94,9 +94,9 @@ const emailtemp = (trials: any, date: any, country: any, city: any) => {
         <h1>Suspicious Activity Detected</h1>
         <p>We have detected some suspicious activity on your account. For your security, we recommend taking immediate action to ensure the safety of your account.</p>
         <p>If you believe this activity was unauthorized, please click the button below to reset your password:</p>
-        <a class="cta-button" href="[Reset Password URL]">Reset Password</a>
+        <a class="cta-button" href="${process.env.FRONTEND_LINK}/reset-password">Reset Password</a>
         <div id="det">
-        
+
         <li>date:${date}</li>
         <li>country name: ${country}</li>
         <li>city: ${city}</li>
@@ -107,7 +107,7 @@ const emailtemp = (trials: any, date: any, country: any, city: any) => {
         <p>If you recognize this activity and believe it was performed by you, you can safely ignore this message.</p>
         <p>If you have any questions or need further assistance, please contact our support team.</p>
         <p>Best regards,</p>
-        <p>Your [Company Name] Team</p>
+        <p>Pulse Team</p>
     </div>
 </body>
 </html>

@@ -1,26 +1,48 @@
 export default function Template(link: any) {
-  return `
-        <table style="text-align: left;">
+  return /* html */ `
+    <table style="font-size: 16px; font-family: 'Rubik'; text-align: left">
+      <tbody>
         <tr>
           <td>
-    
-            <p style="font-size: 18px; font-family: 'Rubik';text-align: left;"> Hello, <p>
-    
-            <p style="font-size: 18px; font-family: 'Rubik';margin-top: 10px; line-height: 20px;">
-              You can reset your password now
-            </p>
-            </br>
-            <p style="font-size: 18px; font-family: 'Rubik'; margin-top: 10px">
-            The link below will take you to a page where you can create your new password.<a href=${link}>Click here to processed with reset password</a>
-            </p>
-            <p style="font-size: 18px; font-family: 'Rubik'">
-               Don't hestitate to enquire from us via email in case of any question an enquiries
-            </p>
-            <p style="font-size: 14px; font-family: 'Rubik'; margin-top: 10px">Team <strong>DevPulse</strong>, </p>
+            <p style="margin-bottom: 10px">Hello,</p>
             <br />
+
+            <p style="margin-bottom: 10px">
+              You've requested a password reset for your Pulse account. To reset your password, click the button below.
+            </p>
+
+            <a href="${link}" style="text-decoration: none; cursor: pointer">
+              <button
+                style="
+                  font-size: 16px;
+                  background-color: rgb(134, 103, 242);
+                  font-family: 'Rubik';
+                  text-align: center;
+                  border: none;
+                  border-radius: 3px;
+                  padding: 5px;
+                  cursor: pointer;
+                  color: whitesmoke;
+                "
+              >
+                Reset Password
+              </button>
+            </a>
+            <br />
+            <br />
+
+            <p>
+              If you did not initiate the request or you think this email reached your
+              inbox by mistake, simply ignore it.
+            </p>
+            <br />
+            <br />
+
+            <p>Best Regard,</p>
+            <p>Pulse team</p>
           </td>
         </tr>
-    
-      </table>
-      `;
+      </tbody>
+    </table>
+  `
 }

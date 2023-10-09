@@ -50,16 +50,16 @@ const attendanceResolver = {
           const traineeId = trainee.traineeId
           const attendanceRecods = trainee.status
           let attendedCount: any = 0
-          let totalCount: any = 0
+          const totalCount: any = 0
 
           //count attendance recods
           attendanceRecods.forEach((recods: any) => {
             if (recods.value === 2) {
               attendedCount++
             }
-            if (recods.value !== 0) {
-              totalCount++
-            }
+            // if (recods.value !== 0) {
+            //   totalCount++
+            // }
           })
 
           // calculate attendance per trainee  in one week

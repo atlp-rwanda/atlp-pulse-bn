@@ -22,6 +22,7 @@ import Team from '../models/team.model'
 import Phase from '../models/phase.model'
 import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
+import { Rating } from '../models/ratings'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -41,17 +42,17 @@ const resolvers: any = {
 
       return Organization.find()
     },
-    async getUpdatedEmailNotifications(_: any, { id }: any, context: Context){
-      const user: any = await User.findOne({ _id: id });
+    async getUpdatedEmailNotifications(_: any, { id }: any, context: Context) {
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
       return user.emailNotifications
     },
-    async getUpdatedPushNotifications(_: any, { id }: any, context: Context){
-      const user: any = await User.findOne({ _id: id });
+    async getUpdatedPushNotifications(_: any, { id }: any, context: Context) {
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
       return user.pushNotifications
     },
@@ -90,7 +91,7 @@ const resolvers: any = {
         'coordinator',
         'trainee',
         'manager',
-        'ttl'
+        'ttl',
       ])
 
       const organisationExists = await Organization.findOne({
@@ -430,7 +431,7 @@ const resolvers: any = {
             { user },
             { $push: { activity: { $each: [newActivity] } } }
           )
-          throw new Error('You are not part of the organization you logged in.')
+          throw new Error('Please wait to be added to a program or cohort')
         }
       } else {
         await Profile.findOneAndUpdate(
@@ -888,12 +889,12 @@ const resolvers: any = {
           expiresIn: '2d',
         })
         const newToken: any = token.replaceAll('.', '*')
-        const link = `${process.env.RESET_PASSWORD_FRONTEND_URL}/${newToken}`
+        const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
         const content = forgotPasswordTemplate(link)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
-          'Proceed With Reset Password',
+          'Reset your Password',
           content,
           someSpace,
           process.env.ADMIN_EMAIL,
@@ -906,33 +907,33 @@ const resolvers: any = {
       }
     },
     async updateEmailNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id });
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
-      const updatedEmailNotifications = !user.emailNotifications;
+      const updatedEmailNotifications = !user.emailNotifications
       const updateEmailPreference = await User.updateOne(
         { _id: id },
-    { emailNotifications: updatedEmailNotifications }
+        { emailNotifications: updatedEmailNotifications }
       )
-      return "updated successful"
+      return 'updated successful'
     },
     async updatePushNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id });
+      const user: any = await User.findOne({ _id: id })
       if (!user) {
-        throw new Error('User not found');
+        throw new Error('User not found')
       }
-      user.pushNotifications = !user.pushNotifications;
-      await user.save();
-      const updatedPushNotifications = user.pushNotifications;
-      return "updated successful"
+      user.pushNotifications = !user.pushNotifications
+      await user.save()
+      const updatedPushNotifications = user.pushNotifications
+      return 'updated successful'
     },
     async resetUserPassword(
       _: any,
       { password, confirmPassword, token }: any,
       context: any
     ) {
-      const { email } = verify(token, SECRET) as JwtPayload;
+      const { email } = verify(token, SECRET) as JwtPayload
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
@@ -974,13 +975,27 @@ const resolvers: any = {
         return cohort
       }
     },
-
     async team(parent: UserType) {
       const team = await Team.findOne({ members: parent._id })
       if (!team) {
         return null
       } else {
         return team
+      }
+    },
+    async ratings(parent: UserType) {
+      const ratings = await Rating.find({ user: parent._id }).populate([
+        'user',
+        'cohort',
+        {
+          path: 'feedbacks',
+          populate: 'sender',
+        },
+      ])
+      if (!ratings) {
+        return null
+      } else {
+        return ratings
       }
     },
   },
