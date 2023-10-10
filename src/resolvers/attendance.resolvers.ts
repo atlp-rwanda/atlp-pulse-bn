@@ -2,7 +2,7 @@
 import { Attendance, User } from '../models/user'
 import { IntegerType, ObjectId } from 'mongodb'
 import { Context } from './../context'
-import { ApolloError } from 'apollo-server'
+import ApolloError from 'apollo-server'
 import mongoose, { Error } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 
@@ -50,7 +50,7 @@ const attendanceResolver = {
           const traineeId = trainee.traineeId
           const attendanceRecods = trainee.status
           let attendedCount: any = 0
-          let totalCount: any = 0
+          const totalCount: any = 0
 
           //count attendance recods
           attendanceRecods.forEach((recods: any) => {

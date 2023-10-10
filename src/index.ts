@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { formatError } from './ErrorMsg'
-const { ApolloServer } = require('apollo-server-express')
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
-const { execute, subscribe } = require('graphql')
-const { SubscriptionServer } = require('subscriptions-transport-ws')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const express = require('express')
-const http = require('http')
-const { PubSub } = require('graphql-subscriptions')
+import ApolloServer from 'apollo-server-express'
+import { execute, subscribe } from 'graphql' // Import execute and subscribe from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws/dist/server'
+import makeExecutableSchema from '@graphql-tools/schema/dist/makeExecutableSchema'
+import express from 'express'
+import http from 'http'
+import { PubSub } from 'graphql-subscriptions'
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core/dist/plugin/drainHttpServer'
+
+// Import your resolvers and schemas
 import cohortResolvers from './resolvers/cohort.resolvers'
 import manageStudentResolvers from './resolvers/coordinatorResolvers'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
@@ -25,7 +27,8 @@ import replyResolver from './resolvers/reply.resolver'
 import phaseResolver from './resolvers/phase.resolver'
 import phaseSchema from './schema/phase.schema'
 import teamResolver from './resolvers/team.resolvers'
-import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
+import mergeResolvers from '@graphql-tools/merge'
+import mergeTypeDefs from '@graphql-tools/merge'
 import { connect } from './database/db.config'
 import { context } from './context'
 import notificationResolver from './resolvers/notification.resolvers'
@@ -34,6 +37,7 @@ import ticketResolver from './resolvers/ticket.resolver'
 import DocumentationResolvers from './resolvers/DocumentationResolvers'
 import attendanceResolver from './resolvers/attendance.resolvers'
 
+// Merge your resolvers and schemas
 export const resolvers = mergeResolvers([
   userResolvers,
   profileResolvers,
@@ -51,6 +55,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
 ])
+
 export const typeDefs = mergeTypeDefs([
   schemas,
   cohortSchema,
@@ -59,13 +64,17 @@ export const typeDefs = mergeTypeDefs([
   phaseSchema,
   ticketSchema,
 ])
-;(async function startApolloServer(typeDefs, resolvers) {
+
+// Modified server startup
+const startApolloServer = async (typeDefs: any, resolvers: any) => {
   console.log(process.env.NODE_ENV)
+
   // Required logic for integrating with Express
   const app = express()
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
   const pubsub = new PubSub()
+
   // Same ApolloServer initialization as before, plus the drain plugin.
   const server = new ApolloServer({
     schema,
@@ -91,9 +100,7 @@ export const typeDefs = mergeTypeDefs([
 
   const subscriptionServer = SubscriptionServer.create(
     {
-      // This is the `schema` we just created.
       schema,
-      // These are imported from `graphql`.
       execute,
       subscribe,
       async onConnect() {
@@ -126,7 +133,6 @@ export const typeDefs = mergeTypeDefs([
     path: '/',
   })
 
-  // Modified server startup
   const PORT: number = parseInt(process.env.PORT!) || 4000
 
   connect().then(() => {
@@ -137,4 +143,6 @@ export const typeDefs = mergeTypeDefs([
       )
     )
   })
-})(typeDefs, resolvers)
+}
+
+startApolloServer(typeDefs, resolvers)
