@@ -13,72 +13,73 @@ const seedUsers = async () => {
       firstName: 'Japhet',
       lastName: 'Japhet',
       email: 'kylesjet1@gmail.com',
-      guthubUserName: 'rwamugema',
+      githubUserName: 'rwamugema',
     },
     {
       firstName: 'Muhawenimana',
       lastName: 'Lydia',
       email: 'gatarelydie370@gmail.com',
-      guthubUserName: '',
+      githubUserName: '',
     },
     {
       firstName: 'Leivin',
       lastName: 'NIYOYANDIKA',
       email: 'niyoyandikalie@gmail.com',
-      guthubUserName: '',
+      githubUserName: '',
     },
     {
-      firstName: 'Martha',
-      lastName: 'Twesigye',
-      email: 'twesimartha@gmail.com',
-      guthubUserName: 'Marthatwesi',
+      firstName: 'Charles',
+      lastName: 'Ntwari',
+      email: 'ntwarichar@gmail.com',
+      githubUserName: 'charlesntwari',
     },
     {
       firstName: 'Nshuti',
       lastName: 'Parfait',
       email: 'nshutiparfait99@gmail.com',
-      guthubUserName: '',
+      githubUserName: '',
     },
     {
       firstName: 'Muheto',
       lastName: 'Darius',
       email: 'muhedarius96@gmail.com',
-      guthubUserName: '',
+      githubUserName: '',
     },
     {
       firstName: 'Ndayambaje',
       lastName: 'Virgile',
       email: 'ndayambajevgschooling@gmail.com',
-      guthubUserName: '',
+      githubUserName: '',
     },
     {
       firstName: 'NDATIMANA',
       lastName: 'Samuel',
       email: 'ndatimanasamuel1@gmail.com',
-      guthubUserName: 'blackd44',
+      githubUserName: 'blackd44',
     },
     {
-      firstName: 'Lucie',
-      lastName: 'Niyomutoni',
-      email: 'niyomutonilucie@gmail.com',
-      githubUserName: 'Luciefifi',
+      firstName: 'Ken',
+      lastName: 'Mugisha',
+      email: 'keneon2003@gmail.com',
+      githubUserName: '',
     },
     {
-      firstName: 'Olivier',
-      lastName: 'Habihirwe',
-      email: 'habiholivier10@gmail.com',
-      guthubUserName: 'Habihirwe',
+      firstName: 'Kevin',
+      lastName: 'Rukundo',
+      email: 'kevinrukundo1@gmail.com',
+      githubUserName: '',
     },
     {
-      firstName: 'Ntwari',
-      lastName: 'Charles',
-      email: 'ntwarichar@gmail.com',
+      firstName: 'Patrick',
+      lastName: 'Mugwaneza',
+      email: 'mugwanezapatrick6@gmail.com',
+      githubUserName: '',
     },
     {
       firstName: 'Elissa',
       lastName: 'NTIHINDUKA',
       email: 'ntihindukaelissa77@gmail.com',
-      guthubUserName: '',
+      githubUserName: '',
     },
   ]
 
@@ -166,19 +167,18 @@ const seedUsers = async () => {
     // Tranee change into Users
     for (const element of org[1]) {
       if (registerUsers.find((user) => user.email === element.email)) continue
-  
+
       if (
         registerUsers.filter(
-          (user) =>
-            user.organizations.includes(org[0]) && user.role === 'user'
+          (user) => user.organizations.includes(org[0]) && user.role === 'user'
         ).length === usersTypes.users
       )
         break
-  
+
       registerUsers.push({
         email: element.email,
         password: hashSync('Test@12345'),
-        role: 'user', 
+        role: 'user',
         organizations: [org[0]],
       })
     }
@@ -230,7 +230,7 @@ const seedUsers = async () => {
         firstName: userProfile.firstName,
         lastName: userProfile.lastName,
         githubUsername: userProfile
-          ? userProfile.guthubUserName
+          ? userProfile.githubUserName
           : 'unavailable',
       })
     }
