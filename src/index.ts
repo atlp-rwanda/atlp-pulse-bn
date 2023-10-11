@@ -33,6 +33,7 @@ import eventResolvers from './resolvers/eventResolver'
 import ticketResolver from './resolvers/ticket.resolver'
 import DocumentationResolvers from './resolvers/DocumentationResolvers'
 import attendanceResolver from './resolvers/attendance.resolvers'
+import Sessionresolvers from './resolvers/session.resolver'
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -50,6 +51,7 @@ export const resolvers = mergeResolvers([
   ticketResolver,
   DocumentationResolvers,
   attendanceResolver,
+  Sessionresolvers,
 ])
 export const typeDefs = mergeTypeDefs([
   schemas,
