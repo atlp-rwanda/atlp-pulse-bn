@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import { gql } from 'apollo-server'
 
 const Schema = gql`
   type Query {
@@ -22,7 +22,7 @@ const Schema = gql`
       email: String!
       orgToken: String!
     ): String
-
+    dropTrainee(traineeId: String!, reason: String!, date: DateTime!): String
     editMember(
       removedFromTeamName: String!
       addedToTeamName: String!
@@ -30,7 +30,7 @@ const Schema = gql`
       orgToken: String!
     ): String
 
-    inviteUser(email: String!, orgToken: String!,type:String!): String!
+    inviteUser(email: String!, orgToken: String!, type: String!): String!
   }
-`;
-export default Schema;
+`
+export default Schema
