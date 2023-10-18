@@ -16,7 +16,7 @@ const Event = mongoose.model(
       required: true,
     },
     start: {
-      type: Date,
+      type: String,
       required: true,
     },
     end: {
