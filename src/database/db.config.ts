@@ -14,6 +14,7 @@ const uri =
 export const connect = async () => {
   try {
     //MONGODB CONNECTION
+    console.info('Env: ', process.env.NODE_ENV)
     console.log('database', uri)
     return mongoose.connect(uri!)
   } catch (error) {
