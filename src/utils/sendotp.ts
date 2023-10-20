@@ -22,7 +22,7 @@ interface SendEmailOptions {
   text: string;
 }
 
-export const sendEmail = async (options: SendEmailOptions) => {
+ const sendEmaile = async (options: SendEmailOptions) => {
   try {
     // Use previously created transporter
     const transporter = createTransporter();
@@ -43,3 +43,5 @@ export const sendEmail = async (options: SendEmailOptions) => {
     throw error; // Re-throw the error for higher-level handling
   }
 };
+
+export default sendEmaile;

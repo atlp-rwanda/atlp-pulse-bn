@@ -60,6 +60,7 @@
     "apollo-server": "^3.10.2",
     "apollo-server-core": "^3.10.2",
     "apollo-server-express": "^3.10.2",
+    "authenticator": "^1.1.5",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.30.1",
     "date-fns": "^2.29.2",
@@ -77,6 +78,7 @@
     "nodemailer": "^6.7.8",
     "normalize-mongoose": "^1.0.0",
     "otplib": "^12.0.1",
+    "speakeasy": "^2.0.0",
     "subscriptions-transport-ws": "^0.11.0",
     "ts-node-dev": "^2.0.0",
     "ws": "^8.11.0"

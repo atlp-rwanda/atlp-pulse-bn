@@ -18,10 +18,20 @@ const userSchema = new Schema(
     },
     twoFactorAuth: {
       type: Boolean,
-      default: false
+      default: false,
     },
     twoFactorSecret: {
-      type: String
+      type: String,
+      
+    },
+    oneTimeCode: {
+      type: String,
+      code: String,
+      required: false
+    },
+    oneTimeCodeExpiresAt: {
+      type: Date,
+      required: false
     },
     password: {
       type: String,

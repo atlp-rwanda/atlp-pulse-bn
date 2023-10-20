@@ -7,6 +7,8 @@ ENV MONGO_PROD_DB=mongodb+srv://doadmin:e617MB4IVm5rC092@pulse-prod-db-70e37aa6.
 ENV MONGO_DEV_DB=mongodb+srv://khaleb_:rewqilike3@pulse-bn.kyelrra.mongodb.net/?retryWrites=true&w=majority
 ENV ADMIN_EMAIL=process.env.ADMIN_EMAIL
 ENV ADMIN_PASS=process.env.ADMIN_PASS
+ENV EMAIL_USER=dev.pulse.andela@gmail.com
+ENV EMAIL_PASS=uwwwvjujvwcgupns
 
 ENV ADMIN_EMAIL=devpulseadmn@gmail.com
 ENV ADMIN_PASS=yptbizlxrzfnyzon
