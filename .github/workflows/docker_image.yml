@@ -1,5 +1,6 @@
 name: Docker Image
 on:
+  pull_request:
   push:
     branches:
       - develop
@@ -29,10 +30,10 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Login to DO and push a new image
+        uses: appleboy/ssh-action@master
         env:
           MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
-      - name: Login to DO
-        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
