@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FIFTH_P: plead
+      MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
     concurrency:
       group: docker_image
       cancel-in-progress: false
@@ -22,6 +25,9 @@ jobs:
 
       - run: npm install
       - run: npm run build
+      -  run:
+          echo "THE DB IS $MONGO_PROD_DB"
+          echo "THE p IS $FIFTH_P"
       - name: Build and publish Docker Image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
@@ -32,17 +38,11 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Login to DO and push a new image
         uses: appleboy/ssh-action@master
-        env:
-          FIFTH_P: plead
-          MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_KEY }}
           port: ${{ secrets.DO_PORT }}
-          run:
-            echo "THE DB IS $MONGO_PROD_DB"
-            echo "THE p IS $FIFTH_P"
           script: |
             docker pull devpulse/atlp-pulse-bn:latest
             docker ps | grep 4000 | cut -f1 -d' ' | xargs docker stop
