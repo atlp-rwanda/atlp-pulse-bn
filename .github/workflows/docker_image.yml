@@ -33,6 +33,7 @@ jobs:
       - name: Login to DO and push a new image
         uses: appleboy/ssh-action@master
         env:
+          FIFTH_P: plead
           MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
         with:
           host: ${{ secrets.DO_HOST }}
@@ -41,6 +42,7 @@ jobs:
           port: ${{ secrets.DO_PORT }}
           script: |
             echo "THE DB IS $MONGO_PROD_DB"
+            echo "THE p IS $FIFTH_P"
             docker pull devpulse/atlp-pulse-bn:latest
             docker ps | grep 4000 | cut -f1 -d' ' | xargs docker stop
             docker run -p 4000:4000 -d -e REGISTER_FRONTEND_URL=https://beta.devpulse.org/register -e REGISTER_ORG_FRONTEND_URL=https://beta.devpulse.org/signup/org -e FRONTEND_LINK=https://beta.devpulse.org -e  MONGO_PROD_DB="mongodb+srv://doadmin:e617MB4IVm5rC092@pulse-prod-db-70e37aa6.mongo.ondigitalocean.com/devpulse-backend-staging?tls=true&authSource=admin&replicaSet=pulse-prod-db" devpulse/atlp-pulse-bn:latest
