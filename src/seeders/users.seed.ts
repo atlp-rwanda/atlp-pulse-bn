@@ -31,7 +31,7 @@ const seedUsers = async () => {
       firstName: 'Charles',
       lastName: 'Ntwari',
       email: 'ntwarichar@gmail.com',
-      githubUserName: 'charlesntwari',
+      githubUserName: '',
     },
     {
       firstName: 'Nshuti',
