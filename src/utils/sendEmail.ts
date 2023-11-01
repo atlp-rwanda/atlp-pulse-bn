@@ -32,6 +32,7 @@ export const sendEmail = async (
   return new Promise((res, rej) => {
     transport.sendMail(mailOptions, (error: any) => {
       if (error) {
+        console.info(`${process.env.ADMIN_EMAIL} ${process.env.ADMIN_PASS} process.env ${senderEmail} ${senderPassword} sender`)
         console.error(error)
         rej('Unable to send request!!!')
       } 
