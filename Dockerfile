@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 ENV NODE_ENV=process.env.NODE_ENV
-ENV MONGO_PROD_DB=mongodb+srv://doadmin:e617MB4IVm5rC092@pulse-prod-db-70e37aa6.mongo.ondigitalocean.com/devpulse-backend-staging?tls=true&authSource=admin&replicaSet=pulse-prod-db
+ENV MONGO_PROD_DB=process.env.MONGO_PROD_DB
 ENV MONGO_DEV_DB=process.env.MONGO_DEV_DB
 ENV ADMIN_EMAIL=process.env.ADMIN_EMAIL
 ENV ADMIN_PASS=process.env.ADMIN_PASS
