@@ -108,7 +108,6 @@ const attendanceResolver = {
         const traineeIndex = attendances[weekIndex].trainees.findIndex(
           (item: any) => item.traineeId.includes(trainee.traineeId)
         )
-
         if (traineeIndex !== -1) {
           const attendanceIndex = attendances[weekIndex].trainees[
             traineeIndex
