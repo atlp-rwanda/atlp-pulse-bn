@@ -739,15 +739,18 @@ const resolvers: any = {
 
       // check if the requester is already an admin, if not create him
       const admin = await User.findOne({ email, role: 'admin' })
+      // if (!admin) {
+      //   console.log('admin exist')
+      // }
       const password: any = generateRandomPassword()
       let newAdmin: any = undefined
-      if (!admin) {
-        newAdmin = await User.create({
-          email,
-          password,
-          role: 'admin',
-        })
-      }
+      // if (!admin) {
+      //   newAdmin = await User.create({
+      //     email,
+      //     password,
+      //     role: 'admin',
+      //   })
+      // }
 
       let org: any = await Organization.findOne({ admin: admin?._id })
 
