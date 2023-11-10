@@ -123,7 +123,15 @@ const resolvers = {
 
         const filterObj: any = {}
 
-        if (context.role !== 'superAdmin') filterObj.user = context.userId
+        // if (context.role !== 'superAdmin') filterObj.user = context.userId
+        if (context.role === 'superAdmin') {
+          // SuperAdmin can view all tickets
+        } else if (context.role === 'admin') {
+          // Admin can view all tickets
+        } else {
+          // Regular user can only view their own tickets
+          filterObj.user = context.userId
+        }
 
         const tickets = await Ticket.find(filterObj)
           .populate({
@@ -223,12 +231,14 @@ const resolvers = {
           )
 
         const { user } = ticket
+        // Allow both superAdmin and admin to reply to the ticket
         if (
-          user?.toString() !== context.userId &&
-          context.role !== 'superAdmin'
+          context.role !== 'superAdmin' &&
+          context.role !== 'admin' &&
+          user?.toString() !== context.userId
         )
           throw new ValidationError(
-            'Access denied! You can only reply if you are the owner of ticket, or you are the super admin.'
+            'Access denied! You can only reply if you are the owner of the ticket, or you are an admin/super admin.'
           )
 
         const res = await createReply(
