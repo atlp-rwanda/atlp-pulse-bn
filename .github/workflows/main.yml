@@ -14,6 +14,12 @@ jobs:
       env:
         MONGO_TEST_DB: mongodb://localhost:6000
         NODE_ENV: test
+        MONGO_PROD_DB: ${{secrets.MONGO_PROD_DB}}
+        MONGO_DEV_DB: ${{secrets.MONGO_DEV_DB}}
+        ADMIN_EMAIL: ${{secrets.ADMIN_EMAIL}}
+        ADMIN_PASS: ${{secrets.ADMIN_PASS}}
+        COORDINATOR_EMAIL: ${{secrets.COORDINATOR_EMAIL}}
+        COORDINATOR_PASS: ${{secrets.COORDINATOR_PASS}}
       concurrency: test_environment
       steps:
         - uses: actions/checkout@v3
