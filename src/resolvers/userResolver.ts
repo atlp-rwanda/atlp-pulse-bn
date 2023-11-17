@@ -968,7 +968,8 @@ const resolvers: any = {
       }
     },
     async cohort(parent: any) {
-      const cohort = await Cohort.findOne({ coordinator: parent.id.toString() })
+      const cohort = await Cohort.findById(parent.cohort.toString())
+
       if (!cohort) {
         return null
       } else {
