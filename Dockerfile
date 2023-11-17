@@ -2,17 +2,32 @@ FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
-ENV NODE_ENV=production
-ENV MONGO_PROD_DB=mongodb+srv://doadmin:e617MB4IVm5rC092@pulse-prod-db-70e37aa6.mongo.ondigitalocean.com/devpulse-backend-staging?tls=true&authSource=admin&replicaSet=pulse-prod-db
-ENV MONGO_DEV_DB=mongodb+srv://khaleb_:rewqilike3@pulse-bn.kyelrra.mongodb.net/?retryWrites=true&w=majority
-ENV ADMIN_EMAIL=process.env.ADMIN_EMAIL
-ENV ADMIN_PASS=process.env.ADMIN_PASS
 
-ENV COORDINATOR_EMAIL=process.env.COORDINATOR_EMAIL
-ENV COORDINATOR_PASS=process.env.COORDINATOR_PASS
+# Set environment variables with build arguments
+ARG NODE_ENV
+ENV NODE_ENV=$NODE_ENV
+
+ARG MONGO_PROD_DB
+ENV MONGO_PROD_DB=$MONGO_PROD_DB
+
+ARG MONGO_DEV_DB
+ENV MONGO_DEV_DB=$MONGO_DEV_DB
+
+ARG ADMIN_EMAIL
+ENV ADMIN_EMAIL=$ADMIN_EMAIL
+
+ARG ADMIN_PASS
+ENV ADMIN_PASS=$ADMIN_PASS
+
+ARG COORDINATOR_EMAIL
+ENV COORDINATOR_EMAIL=$COORDINATOR_EMAIL
+
+ARG COORDINATOR_PASS
+ENV COORDINATOR_PASS=$COORDINATOR_PASS
 
 COPY . .
 RUN npm run build
-RUN npm prune --omit=dev
+RUN npm prune --production
+
 EXPOSE 4000
 CMD ["node", "dist/index.js"]
