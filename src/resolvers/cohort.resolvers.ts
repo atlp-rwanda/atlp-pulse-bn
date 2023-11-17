@@ -119,9 +119,7 @@ const resolvers = {
             `Program with name ${programName} doesn't exist`
           )
         }
-        if (differenceInDays(new Date(startDate), Date.now()) < 0) {
-          throw new ValidationError('Start Date can\'t be in the past');
-        }
+        
         if (
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
@@ -224,9 +222,7 @@ const resolvers = {
         throw new ValidationError(`Phase with name ${name} already exist`)
       }
 
-      if (startDate && differenceInDays(new Date(startDate), Date.now()) < 0) {
-        throw new ValidationError('Start Date can\'t be in the past');
-      }
+      
       if (
         endDate &&
         (isAfter(
