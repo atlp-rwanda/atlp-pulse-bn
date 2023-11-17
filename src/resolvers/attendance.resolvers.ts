@@ -6,19 +6,27 @@ import { ApolloError } from 'apollo-server'
 import mongoose, { Error } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 
-interface TraineeStatus {
-  days: string
-  value: number
-}
-
-interface Trainee {
-  traineeId: mongoose.Types.ObjectId
-  traineeEmail: string
-  status: TraineeStatus[]
-}
-
 const attendanceResolver = {
   Query: {
+    async getTraineeAttendanceByID(
+      _: any,
+      { traineeEmail }: any,
+      context: Context
+    ) {
+      ;(await checkUserLoggedIn(context))(['trainee'])
+      const attendance = await Attendance.find()
+
+      const weeklyAttendance = attendance.map((week: any) => {
+        const weekNumber = week.week
+        const trainee = week.trainees.filter((trainee: any) =>
+          trainee.traineeEmail.includes(traineeEmail)
+        )
+        const traineeAttendance = trainee[0]?.status
+        return { weekNumber, traineeAttendance }
+      })
+      return weeklyAttendance
+    },
+
     async getTraineeAttendance(_: any, args: any, context: Context) {
       ;(await checkUserLoggedIn(context))(['coordinator'])
       const { userId } = (await checkUserLoggedIn(context))(['coordinator'])
