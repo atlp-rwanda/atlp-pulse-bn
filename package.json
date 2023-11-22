@@ -7,7 +7,7 @@
     "start": "npm run seed & tsc && node dist/index",
     "seed": "ts-node-dev --transpile-only --no-notify --exit-child src/seeders/index.ts",
     "dev": "ts-node-dev --transpile-only --no-notify --exit-child src/index.ts",
-    "build": "tsc",
+    "build": "npx -p typescript tsc",
     "test": " npm run seed && tsc && nyc mocha",
     "lint": "eslint src --fix .",
     "format": "npx prettier --write .",
