@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { formatError } from './ErrorMsg'
-const { ApolloServer } = require('apollo-server-express')
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
-const { execute, subscribe } = require('graphql')
+import { ApolloServer } from 'apollo-server-express'
+import { execute, subscribe } from 'graphql'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import express from 'express'
+import http from 'http'
+import { PubSub } from 'graphql-subscriptions'
 const { SubscriptionServer } = require('subscriptions-transport-ws')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const express = require('express')
-const http = require('http')
-const { PubSub } = require('graphql-subscriptions')
 import cohortResolvers from './resolvers/cohort.resolvers'
 import manageStudentResolvers from './resolvers/coordinatorResolvers'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
@@ -51,6 +50,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
 ])
+
 export const typeDefs = mergeTypeDefs([
   schemas,
   cohortSchema,
@@ -59,6 +59,7 @@ export const typeDefs = mergeTypeDefs([
   phaseSchema,
   ticketSchema,
 ])
+
 ;(async function startApolloServer(typeDefs, resolvers) {
   console.log(process.env.NODE_ENV)
   // Required logic for integrating with Express
@@ -66,18 +67,16 @@ export const typeDefs = mergeTypeDefs([
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
   const pubsub = new PubSub()
-  // Same ApolloServer initialization as before, plus the drain plugin.
+  // Same ApolloServer initialization as before.
   const server = new ApolloServer({
     schema,
     introspection: true,
-    // context: ({ req , res }:any) => ({ req, res, pubsub }),
     plugins: [
-      ApolloServerPluginDrainHttpServer({ httpServer }),
       {
         async serverWillStart() {
           return {
             async drainServer() {
-              subscriptionServer.close()
+              // WebSocket subscriptions will be managed by Apollo Server directly.
             },
           }
         },
@@ -89,6 +88,15 @@ export const typeDefs = mergeTypeDefs([
     csrfPrevention: true,
   })
 
+  // // Setup serving of static files or images.
+  // app.use('/images', express.static('public'));
+
+  // // More required logic for integrating with Express
+  // await server.start();
+  // server.applyMiddleware({
+  //   app,
+  //   path: '/',
+  // });
   const subscriptionServer = SubscriptionServer.create(
     {
       // This is the `schema` we just created.
@@ -115,16 +123,6 @@ export const typeDefs = mergeTypeDefs([
       path: '/',
     }
   )
-
-  // Setup serving of static files or images.
-  app.use('/images', express.static('public'))
-
-  // More required logic for integrating with Express
-  await server.start()
-  server.applyMiddleware({
-    app,
-    path: '/',
-  })
 
   // Modified server startup
   const PORT: number = parseInt(process.env.PORT!) || 4000
