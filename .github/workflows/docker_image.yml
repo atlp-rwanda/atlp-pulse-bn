@@ -8,9 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    concurrency:
-      group: docker_image
-      cancel-in-progress: false
+    env:
+      MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
+      REGISTER_FRONTEND_URL: "https://beta.devpulse.org/register"
+      REGISTER_ORG_FRONTEND_URL: "https://beta.devpulse.org/signup/org"
+      FRONTEND_LINK: "https://beta.devpulse.org"
+      NODE_ENV: "production"
     steps:
       - uses: actions/checkout@v3
       - name: Uses Node.js
@@ -18,27 +21,39 @@ jobs:
         with:
           node-version: 18.x
           cache: 'npm'
-
+      - run: npm cache clean --force
       - run: npm install
       - run: npm run build
-      - name: Build and publish Docker Image
-        uses: mr-smithers-excellent/docker-build-push@v5
+      - run: npm run test 
+      - name: Build and Docker Image
+        uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: ${{ secrets.DOCKER_HUB_USERNAME }}/atlp-pulse-bn
           tags: latest
           registry: docker.io
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-        env:
-          MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
-      - name: Login to DO
+      - name: Login to DO and spin up a new container
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_KEY }}
           port: ${{ secrets.DO_PORT }}
+          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK;
           script: |
             docker pull devpulse/atlp-pulse-bn:latest
-            docker ps | grep 4000 | cut -f1 -d' ' | xargs docker stop
-            docker run -p 4000:4000 -d -e REGISTER_FRONTEND_URL=https://beta.devpulse.org/register -e REGISTER_ORG_FRONTEND_URL=https://beta.devpulse.org/signup/org -e FRONTEND_LINK=https://beta.devpulse.org -e  MONGO_PROD_DB=$MONGO_PROD_DB  devpulse/atlp-pulse-bn:latest
+            existing_container=$(docker ps | grep 4000)
+            if [ $? -eq 0 ]; then
+              echo "An existing container will be stopped"
+              docker ps | grep 4000 | cut -f1 -d' ' | xargs docker stop
+            else
+              echo "No existing container found"
+            fi
+            docker_ps_out=$(docker run -p 4000:4000 -d -e NODE_ENV -e MONGO_PROD_DB -e REGISTER_FRONTEND_LINK -e REGISTER_ORG_FRONTEND_URL -e FRONTEND_LINK  devpulse/atlp-pulse-bn:latest)
+            if [ $? -eq 0 ]; then
+              echo "New container spinned up successfully"
+            else
+              echo "There was an error creating a new container"
+              echo "$docker_ps_out"
+            fi
