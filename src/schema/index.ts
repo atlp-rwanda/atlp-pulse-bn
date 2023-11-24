@@ -167,7 +167,7 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
-    phase:String!
+    phase: String!
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -291,7 +291,7 @@ const Schema = gql`
   type Mutation {
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
-    dropTTLUser(email:String!, reason: String!):String!
+    dropTTLUser(email: String!, reason: String!): String!
     createUser(
       firstName: String!
       lastName: String!
@@ -503,6 +503,9 @@ const Schema = gql`
     end: String!
     timeToStart: String!
     timeToEnd: String!
+    guests: [String!]!
+    invitationStatus: String!
+    invitationReason: String
   }
   type Mutation {
     createEvent(
@@ -513,10 +516,19 @@ const Schema = gql`
       timeToStart: String!
       timeToEnd: String!
       authToken: String
+      guests: [String!]!
+    ): Event!
+
+    respondToEventInvitation(
+      eventId: ID!
+      status: String!
+      reason: String!
+      authToken: String
     ): Event!
   }
   type Query {
     getEvents(authToken: String): [Event]
+    getAcceptedEvents(authToken: String): [Event]
   }
   type Doc {
     title: String!

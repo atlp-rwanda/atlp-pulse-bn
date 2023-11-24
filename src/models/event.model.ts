@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 const Event = mongoose.model(
   'Event',
   new Schema({
@@ -16,7 +16,7 @@ const Event = mongoose.model(
       required: true,
     },
     start: {
-      type: String,
+      type: Date,
       required: true,
     },
     end: {
@@ -31,6 +31,27 @@ const Event = mongoose.model(
       type: String,
       required: true,
     },
+    guests: [
+      {
+        type: String,
+        ref: 'User',
+      },
+    ],
+    invitationStatus: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending',
+    },
+    invitationReason: {
+      type: String,
+      default: '',
+    },
+    acceptedUsers: [
+      {
+        type: String,
+        ref: 'User',
+      },
+    ],
   })
-);
-export { Event };
+)
+export { Event }
