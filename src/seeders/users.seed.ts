@@ -10,10 +10,10 @@ const seedUsers = async () => {
   // Random Users
   const users: Array<any> = [
     {
-      firstName: 'Japhet',
-      lastName: 'Japhet',
-      email: 'kylesjet1@gmail.com',
-      githubUserName: 'rwamugema',
+      firstName: 'ATLP',
+      lastName: 'Devpulse',
+      email: 'devpulse@proton.me',
+      githubUserName: 'atlp-rwanda',
     },
     {
       firstName: 'Muhawenimana',

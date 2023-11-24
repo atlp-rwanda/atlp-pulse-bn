@@ -24,6 +24,7 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          buildArgs: 'NODE_ENV=production, MONGO_PROD_DB="${{ secrets.MONGO_PROD_DB}}"'
       - name: Login to DO and spin up a new container
         uses: appleboy/ssh-action@master
         with:
