@@ -1,5 +1,6 @@
-/* eslint-disable prefer-const */
+ /* eslint-disable prefer-const */
 import { ApolloError } from 'apollo-server-errors'
+import { authenticator } from 'otplib'
 import * as jwt from 'jsonwebtoken'
 import { JwtPayload, verify } from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
@@ -10,6 +11,7 @@ import Cohort from '../models/cohort.model'
 import Program from '../models/program.model'
 import { Organization, Profile, User, UserRole } from '../models/user'
 import { sendEmail } from '../utils/sendEmail'
+import sendEmaile from '../utils/sendotp'
 import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
 import organizationApprovedTemplate from '../utils/templates/organizationApprovedTemplate'
 import organizationRejectedTemplate from '../utils/templates/organizationRejectedTemplate'
@@ -20,9 +22,9 @@ import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
 import bcrypt from 'bcryptjs'
 import Team from '../models/team.model'
 import Phase from '../models/phase.model'
+// import check2FA from './checkfaenabled.resolver';
 import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
-import { Rating } from '../models/ratings'
 const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -91,7 +93,6 @@ const resolvers: any = {
         'coordinator',
         'trainee',
         'manager',
-        'ttl',
       ])
 
       const organisationExists = await Organization.findOne({
@@ -241,7 +242,7 @@ const resolvers: any = {
     async createProfile(_: any, args: any, context: { userId: any }) {
       if (!context.userId) throw new Error('Unauthorized')
       if (!mongoose.isValidObjectId(context.userId))
-        throw new Error('Invalid user id')
+        throw new Error('§  user id')
       const userExists = await User.findOne({ _id: context.userId })
       if (!userExists) throw new Error('This user does not exists')
       const profile = await Profile.findOneAndUpdate(
@@ -257,7 +258,9 @@ const resolvers: any = {
     },
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken, activity } }: any
+      {
+        loginInput: { email, password, orgToken, activity, twoFactorCode },
+      }: any
     ) {
       //get location
       const newActivity = activity || null
@@ -283,69 +286,96 @@ const resolvers: any = {
       let attempts = await checkloginAttepmts(Profile, user)
 
       if (await user?.checkPass(password)) {
-        await Profile.findOneAndUpdate(
-          { user },
-          {
-            $push: {
-              activity: { $each: [{ failed: 0, ...newActivity }] },
-            },
-          }
-        )
-        await Profile.findOneAndUpdate(
-          { user },
-          { $push: { activity: { $each: [newActivity] } } }
-        )
-        if (
-          user?.role === 'trainee' &&
-          user?.organizations?.includes(org?.name)
-        ) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
-          )
-          const data = {
-            token: token,
-            user: user.toJSON(),
-          }
-          return data
-        }
 
-        if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
-          )
-          const data = {
-            token: token,
-            user: user.toJSON(),
-          }
-          return data
-        }
+        let returnData
+
         const organization: any = await Organization.findOne({
           name: org?.name,
           admin: user.id,
         })
 
-        if (user?.role === 'admin' && organization) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
+        const token = jwt.sign(
+          { userId: user._id, role: user._doc?.role || 'user' },
+          SECRET,
+          {
+            expiresIn: '2h',
+          }
+        )
+
+        if (user?.twoFactorAuth) {
+
+          if (twoFactorCode) {
+
+            // If a code is provided, verify it.
+            const isCodeValid = twoFactorCode === user.oneTimeCode
+            if (!isCodeValid) {
+              throw new ApolloError(
+                'Invalid two-factor authentication code.',
+                'TwoFactorAuthError'
+              )
             }
-          )
-          const data = {
+
+            if (isCodeValid) {
+              returnData = {
+                message : "Two-factor authentication verified. " 
+              }
+            }
+            // Clear the one-time code after successful verification.
+            user.oneTimeCode = null
+            await user.save()
+
+          } else {
+            // If 2FA is enabled and no code is provided, send the code and ask the user to check their email.
+            const secret = user.twoFactorSecret
+            const verificationCode = authenticator.generate(secret)
+
+            await sendEmaile({
+              to: user.email,
+              subject: 'Your One-Time Verification Code',
+              text: `Your verification code is: ${verificationCode}`,
+            })
+            user.oneTimeCode = verificationCode
+            await user.save()
+
+            returnData = {
+              user: user.toJSON(),
+              message: 'Two-factor authentication is enabled. A code has been sent to your email. Please check your inbox to proceed with login.',
+            }
+
+            return returnData
+          }
+        } else {
+          returnData = {
+            message : "Two-factor authentication is not enabled. " 
+          }
+        }
+
+        if ( user?.role === ('trainee' || 'superAdmin') && user?.organizations?.includes(org?.name) ) {
+          returnData = {
             token: token,
             user: user.toJSON(),
+            message: returnData?.message + 'Login successful.',
           }
-          return data
-        } else if (user?.role === 'manager') {
+          return returnData
+        } else if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
+          returnData = {
+            token: token,
+            user: user.toJSON(),
+            message: returnData?.message + 'Login successful.',
+          }
+          return returnData
+        } else if ( user?.role === 'admin' ) {
+          if (organization) {
+            returnData = {
+              token: token,
+              user: user.toJSON(),
+              message: returnData?.message + 'Login successful.',
+            }
+            return returnData
+          } else {
+            throw new Error('You do not belong to this organization')
+          }
+        } else if ( user?.role === 'manager' ) {
           const program: any = await Program.find({
             manager: user.id,
           }).populate({
@@ -361,22 +391,16 @@ const resolvers: any = {
             }
           }
           if (checkProgramOrganization) {
-            const managerToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
-              SECRET,
-              {
-                expiresIn: '2h',
-              }
-            )
-            const managerData = {
-              token: managerToken,
+            returnData = {
+              token: token,
               user: user.toJSON(),
+              message: returnData?.message + 'Login successful.',
             }
-            return managerData
+            return returnData
           } else {
             throw new Error('You are not assigned to any program yet.')
           }
-        } else if (user?.role === 'coordinator') {
+        } else if ( user?.role === 'coordinator' ) {
           const cohort: any = await Cohort.find({
             coordinator: user.id,
           }).populate({
@@ -398,41 +422,30 @@ const resolvers: any = {
           }
 
           if (checkCohortOrganization) {
-            const coordinatorToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
-              SECRET,
-              {
-                expiresIn: '2h',
-              }
-            )
-            const coordinatorData = {
-              token: coordinatorToken,
+            returnData = {
+              token: token,
               user: user.toJSON(),
+              message: returnData?.message + 'Login successful.',
             }
-            return coordinatorData
+            return returnData
           } else {
             throw new Error('You are not assigned to any cohort yet.')
           }
-        } else if (user?.role === 'superAdmin') {
-          const superAdminToken = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
-          )
-          const superAdminData = {
-            token: superAdminToken,
+        } else if ( user?.role === 'superAdmin' ) {
+          returnData = {
+            token: token,
             user: user.toJSON(),
+            message: returnData?.message + 'Login successful.',
           }
-          return superAdminData
+          return returnData
         } else {
           await Profile.findOneAndUpdate(
             { user },
             { $push: { activity: { $each: [newActivity] } } }
           )
-          throw new Error('Please wait to be added to a program or cohort')
+          throw new Error('You are not part of the organization you logged in.')
         }
+        
       } else {
         await Profile.findOneAndUpdate(
           { user },
@@ -892,12 +905,12 @@ const resolvers: any = {
           expiresIn: '2d',
         })
         const newToken: any = token.replaceAll('.', '*')
-        const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
+        const link = `${process.env.RESET_PASSWORD_FRONTEND_URL}/${newToken}`
         const content = forgotPasswordTemplate(link)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
-          'Reset your Password',
+          'Proceed With Reset Password',
           content,
           someSpace,
           process.env.ADMIN_EMAIL,
@@ -978,27 +991,13 @@ const resolvers: any = {
         return cohort
       }
     },
+
     async team(parent: UserType) {
       const team = await Team.findOne({ members: parent._id })
       if (!team) {
         return null
       } else {
         return team
-      }
-    },
-    async ratings(parent: UserType) {
-      const ratings = await Rating.find({ user: parent._id }).populate([
-        'user',
-        'cohort',
-        {
-          path: 'feedbacks',
-          populate: 'sender',
-        },
-      ])
-      if (!ratings) {
-        return null
-      } else {
-        return ratings
       }
     },
   },
