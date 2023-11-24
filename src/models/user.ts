@@ -74,6 +74,7 @@ userSchema.virtual('profile', {
   ref: 'Profile',
   foreignField: 'user',
   localField: '_id',
+  justOne: true,
 })
 
 userSchema.virtual('ratings', {
