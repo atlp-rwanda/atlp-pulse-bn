@@ -9,7 +9,7 @@ export interface AuthTokenPayload {
   userId: string
   role: string
 }
-
+// commit 1
 export function decodeAuthHeader(authHeader: string): AuthTokenPayload {
   const token = authHeader.replace('Bearer ', '')
   if (!token) {
