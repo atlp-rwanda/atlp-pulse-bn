@@ -167,7 +167,7 @@ const Schema = gql`
   type Rating {
     user: User!
     sprint: Int!
-    phase:String!
+    phase: String!
     quantity: String!
     quantityRemark: String
     bodyQuantity: String
@@ -291,7 +291,7 @@ const Schema = gql`
   type Mutation {
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
-    dropTTLUser(email:String!, reason: String!):String!
+    dropTTLUser(email: String!, reason: String!): String!
     createUser(
       firstName: String!
       lastName: String!
@@ -594,7 +594,14 @@ const Schema = gql`
 
   type AttendanceStats {
     week: String!
+    days: String!
+    value: Int!
     traineesStatistics: [TraineeStats]
+  }
+
+  type weeklyAttendance {
+    weekNumber: String
+    traineeAttendance: [AttendanceStatus]
   }
 
   type TraineeStats {
@@ -604,6 +611,7 @@ const Schema = gql`
 
   type Query {
     getTraineeAttendance(orgToken: String): [Attendance]
+    getTraineeAttendanceByID(traineeEmail: String!): [weeklyAttendance]
     getAttendanceStats(orgToken: String!): [AttendanceStats]
   }
   type Mutation {
