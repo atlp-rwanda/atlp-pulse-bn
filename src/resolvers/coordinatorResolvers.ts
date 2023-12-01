@@ -722,7 +722,6 @@ const manageStudentResolvers = {
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
 
-      const user: any = await User.findOne({ _id: userId, role: role })
       const userExists: any = await User.findOne({ email })
 
       if (userExists) {
@@ -739,7 +738,7 @@ const manageStudentResolvers = {
         const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
-        await sendEmail(
+        const emailSendReport = await sendEmail(
           email,
           'Invitation',
           content,
