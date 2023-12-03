@@ -23,7 +23,7 @@ import Phase from '../models/phase.model'
 import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
-const octokit = new Octokit({ auth: `${process.env.GITHUB_TOKEN}` })
+const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 export type OrganizationType = InstanceType<typeof Organization>

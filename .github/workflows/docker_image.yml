@@ -14,9 +14,14 @@ jobs:
       REGISTER_ORG_FRONTEND_URL: "https://beta.devpulse.org/signup/org"
       FRONTEND_LINK: "https://beta.devpulse.org"
       NODE_ENV: "production"
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }} 
+      ADMIN_PASS: ${{ secrets.ADMIN_PASS }} 
+      COORDINATOR_EMAIL: ${{ secrets.COORDINATOR_EMAIL }} 
+      COORDINATOR_PASS: ${{ secrets.COORDINATOR_PASS }} 
+      GH_TOKEN: ${{ secrets.GH_TOKEN }} 
     steps:
       - uses: actions/checkout@v3
-      - name: Build and Docker Image
+      - name: Build and push Docker Image
         uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: ${{ secrets.DOCKER_HUB_USERNAME }}/atlp-pulse-bn
@@ -32,8 +37,20 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_KEY }}
           port: ${{ secrets.DO_PORT }}
-          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK;
+          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN;
           script: |
+            rm -f env
+            echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} >> env
+            echo ADMIN_PASS=${{ secrets.ADMIN_PASS }} >> env
+            echo COORDINATOR_EMAIL=${{ secrets.COORDINATOR_EMAIL }} >> env
+            echo COORDINATOR_PASS=${{ secrets.COORDINATOR_PASS }} >> env
+            echo FRONTEND_LINK=${{ secrets.FRONTEND_LINK }} >> env
+            echo REGISTER_FRONTEND_URL=${{ secrets.REGISTER_FRONTEND_URL }} >> env
+            echo REGISTER_ORG_FRONTEND_URL=${{ secrets.REGISTER_ORG_FRONTEND_URL }} >> env
+            echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> env
+            echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> env
+            echo NODE_ENV=${{ secrets.NODE_ENV }} >> env
+            cat env
             docker pull devpulse/atlp-pulse-bn:latest
             existing_container=$(docker ps | grep 4000)
             if [ $? -eq 0 ]; then
@@ -42,7 +59,7 @@ jobs:
             else
               echo "No existing container found"
             fi
-            docker_ps_out=$(docker run -p 4000:4000 -d -e NODE_ENV -e MONGO_PROD_DB -e REGISTER_FRONTEND_LINK -e REGISTER_ORG_FRONTEND_URL -e FRONTEND_LINK  devpulse/atlp-pulse-bn:latest)
+            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV  devpulse/atlp-pulse-bn:latest)
             if [ $? -eq 0 ]; then
               echo "New container spinned up successfully"
             else
