@@ -36,7 +36,7 @@ const ticketSchema = gql`
     id: ID!
     email: String!
     role: String
-    profile: [Profile]
+    profile: Profile
   }
 
   type Reply {
