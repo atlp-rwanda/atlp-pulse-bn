@@ -6,7 +6,7 @@ const Schema = gql`
     getCohorts(orgToken: String): [Cohort]
     getTrainees(orgToken: String): [User]
     getCohortTrainees(orgToken: String, cohort: String): [User]
-    getAllCoordinators: [User]
+    getAllCoordinators(orgToken: String): [User]
   }
   type Message {
     message: String

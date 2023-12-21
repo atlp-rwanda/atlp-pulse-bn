@@ -34,16 +34,16 @@ enum UserRoles {
 
 const manageStudentResolvers = {
   Query: {
-    getAllCoordinators: async (_: any, __: any, context: Context) => {
+    getAllCoordinators: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // coordinator validation
         ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
-
+        const selectedOrganization = await checkLoggedInOrganization(orgToken)
         // Fetch coordinators based on the role
         const coordinators = await User.find({
           role: 'coordinator',
+          organizations: selectedOrganization.name,
         })
-
         return coordinators || []
       } catch (error) {
         const { message } = error as { message: any }
@@ -62,7 +62,7 @@ const manageStudentResolvers = {
         // coordinator validation
         ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
 
-        // get the organization if someone  logs in
+        // get the organization if someone logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
 
