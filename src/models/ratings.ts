@@ -11,7 +11,7 @@ const RatingSchema = new Schema({
     required: true,
   },
   phase: {
-    type:String,
+    type: String,
     required: true,
   },
   quantity: {
@@ -34,9 +34,10 @@ const RatingSchema = new Schema({
       createdAt: {
         type: Date,
         default: new Date(),
-      }
+      },
     },
   ],
+
   quality: {
     type: String,
     required: true,
@@ -129,6 +130,25 @@ const TempData = mongoose.model(
     professionalRemark: {
       type: [String],
       default: ['no remark'],
+    },
+    feedbacks: [
+      {
+        sender: {
+          type: mongoose.Types.ObjectId,
+          ref: 'User',
+        },
+        content: {
+          type: String,
+        },
+        createdAt: {
+          type: Date,
+          default: new Date(),
+        },
+      },
+    ],
+    oldFeedback: {
+      type: [String],
+      default: [],
     },
     coordinator: {
       type: mongoose.Types.ObjectId,

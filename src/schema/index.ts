@@ -214,6 +214,8 @@ const Schema = gql`
     qualityRemark: [String]
     professional_Skills: [String]
     professionalRemark: [String]
+    feedbacks: [RatingMessageTemp]
+    oldFeedback: [String]
     approved: Boolean
   }
   type updateToReply {
@@ -240,6 +242,8 @@ const Schema = gql`
     qualityRemark: [String]
     professional_Skills: [String]
     professionalRemark: [String]
+    feedbacks: [RatingMessageTemp]
+    oldFeedback: [String]
     approved: Boolean
     cohort: Cohort
   }
@@ -253,6 +257,7 @@ const Schema = gql`
     qualityRemark: String
     professional_Skills: String!
     professionalRemark: String
+    feedbacks: [RatingMessageTemp]
     approved: Boolean!
   }
 
@@ -370,6 +375,7 @@ const Schema = gql`
       qualityRemark: [String]
       professional_Skills: [String]
       professionalRemark: [String]
+      feedbacks: [String]
       orgToken: String!
     ): updateRating
     updateToReply(
