@@ -272,7 +272,7 @@ const Schema = gql`
     getAllTTLUsers(orgToken: String): [User]
     getTTLTrainees(orgToken: String): [User]
     getUsers(orgToken: String): [User]
-    getAllCoordinators: [User]
+    getAllCoordinators(orgToken: String): [User]
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole
