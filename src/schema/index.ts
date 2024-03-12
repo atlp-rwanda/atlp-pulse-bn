@@ -642,5 +642,42 @@ const Schema = gql`
     traineeId: ID!
     status: [StatusInput]
   }
+  type Session {
+    id:String
+    Sessionname: String
+    description: String
+    platform: String
+    duration: String
+    organizer: String
+    
+  }
+  
+  input SessionInput {
+    Sessionname: String
+    description: String
+    platform: String
+    duration: String
+    organizer: String
+
+  }
+  
+  input EditSessionInput {
+    Sessionname: String
+    description: String
+    platform: String
+    duration: String
+    organizer: String
+  }
+  type Query {
+    session(ID: ID!): Session!
+    getSession(id: ID!): Session
+    getAllSessions: [Session] 
+  }
+  
+  type Mutation {
+    createSession(sessionInput: SessionInput): Session!
+    deleteSession(ID: ID!): Boolean
+    editSession(ID: ID!, editSessionInput: EditSessionInput): Boolean
+  }
 `
 export default Schema
