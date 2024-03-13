@@ -32,9 +32,10 @@ export default function Template(orgName: string, link: string) {
               >
                 Join ${orgName}
               </button>
-              <p>If the button is not functional, copy and paste the link below: </p>
-              ${link}
             </a>
+            <br />
+            <p>If the button is not functional, copy and paste the link below: </p>
+              ${link}
             <br />
             <br />
 
