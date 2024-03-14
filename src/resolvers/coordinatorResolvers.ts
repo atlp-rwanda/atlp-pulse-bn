@@ -685,13 +685,12 @@ const manageStudentResolvers = {
             await teamToChange?.save()
           }
         }
-
         const content = generalTemplate({
-          message: `We'd like to inform you that your account has been updated, and you've been moved ${
+          message: `Hey there :blush:, just here to inform you that your account has been updated, and you've been moved ${
             removedFromTeamName ? `from team ${removedFromTeamName} ` : ''
           }to team ${
             newTeam?.name
-          }. If you have any questions or concerns about this move, please don't hesitate to reach out.`,
+          }. If you think this is a mistake or have any questions about this move, please open a ticket under your account and an attendant will get back to you.`,
         })
 
         newTeam?.members.push(member?.id)
