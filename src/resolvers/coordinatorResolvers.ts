@@ -686,7 +686,7 @@ const manageStudentResolvers = {
           }
         }
         const content = generalTemplate({
-          message: `Hey there :blush:, just here to inform you that your account has been updated, and you've been moved ${
+          message: `Hey there, just here to inform you that your account has been updated, and you've been moved ${
             removedFromTeamName ? `from team ${removedFromTeamName} ` : ''
           }to team ${
             newTeam?.name
