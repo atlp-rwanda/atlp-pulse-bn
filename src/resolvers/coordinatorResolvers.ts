@@ -663,7 +663,7 @@ const manageStudentResolvers = {
           role: UserRoles.TTL,
         })
 
-        if (existingTTL) {
+        if (existingTTL && member.role !== 'trainee') {
           throw new Error('This team already has a TTL assigned.')
         }
 
