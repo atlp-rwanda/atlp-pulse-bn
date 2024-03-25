@@ -141,6 +141,7 @@ const resolvers: any = {
             const pullRequests = response.data.filter(
               (pullRequest: any) => pullRequest.user.login === username
             )
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             pullRequestTotal += pullRequests.length
             pullRequestOpen += pullRequests.filter(
               (pullRequest: any) => pullRequest.state === 'open'
@@ -216,9 +217,13 @@ const resolvers: any = {
         password,
         organizations: org.name,
       })
-      const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
-        expiresIn: '2h',
-      })
+      const token = jwt.sign(
+        { userId: user._id, email: user.email, role: user?.role },
+        SECRET,
+        {
+          expiresIn: '2h',
+        }
+      )
 
       const newProfile = await Profile.create({
         user,
@@ -300,7 +305,11 @@ const resolvers: any = {
           user?.organizations?.includes(org?.name)
         ) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -315,7 +324,11 @@ const resolvers: any = {
 
         if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -334,7 +347,11 @@ const resolvers: any = {
 
         if (user?.role === 'admin' && organization) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -362,7 +379,11 @@ const resolvers: any = {
           }
           if (checkProgramOrganization) {
             const managerToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
+              {
+                userId: user._id,
+                email: user.email,
+                role: user._doc?.role || 'user',
+              },
               SECRET,
               {
                 expiresIn: '2h',
@@ -399,7 +420,11 @@ const resolvers: any = {
 
           if (checkCohortOrganization) {
             const coordinatorToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
+              {
+                userId: user._id,
+                email: user.email,
+                role: user._doc?.role || 'user',
+              },
               SECRET,
               {
                 expiresIn: '2h',
@@ -415,7 +440,11 @@ const resolvers: any = {
           }
         } else if (user?.role === 'superAdmin') {
           const superAdminToken = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            {
+              userId: user._id,
+              email: user.email,
+              role: user._doc?.role || 'user',
+            },
             SECRET,
             {
               expiresIn: '2h',
@@ -582,6 +611,10 @@ const resolvers: any = {
         )
       }
     },
+
+    // end of making org name to be case insensitive
+
+    // end of making org name to be case insensitive
 
     // end of making org name to be case insensitive
 

@@ -509,6 +509,9 @@ const Schema = gql`
     end: String!
     timeToStart: String!
     timeToEnd: String!
+    guests: [String!]!
+    invitationStatus: String!
+    invitationReason: String
   }
   type Mutation {
     createEvent(
@@ -519,10 +522,19 @@ const Schema = gql`
       timeToStart: String!
       timeToEnd: String!
       authToken: String
+      guests: [String!]!
+    ): Event!
+
+    respondToEventInvitation(
+      eventId: ID!
+      status: String!
+      reason: String!
+      authToken: String
     ): Event!
   }
   type Query {
     getEvents(authToken: String): [Event]
+    getAcceptedEvents(authToken: String): [Event]
   }
   type Doc {
     title: String!

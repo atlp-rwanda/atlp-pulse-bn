@@ -8,6 +8,7 @@ const SECRET = process.env.SECRET || 'test_secret'
 export interface AuthTokenPayload {
   userId: string
   role: string
+  email: string
 }
 
 export function decodeAuthHeader(authHeader: string): AuthTokenPayload {
@@ -26,6 +27,7 @@ export function decodeAuthHeader(authHeader: string): AuthTokenPayload {
 export interface Context {
   userId?: string
   role?: string
+  email?: string
 }
 
 export const context = ({ req }: { req: Request }): Context => {
@@ -37,5 +39,6 @@ export const context = ({ req }: { req: Request }): Context => {
   return {
     userId: token?.userId,
     role: token?.role,
+    email: token?.email,
   }
 }
