@@ -1,4 +1,5 @@
 import { connect } from './../database/db.config'
+import logger from '../utils/logger.utils'
 import seedCohorts from './cohorts.seed'
 import seedOrganizations from './organization.seed'
 import seedPrograms from './programs.seed'
@@ -25,10 +26,10 @@ connect().then(async () => {
     await seedRatings()
     await seedAttendance()
 
-    console.log('Database seeded Successfully')
+    logger.info('Database seeded Successfully')
     process.exit()
   } catch (error) {
-    console.log('database seed errors ', { error })
+    logger.error('database seed errors ', { error })
     process.exit()
   }
 })

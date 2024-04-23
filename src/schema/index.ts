@@ -643,24 +643,22 @@ const Schema = gql`
     status: [StatusInput]
   }
   type Session {
-    id:String
+    id: String
     Sessionname: String
     description: String
     platform: String
     duration: String
     organizer: String
-    
   }
-  
+
   input SessionInput {
     Sessionname: String
     description: String
     platform: String
     duration: String
     organizer: String
-
   }
-  
+
   input EditSessionInput {
     Sessionname: String
     description: String
@@ -671,9 +669,9 @@ const Schema = gql`
   type Query {
     session(ID: ID!): Session!
     getSession(id: ID!): Session
-    getAllSessions: [Session] 
+    getAllSessions: [Session]
   }
-  
+
   type Mutation {
     createSession(sessionInput: SessionInput): Session!
     deleteSession(ID: ID!): Boolean
