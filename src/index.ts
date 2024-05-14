@@ -7,15 +7,13 @@ import { execute, subscribe } from 'graphql';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { PubSub } from 'graphql-subscriptions';
-import morgan from 'morgan';
 
 // Import resolvers, schemas, utilities
-import { formatError } from './ErrorMsg';
 import { connect } from './database/db.config';
 import { context } from './context';
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
-import logger  from './utils/logger.utils';
-import errorHandler from './utils/errorHandler.utils';
+import logGraphQLRequests from './utils/logGraphQLRequests'
+import logger from './utils/logger.utils';
 
 import userResolvers from './resolvers/userResolver';
 import profileResolvers from './resolvers/profileResolver';
@@ -89,22 +87,14 @@ async function startApolloServer() {
           };
         },
       },
+      logGraphQLRequests,
     ],
-    formatError: (err) => {
-      // Log the error using Winston
-      logger.error(`Error: ${err}`, {
-        additional: 'details', 
-        error: err
-      });
-  
-      // Optionally, modify the error before sending it to the client
-      if (err.originalError instanceof ApolloError) {
-        return err;
-      } else {
-        return new ApolloError('Internal server error', 'INTERNAL_SERVER_ERROR');
-      }
-    },
     context,
+    formatError: (err) => {
+      // Log the error using tslog
+      logger.error(`${err}`);
+      return err;
+    },
     csrfPrevention: true,
   });
 
@@ -113,30 +103,27 @@ async function startApolloServer() {
     execute,
     subscribe,
     onConnect() {
-      console.log('Connected!');
+      logger.info('Connected!');
       return { pubsub };
     },
     onDisconnect() {
-      console.log('Disconnected!');
+      logger.warn('Disconnected!');
     },
   }, {
     server: httpServer,
     path: '/',
   });
 
-  app.use(morgan('dev'));
   app.use('/images', express.static('public'));
-
-  app.use(errorHandler);
 
   await server.start();
   server.applyMiddleware({ app, path: '/' });
 
   connect().then(() => {
-    logger.info('Database Connected.');
-    logger.info(`Environment is set to ${process.env.NODE_ENV }`);
+    console.log('Database Connected.');
+    console.log(`Environment is set to ${process.env.NODE_ENV}`);
     httpServer.listen({ port: PORT }, () => {
-      logger.info(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+      console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
     });
   });
 }

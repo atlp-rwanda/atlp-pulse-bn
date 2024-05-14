@@ -1,19 +1,11 @@
-import { createLogger, format, transports } from 'winston';
+// logger.ts
+import { ILogObj, Logger } from 'tslog';
 
-const logger = createLogger({
-  level: 'info',
-  format: format.combine(
-    format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
-    }),
-    format.errors({ stack: true }),
-    format.splat(),
-    format.colorize(),
-    format.printf(info => `${info.timestamp} [${info.level}]: ${info.message}`)
-  ),
-  transports: [
-    new transports.Console()
-  ],
+const isDebug = process.env.DEBUG === 'true'
+
+const logger: Logger<ILogObj> = new Logger({
+  hideLogPositionForProduction: process.env.NODE_ENV === 'production',
+  type: isDebug ? 'pretty' : 'hidden',
 });
 
 export default logger;
