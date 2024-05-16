@@ -3,7 +3,7 @@ import express from 'express';
 import http from 'http';
 import { ApolloServer } from 'apollo-server-express';
 import { ApolloError, ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import { execute, subscribe } from 'graphql';
+import { DocumentNode, execute, subscribe } from 'graphql';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { PubSub } from 'graphql-subscriptions';
@@ -37,40 +37,42 @@ import programSchema from './schema/program.schema';
 import coordinatorSchema from './schema/coordinator.schema';
 import phaseSchema from './schema/phase.schema';
 import ticketSchema from './schema/ticket.shema';
+import { IResolvers } from '@graphql-tools/utils';
 
 const PORT: number = parseInt(process.env.PORT!) || 4000;
 
-async function startApolloServer() {
+export const typeDefs = mergeTypeDefs([
+  schemas,
+  cohortSchema,
+  programSchema,
+  coordinatorSchema,
+  phaseSchema,
+  ticketSchema,
+])
+
+export const resolvers = mergeResolvers([
+  userResolvers,
+  profileResolvers,
+  programResolvers,
+  cohortResolvers,
+  createRatingSystemresolver,
+  manageStudentResolvers,
+  ratingResolvers,
+  replyResolver,
+  phaseResolver,
+  teamResolver,
+  notificationResolver,
+  eventResolvers,
+  ticketResolver,
+  DocumentationResolvers,
+  attendanceResolver,
+  Sessionresolvers,
+]);
+
+async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
   const app = express();
   const httpServer = http.createServer(app);
-  const schema = makeExecutableSchema({
-    typeDefs: mergeTypeDefs([
-      schemas,
-      cohortSchema,
-      programSchema,
-      coordinatorSchema,
-      phaseSchema,
-      ticketSchema,
-    ]),
-    resolvers: mergeResolvers([
-      userResolvers,
-      profileResolvers,
-      programResolvers,
-      cohortResolvers,
-      createRatingSystemresolver,
-      manageStudentResolvers,
-      ratingResolvers,
-      replyResolver,
-      phaseResolver,
-      teamResolver,
-      notificationResolver,
-      eventResolvers,
-      ticketResolver,
-      DocumentationResolvers,
-      attendanceResolver,
-      Sessionresolvers,
-    ]),
-  });
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
 
   const pubsub = new PubSub();
   const server = new ApolloServer({
@@ -128,6 +130,6 @@ async function startApolloServer() {
   });
 }
 
-startApolloServer().catch(error => {
+startApolloServer(typeDefs, resolvers).catch(error => {
   logger.error('Failed to start the server:', error);
 });
