@@ -1,39 +1,54 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+// Import libraries using ES Module syntax
+import express from 'express';
+import http from 'http';
+import { ApolloServer } from 'apollo-server-express';
+import { ApolloError, ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import { DocumentNode, execute, subscribe } from 'graphql';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { PubSub } from 'graphql-subscriptions';
 
-import { formatError } from './ErrorMsg'
-const { ApolloServer } = require('apollo-server-express')
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
-const { execute, subscribe } = require('graphql')
-const { SubscriptionServer } = require('subscriptions-transport-ws')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const express = require('express')
-const http = require('http')
-const { PubSub } = require('graphql-subscriptions')
-import cohortResolvers from './resolvers/cohort.resolvers'
-import manageStudentResolvers from './resolvers/coordinatorResolvers'
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
-import profileResolvers from './resolvers/profileResolver'
-import programResolvers from './resolvers/program.resolvers'
-import userResolvers from './resolvers/userResolver'
-import ratingResolvers from './resolvers/ratingsResolvers'
-import cohortSchema from './schema/cohort.schema'
-import coordinatorSchema from './schema/coordinator.schema'
-import ticketSchema from './schema/ticket.shema'
-import schemas from './schema/index'
-import programSchema from './schema/program.schema'
-import replyResolver from './resolvers/reply.resolver'
-import phaseResolver from './resolvers/phase.resolver'
-import phaseSchema from './schema/phase.schema'
-import teamResolver from './resolvers/team.resolvers'
-import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
-import { connect } from './database/db.config'
-import { context } from './context'
-import notificationResolver from './resolvers/notification.resolvers'
-import eventResolvers from './resolvers/eventResolver'
-import ticketResolver from './resolvers/ticket.resolver'
-import DocumentationResolvers from './resolvers/DocumentationResolvers'
-import attendanceResolver from './resolvers/attendance.resolvers'
-import Sessionresolvers from './resolvers/session.resolver'
+// Import resolvers, schemas, utilities
+import { connect } from './database/db.config';
+import { context } from './context';
+import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
+import logGraphQLRequests from './utils/logGraphQLRequests'
+import logger from './utils/logger.utils';
+
+import userResolvers from './resolvers/userResolver';
+import profileResolvers from './resolvers/profileResolver';
+import programResolvers from './resolvers/program.resolvers';
+import cohortResolvers from './resolvers/cohort.resolvers';
+import manageStudentResolvers from './resolvers/coordinatorResolvers';
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
+import ratingResolvers from './resolvers/ratingsResolvers';
+import replyResolver from './resolvers/reply.resolver';
+import phaseResolver from './resolvers/phase.resolver';
+import teamResolver from './resolvers/team.resolvers';
+import notificationResolver from './resolvers/notification.resolvers';
+import eventResolvers from './resolvers/eventResolver';
+import ticketResolver from './resolvers/ticket.resolver';
+import DocumentationResolvers from './resolvers/DocumentationResolvers';
+import attendanceResolver from './resolvers/attendance.resolvers';
+import Sessionresolvers from './resolvers/session.resolver';
+import schemas from './schema/index';
+import cohortSchema from './schema/cohort.schema';
+import programSchema from './schema/program.schema';
+import coordinatorSchema from './schema/coordinator.schema';
+import phaseSchema from './schema/phase.schema';
+import ticketSchema from './schema/ticket.shema';
+import { IResolvers } from '@graphql-tools/utils';
+
+const PORT: number = parseInt(process.env.PORT!) || 4000;
+
+export const typeDefs = mergeTypeDefs([
+  schemas,
+  cohortSchema,
+  programSchema,
+  coordinatorSchema,
+  phaseSchema,
+  ticketSchema,
+])
 
 export const resolvers = mergeResolvers([
   userResolvers,
@@ -52,91 +67,69 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
-])
-export const typeDefs = mergeTypeDefs([
-  schemas,
-  cohortSchema,
-  programSchema,
-  coordinatorSchema,
-  phaseSchema,
-  ticketSchema,
-])
-;(async function startApolloServer(typeDefs, resolvers) {
-  console.log(process.env.NODE_ENV)
-  // Required logic for integrating with Express
-  const app = express()
-  const httpServer = http.createServer(app)
-  const schema = makeExecutableSchema({ typeDefs, resolvers })
-  const pubsub = new PubSub()
-  // Same ApolloServer initialization as before, plus the drain plugin.
+]);
+
+async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
+  const app = express();
+  const httpServer = http.createServer(app);
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+  const pubsub = new PubSub();
   const server = new ApolloServer({
     schema,
     introspection: true,
-    // context: ({ req , res }:any) => ({ req, res, pubsub }),
     plugins: [
       ApolloServerPluginDrainHttpServer({ httpServer }),
       {
         async serverWillStart() {
           return {
             async drainServer() {
-              subscriptionServer.close()
+              subscriptionServer.close();
             },
-          }
+          };
         },
       },
+      logGraphQLRequests,
     ],
-    cache: 'bounded',
-    formatError: formatError,
-    context: context,
-    csrfPrevention: true,
-  })
-
-  const subscriptionServer = SubscriptionServer.create(
-    {
-      // This is the `schema` we just created.
-      schema,
-      // These are imported from `graphql`.
-      execute,
-      subscribe,
-      async onConnect() {
-        console.log('Connected!')
-        // If an object is returned here, it will be passed as the `context`
-        // argument to your subscription resolvers.
-        return {
-          pubsub,
-        }
-      },
-      onDisconnect() {
-        console.log('Disconnected!')
-      },
+    context,
+    formatError: (err) => {
+      // Log the error using tslog
+      logger.error(`${err}`);
+      return err;
     },
-    {
-      // This is the `httpServer` we created in a previous step.
-      server: httpServer,
-      // This `server` is the instance returned from `new ApolloServer`.
-      path: '/',
-    }
-  )
+    csrfPrevention: true,
+  });
 
-  // Setup serving of static files or images.
-  app.use('/images', express.static('public'))
-
-  // More required logic for integrating with Express
-  await server.start()
-  server.applyMiddleware({
-    app,
+  const subscriptionServer = SubscriptionServer.create({
+    schema,
+    execute,
+    subscribe,
+    onConnect() {
+      logger.info('Connected!');
+      return { pubsub };
+    },
+    onDisconnect() {
+      logger.warn('Disconnected!');
+    },
+  }, {
+    server: httpServer,
     path: '/',
-  })
+  });
 
-  // Modified server startup
-  const PORT: number = parseInt(process.env.PORT!) || 4000
+  app.use('/images', express.static('public'));
+
+  await server.start();
+  server.applyMiddleware({ app, path: '/' });
 
   connect().then(() => {
-    console.log('Database Connected')
-    httpServer.listen({ port: PORT }, () =>
-      console.log(
-        `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-      )
-    )
-  })
-})(typeDefs, resolvers)
+    console.log('Database Connected.');
+    console.log(`Environment is set to ${process.env.NODE_ENV}`);
+    httpServer.listen({ port: PORT }, () => {
+      console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+    });
+  });
+}
+
+startApolloServer(typeDefs, resolvers).catch(error => {
+  logger.error('Failed to start the server:', error);
+});
