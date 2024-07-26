@@ -1,5 +1,6 @@
 import Program from '../models/program.model'
-import { Organization, User } from '../models/user'
+import { User } from '../models/user'
+import { Organization } from '../models/organization.model'
 
 const seedPrograms = async () => {
   const andelaManagers = await User.find({

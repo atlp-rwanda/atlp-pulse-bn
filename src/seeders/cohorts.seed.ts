@@ -1,7 +1,8 @@
 import Cohort from '../models/cohort.model'
 import Phase from '../models/phase.model'
 import Program from '../models/program.model'
-import { Organization, User } from '../models/user'
+import { User } from '../models/user'
+import { Organization } from '../models/organization.model'
 
 const seedCohorts = async () => {
   // Organization

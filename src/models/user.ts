@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import mongoose, { model, Schema } from 'mongoose'
+import { Profile } from './profile.model'
 
 mongoose.set('toJSON', {
   virtuals: true,
@@ -105,64 +106,6 @@ userSchema.pre('save', async function (next) {
   return next()
 })
 
-const profileSchema = new Schema(
-  {
-    firstName: {
-      type: String,
-    },
-    lastName: {
-      type: String,
-    },
-    address: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
-    phoneNumber: {
-      type: String,
-    },
-    biography: {
-      type: String,
-    },
-    avatar: {
-      type: String,
-    },
-    cover: {
-      type: String,
-    },
-    gender: {
-      type: String,
-    },
-    dateOfBirth: {
-      type: Date,
-    },
-    user: {
-      type: mongoose.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      unique: true,
-    },
-    githubUsername: {
-      type: String,
-    },
-    resume: {
-      type: String,
-    },
-  },
-  {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
-)
-
-profileSchema.virtual('name').get(function () {
-  return this.firstName + ' ' + this.lastName
-})
-
 const UserRole = mongoose.model(
   'UserRole',
   new Schema({
@@ -175,65 +118,6 @@ const UserRole = mongoose.model(
   })
 )
 
-const organizationSchema = new Schema({
-  name: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  description: {
-    type: String,
-  },
-  gitHubOrganisation: {
-    type: String,
-  },
-  activeRepos: {
-    type: [String],
-  },
-  admin: {
-    type: [mongoose.Types.ObjectId],
-    ref: 'User',
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ['active', 'pending', 'rejected'],
-    default: 'active',
-  },
-})
-
-const AttendanceSchema = new Schema({
-  week: {
-    type: String,
-    required: true,
-  },
-  coordinatorId: {
-    type: [mongoose.Types.ObjectId],
-    ref: 'User',
-  },
-  trainees: [
-    {
-      traineeId: {
-        type: [mongoose.Types.ObjectId],
-        ref: 'User',
-      },
-      traineeEmail: {
-        type: String,
-        requried: false,
-      },
-      status: [
-        {
-          days: String,
-          value: Number,
-        },
-      ],
-    },
-  ],
-})
-
 const User = model('User', userSchema)
-const Profile = mongoose.model('Profile', profileSchema)
-const Organization = model('Organization', organizationSchema)
-const Attendance = mongoose.model('Attendance', AttendanceSchema)
 
-export { User, Profile, UserRole, Organization, Attendance }
+export { User, UserRole, }

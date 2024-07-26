@@ -1,5 +1,5 @@
 import Phase from '../models/phase.model';
-import { Organization } from '../models/user';
+import { Organization } from '../models/organization.model';
 
 const seedPhases = async () => {
   const phases = [

@@ -1,7 +1,7 @@
 import { ApolloError, AuthenticationError } from 'apollo-server-core';
 import 'dotenv/config';
 import { JwtPayload, verify } from 'jsonwebtoken';
-import { Organization } from '../models/user';
+import { Organization } from '../models/organization.model';
 
 export async function checkLoggedInOrganization(token?: string) {
   const SECRET = process.env.SECRET || 'test_secret';

@@ -1,5 +1,6 @@
 /* eslint-disable */
-import { Organization, User } from '../models/user'
+import { User } from '../models/user'
+import { Organization } from '../models/organization.model'
 
 const seedOrganizations = async () => {
   const andelaAdmins = await User.find({
