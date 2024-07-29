@@ -28,6 +28,12 @@ interface Trainee {
   status: TraineeStatus[]
 }
 
+type GetUsersArgs = {
+  orgToken: string
+  page: number
+  limit: number
+}
+
 enum UserRoles {
   TTL = 'ttl',
 }
@@ -57,23 +63,37 @@ const manageStudentResolvers = {
       }
     },
 
-    getUsers: async (_: any, { orgToken }: any, context: Context) => {
+    getUsers: async (
+      _: any,
+      { orgToken, page, limit }: GetUsersArgs,
+      context: Context
+    ) => {
       try {
-        // coordinator validation
         ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
-
-        // get the organization if someone logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
-
-        return (
+        const skip = (page - 1) * limit
+        const users = (
           await User.find({
             $or: [{ role: 'user' }, { role: 'trainee' }],
             organizations: org?.name,
           })
+            .skip(skip)
+            .limit(limit)
         ).filter((user: any) => {
           return user.cohort == null || user.cohort == undefined
         })
+        const totalUsers = await User.countDocuments({
+          $or: [{ role: 'user' }, { role: 'trainee' }],
+          organizations: org.name,
+          cohort: { $exists: false },
+        })
+        return {
+          users: users,
+          totalUsers,
+          totalPages: Math.ceil(totalUsers / limit),
+          currentPage: page,
+        }
       } catch (error) {
         const { message } = error as { message: any }
         throw new ApolloError(message.toString(), '500')
@@ -81,7 +101,6 @@ const manageStudentResolvers = {
     },
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // coordinator validation
         const { userId, role }: any = (await checkUserLoggedIn(context))([
           'admin',
           'manager',

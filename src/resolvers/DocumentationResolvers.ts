@@ -24,6 +24,7 @@ const DocumentationResolvers = {
         { title, description },
         { new: true }
       )
+
       if (!documentation) {
         throw new UserInputError('Documentation not found.')
       }
