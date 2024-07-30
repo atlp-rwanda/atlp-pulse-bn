@@ -1,8 +1,14 @@
 import { gql } from 'apollo-server'
 
 const Schema = gql`
+  type PaginatedUsers {
+    users: [User!]!
+    totalUsers: Int!
+    totalPages: Int!
+    currentPage: Int!
+  }
   type Query {
-    getUsers: [User]
+    getUsers: PaginatedUsers
     getCohorts(orgToken: String): [Cohort]
     getTrainees(orgToken: String): [User]
     getCohortTrainees(orgToken: String, cohort: String): [User]

@@ -28,12 +28,6 @@ interface Trainee {
   status: TraineeStatus[]
 }
 
-type GetUsersArgs = {
-  orgToken: string
-  page: number
-  limit: number
-}
-
 enum UserRoles {
   TTL = 'ttl',
 }
@@ -65,7 +59,7 @@ const manageStudentResolvers = {
 
     getUsers: async (
       _: any,
-      { orgToken, page, limit }: GetUsersArgs,
+      { orgToken, page, limit }: any,
       context: Context
     ) => {
       try {
@@ -73,23 +67,20 @@ const manageStudentResolvers = {
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
         const skip = (page - 1) * limit
-        const users = (
-          await User.find({
-            $or: [{ role: 'user' }, { role: 'trainee' }],
-            organizations: org?.name,
-          })
-            .skip(skip)
-            .limit(limit)
-        ).filter((user: any) => {
-          return user.cohort == null || user.cohort == undefined
+        const users = await User.find({
+          $or: [{ role: 'user' }, { role: 'trainee' }],
+          organizations: org.name,
         })
+          .skip(skip)
+          .limit(limit)
+        const filteredUsers = users.filter((user: any) => !user.cohort)
         const totalUsers = await User.countDocuments({
           $or: [{ role: 'user' }, { role: 'trainee' }],
           organizations: org.name,
           cohort: { $exists: false },
         })
         return {
-          users: users,
+          users: filteredUsers,
           totalUsers,
           totalPages: Math.ceil(totalUsers / limit),
           currentPage: page,

@@ -266,12 +266,18 @@ const Schema = gql`
     content: String
     createdAt: String
   }
+  type PaginatedUsers {
+    users: [User!]!
+    totalUsers: Int!
+    totalPages: Int!
+    currentPage: Int!
+  }
 
   type Query {
     getAllUsers(orgToken: String): [User]
     getAllTTLUsers(orgToken: String): [User]
     getTTLTrainees(orgToken: String): [User]
-    getUsers(orgToken: String): [User]
+    getUsers(orgToken: String, page: Int, limit: Int): PaginatedUsers!
     getAllCoordinators(orgToken: String): [User]
     getProfile: Profile
     getAllRoles: [UserRole]
