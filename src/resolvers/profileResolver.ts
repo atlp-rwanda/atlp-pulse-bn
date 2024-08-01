@@ -1,7 +1,8 @@
 import { Context } from '../context'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { Profile, User, UserRole } from '../models/user'
+import { User, UserRole } from '../models/user'
+import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
 
 const profileResolvers: any = {

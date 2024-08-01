@@ -1,5 +1,6 @@
 import { hashSync } from 'bcryptjs'
-import { User, Profile } from '../models/user'
+import { User } from '../models/user'
+import { Profile } from '../models/profile.model'
 
 const organizations: any = {
   Andela: [],

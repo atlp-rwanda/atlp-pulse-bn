@@ -1,4 +1,4 @@
-import { Organization } from '../models/user'
+import { Organization } from '../models/organization.model'
 import { systemRating } from '../models/ratingSystem'
 
 const seedsystemRatings = async () => {

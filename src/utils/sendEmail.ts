@@ -32,7 +32,7 @@ export const sendEmail = async (
   return new Promise((res, rej) => {
     transport.sendMail(mailOptions, (error: any, info: any) => {
       if (error) {
-        rej('Unable to send email!!!')
+        rej(`${mailOptions.subject}: Unable to send email!!!`)
         console.error(error)
       }else res(info)
     })

@@ -3,7 +3,8 @@ import { ObjectId } from 'mongodb';
 import { checkLoggedInOrganization } from '../helpers/organization.helper';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
 import Program from '../models/program.model';
-import { Organization, User } from '../models/user';
+import { User } from '../models/user';
+import { Organization } from '../models/organization.model';
 import { Context } from './../context';
 import { OrganizationType } from './userResolver';
 

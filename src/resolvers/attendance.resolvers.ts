@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { Attendance, User } from '../models/user'
+import { Attendance } from '../models/attendance.model'
 import { IntegerType, ObjectId } from 'mongodb'
 import { Context } from './../context'
 import { ApolloError } from 'apollo-server'

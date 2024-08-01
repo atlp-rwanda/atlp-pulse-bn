@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import { Rating, TempData } from '../models/ratings'
-import { Organization, User } from '../models/user'
+import { User } from '../models/user'
+import { Organization } from '../models/organization.model'
 import { sendEmails } from '../utils/sendEmails'
 import { Context } from './../context'
 import Cohort from '../models/cohort.model'

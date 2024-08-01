@@ -1,5 +1,6 @@
 /* eslint-disable */
-import { User, Attendance } from '../models/user'
+import { User } from '../models/user'
+import { Attendance } from '../models/attendance.model'
 
 const seedAttendance = async () => {
   const traineeLimit = 25
