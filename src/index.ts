@@ -2,7 +2,7 @@
 import express from 'express';
 import http from 'http';
 import { ApolloServer } from 'apollo-server-express';
-import { ApolloError, ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { DocumentNode, execute, subscribe } from 'graphql';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
