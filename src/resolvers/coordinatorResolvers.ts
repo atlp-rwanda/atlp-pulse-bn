@@ -488,7 +488,6 @@ const manageStudentResolvers = {
           )
         }
 
-        // CATCH ERROR
       } catch (error: any) {
         throw new ApolloError(error.message, '500')
       }
