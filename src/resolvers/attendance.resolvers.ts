@@ -135,7 +135,7 @@ const attendanceResolver = {
               'Friday',
             ]
             if (!validDays.includes(days)) {
-              throw new Error(" We don't have that day ")
+              throw new Error(' We don\'t have that day ')
             } else {
               attendances[weekIndex].trainees[traineeIndex].status.push({
                 days,
