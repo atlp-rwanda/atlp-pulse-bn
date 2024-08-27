@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 const Event = mongoose.model(
   'Event',
   new Schema({
@@ -32,5 +32,5 @@ const Event = mongoose.model(
       required: true,
     },
   })
-);
-export { Event };
+)
+export { Event }

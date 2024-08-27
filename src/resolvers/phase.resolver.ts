@@ -133,7 +133,7 @@ const phaseResolver = {
 
       if (findPhaseInCohort)
         throw new Error(
-          "You can't delete this phase! Some cohorts belongs to it."
+          'You can\'t delete this phase! Some cohorts belongs to it.'
         )
 
       const deletedPhase = await Phase.findByIdAndRemove({ _id: args.id })

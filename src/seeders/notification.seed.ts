@@ -1,9 +1,9 @@
-import { Notification } from '../models/notification.model';
+import { Notification } from '../models/notification.model'
 
 const seedNotification = async () => {
-  await Notification.deleteMany({});
+  await Notification.deleteMany({})
 
-  return null;
-};
+  return null
+}
 
-export default seedNotification;
+export default seedNotification

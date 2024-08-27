@@ -1,4 +1,4 @@
-import Session from '../models/session.model';
+import Session from '../models/session.model'
 
 const seedSessions = async () => {
   const sessionsToSeed = [
@@ -17,12 +17,12 @@ const seedSessions = async () => {
       organizer: 'Organizer Y',
     },
     // Add more session objects as needed
-  ];
+  ]
 
-  await Session.deleteMany({});
+  await Session.deleteMany({})
 
-  await Session.insertMany(sessionsToSeed);
-  return null;
-};
+  await Session.insertMany(sessionsToSeed)
+  return null
+}
 
-export default seedSessions;
+export default seedSessions

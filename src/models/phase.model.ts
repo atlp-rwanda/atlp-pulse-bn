@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 
 const phaseSchema = new Schema({
   name: {
@@ -15,7 +15,7 @@ const phaseSchema = new Schema({
     ref: 'Organization',
     required: true,
   },
-});
+})
 
-const Phase = mongoose.model('Phase', phaseSchema);
-export default Phase;
+const Phase = mongoose.model('Phase', phaseSchema)
+export default Phase

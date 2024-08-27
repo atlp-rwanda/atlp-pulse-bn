@@ -1,6 +1,4 @@
-export default function organizationRejectedTemplate(
-  orgName: string,
-) {
+export default function organizationRejectedTemplate(orgName: string) {
   return `
 			<table style="text-align: left;">
 			<tr>
@@ -14,5 +12,5 @@ export default function organizationRejectedTemplate(
 			</tr>
        
 		</table>
-		`;
+		`
 }

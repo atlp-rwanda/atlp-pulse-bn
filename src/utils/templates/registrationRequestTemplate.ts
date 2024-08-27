@@ -39,5 +39,5 @@ export default function registrationRequest(
 				</td>
 			</tr>
 		</table>
-		`;
+		`
 }

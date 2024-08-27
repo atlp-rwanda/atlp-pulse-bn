@@ -1,8 +1,8 @@
-import bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import { User } from '../models/user';
-import { Profile } from '../models/profile.model';
+import bcrypt from 'bcryptjs'
+import * as jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
+import { User } from '../models/user'
+import { Profile } from '../models/profile.model'
 
 const SECRET = process.env.SECRET || 'test_secret'
 

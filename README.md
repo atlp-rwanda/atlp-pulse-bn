@@ -4,6 +4,7 @@ ATLP Devpulse backend
 
 [![codecov](https://codecov.io/github/atlp-rwanda/atlp-pulse-bn/graph/badge.svg?token=KOB8QFSJV1)](https://codecov.io/github/atlp-rwanda/atlp-pulse-bn)
 [![CI](https://github.com/atlp-rwanda/atlp-pulse-bn/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/atlp-rwanda/atlp-pulse-bn/actions/workflows/main.yml)
+
 ## Introduction
 
 This is backend system for the devpulse project. A project that is built to help players in the Ed-tech sector manage students/trainees at ease. \
@@ -30,6 +31,7 @@ npm run dev
 
 // open the link printed at the end of the command
 ```
+
 Make sure to get the `.env` values from a contributor.  
 If you already have the project. Open a terminal from the project directory and be sure to update your local copy before proceeding using this command
 

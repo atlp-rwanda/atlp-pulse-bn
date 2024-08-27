@@ -5,3 +5,6 @@ coverage
 Dockerfile
 logs
 .env.sample
+
+
+yarn.lock

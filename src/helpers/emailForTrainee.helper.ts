@@ -53,8 +53,8 @@ export default function generateTemplate(content: any, title: any) {
                                                view your ratings via the link below
                                             </p>
                                             <p style="color:#455056; font-size:15px;line-height:24px; margin:0;">
-                                            <a href="${process.env.FRONTEND_LINK }/login/org" style="text-decoration: none; cursor: pointer;">
-                                            ${process.env.FRONTEND_LINK }/login/org
+                                            <a href="${process.env.FRONTEND_LINK}/login/org" style="text-decoration: none; cursor: pointer;">
+                                            ${process.env.FRONTEND_LINK}/login/org
                                              </a>
                                             </p>
                                         </td>
@@ -77,5 +77,5 @@ export default function generateTemplate(content: any, title: any) {
         <!-- body table-->
     </body>
     </html>
-`;
+`
 }

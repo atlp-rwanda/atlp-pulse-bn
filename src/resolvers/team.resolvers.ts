@@ -221,7 +221,6 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-
             return (
               user.team?.name === team &&
               // user?.organizations?.includes(org?.name)

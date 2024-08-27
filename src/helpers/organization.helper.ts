@@ -50,4 +50,3 @@ export async function checkLoggedInOrganization(token?: string) {
     }
   }
 }
-

@@ -1,127 +1,111 @@
-[{
+[
+  {
     "_id": {
-        "$oid": "649d80270cca18f971322199"
+      "$oid": "649d80270cca18f971322199"
     },
     "email": "emily.wallace@devpulse.com",
     "password": "$2a$10$5353abk97DSXeINsJ9fgd.uj2uZoNJ/GIEmkewjXjZujAdBVeDyqu",
     "role": "admin",
-    "organizations": [
-        "Andela"
-    ],
+    "organizations": ["Andela"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f97132219a"
+      "$oid": "649d80270cca18f97132219a"
     },
     "email": "pierce.cotton@devpulse.com",
     "password": "$2a$10$q0KmD2Zg6pXS7o9dH0pagO/8H7AWglVYGoxGmqAEFI0yUJ2WvS992",
     "role": "admin",
-    "organizations": [
-        "Andela"
-    ],
+    "organizations": ["Andela"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
+  },
 
-{
+  {
     "_id": {
-        "$oid": "649d80270cca18f9713221e1"
+      "$oid": "649d80270cca18f9713221e1"
     },
     "email": "velma.carney@devpulse.com",
     "password": "$2a$10$MCp0dyjqWqqnYiErgfXsIup8S4ORpaHV7KptNAkLOQEVjtEmNJ5tC",
     "role": "admin",
-    "organizations": [
-        "Irembo"
-    ],
+    "organizations": ["Irembo"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f9713221e2"
+      "$oid": "649d80270cca18f9713221e2"
     },
     "email": "mckay.park@devpulse.com",
     "password": "$2a$10$pwmBc5osxIuaEqbiZTC1.ewZKv1Wa0XeMFiZhPAdEFyIiC5K27XxS",
     "role": "admin",
-    "organizations": [
-        "Irembo"
-    ],
+    "organizations": ["Irembo"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f971322229"
+      "$oid": "649d80270cca18f971322229"
     },
     "email": "jerri.meyers@devpulse.com",
     "password": "$2a$10$KUK/eV4ZJzz0ETEl5OVkRecDzsMxSzOffxwxjFkPFRfSAu7tbTSCe",
     "role": "admin",
-    "organizations": [
-        "KLab"
-    ],
+    "organizations": ["KLab"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f97132222a"
+      "$oid": "649d80270cca18f97132222a"
     },
     "email": "morgan.robinson@devpulse.com",
     "password": "$2a$10$yFdvyg76gxwpx2My4h43meiYsnR6zcB8sWMOYcnHcIYeeFzq4t7ai",
     "role": "admin",
-    "organizations": [
-        "KLab"
-    ],
+    "organizations": ["KLab"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f971322271"
+      "$oid": "649d80270cca18f971322271"
     },
     "email": "parsons.wolfe@devpulse.com",
     "password": "$2a$10$LVFLiJ9FvdYiP8Shh6fZoOzsd/KOjmZJs7hI/NjtCNxJPMOG0p27.",
     "role": "admin",
-    "organizations": [
-        "BK"
-    ],
+    "organizations": ["BK"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f971322272"
+      "$oid": "649d80270cca18f971322272"
     },
     "email": "lorena.wilson@devpulse.com",
     "password": "$2a$10$c7BWKoXDWAqqHjsDmPWzseEa3J3zcghoWKdJPpobvBgMj22abvZWK",
     "role": "admin",
-    "organizations": [
-        "BK"
-    ],
+    "organizations": ["BK"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-},
-{
+  },
+  {
     "_id": {
-        "$oid": "649d80270cca18f971322198"
+      "$oid": "649d80270cca18f971322198"
     },
     "email": "superadmin@devpulse.co",
     "password": "$2a$10$EmEaHWp/TFUMzYEokokW5.LlD41A0FiLjeXNzDJfsERFuo0h7uTPK",
     "role": "superAdmin",
-    "organizations": [
-        "Andela"
-    ],
+    "organizations": ["Andela"],
     "__v": {
-        "$numberInt": "0"
+      "$numberInt": "0"
     }
-}]
+  }
+]

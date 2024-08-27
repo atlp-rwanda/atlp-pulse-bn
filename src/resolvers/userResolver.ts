@@ -101,7 +101,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -223,13 +223,13 @@ const resolvers: any = {
             code: 'ValidationError',
           },
         })
-      let invitee;
+      let invitee
       const invitation = await Invitation.findOne({ 'invitees.email': email })
         .sort({ createdAt: -1 })
-        .exec();
-      
+        .exec()
+
       if (invitation) {
-        invitee = invitation.invitees.find(invitee => invitee.email === email);
+        invitee = invitation.invitees.find((invitee) => invitee.email === email)
       }
       const user = await User.create({
         role: role || invitee?.role || 'user',
@@ -482,9 +482,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
+      if (!roleExists) throw new Error('This role doesn\'t exist')
       const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+      if (!userExists) throw new Error('User doesn\'t exist')
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -933,7 +933,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -1008,7 +1008,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()

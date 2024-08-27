@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import gql from 'graphql-tag'
 
 const invitationSchema = gql`
   scalar Upload
@@ -17,20 +17,40 @@ const invitationSchema = gql`
   }
 
   type Invitee {
+    inviteeId: ID
     email: String
-    role: Role!
+    role: Role
   }
 
   type Invitation {
-    status: Status!
+    id: ID!
+    inviterId: String!
+    status: String!
     invitees: [Invitee!]!
-    orgToken:String
+    orgToken: String!
     createdAt: String!
   }
 
   input InviteeInput {
     email: String
     role: Role!
+  }
+
+  type PaginatedInvitations {
+    invitations: [Invitation!]!
+    totalInvitations: Int!
+  }
+
+  type Query {
+    getInvitations(
+      query: String!
+      limit: Int
+      offset: Int
+    ): PaginatedInvitations!
+  }
+
+  type Query {
+    getAllInvitations(limit: Int, offset: Int): PaginatedInvitations!
   }
 
   type InvitationResult {
@@ -44,17 +64,14 @@ const invitationSchema = gql`
     data: [InvitationResult!]!
     invalidRows: [String!]!
     message: String!
-    sentEmails:Int!
+    sentEmails: Int!
   }
 
   type Mutation {
-    sendInvitation(
-      invitees: [InviteeInput!]!
-      orgToken: String!
-    ): Invitation!
+    sendInvitation(invitees: [InviteeInput!]!, orgToken: String!): Invitation!
 
     uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
   }
-`;
+`
 
-export default invitationSchema;
+export default invitationSchema

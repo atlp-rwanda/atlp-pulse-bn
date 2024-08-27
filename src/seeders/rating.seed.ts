@@ -1,9 +1,9 @@
-import { Rating } from '../models/ratings';
+import { Rating } from '../models/ratings'
 
 const seedRatings = async () => {
-  await Rating.deleteMany({});
+  await Rating.deleteMany({})
 
-  return null;
-};
+  return null
+}
 
-export default seedRatings;
+export default seedRatings
