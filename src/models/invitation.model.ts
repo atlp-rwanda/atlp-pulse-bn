@@ -7,7 +7,7 @@ const STATUS = {
 }
 
 const ROLE = {
-  TRAINEE: 'traninee',
+  TRAINEE: 'trainee',
   ADMIN: 'admin',
   TTL: 'ttl',
   COORDINATOR: 'coordinator',
@@ -16,6 +16,7 @@ const InvitationSchema = new Schema({
   inviterId: {
     type: [mongoose.Types.ObjectId],
     ref: 'User',
+    required: true,
   },
   status: {
     type: String,
