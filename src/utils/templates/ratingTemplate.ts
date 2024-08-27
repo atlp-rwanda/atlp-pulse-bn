@@ -1,24 +1,24 @@
 type Rating = {
-    title: string
-    percentage: number
-  }
-  
-  export default function ratingEmailTemplate(
-    recipientName: string,
-    ratings: Rating[]
-  ): string {
-    const ratingsHtml = ratings
-      .map(
-        (rating) => `
+  title: string
+  percentage: number
+}
+
+export default function ratingEmailTemplate(
+  recipientName: string,
+  ratings: Rating[]
+): string {
+  const ratingsHtml = ratings
+    .map(
+      (rating) => `
           <div class="rating">
               <div class="rating-circle">${rating.percentage}%</div>
               <div class="rating-title">${rating.title}</div>
           </div>
       `
-      )
-      .join('')
-  
-    return `
+    )
+    .join('')
+
+  return `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -161,4 +161,4 @@ type Rating = {
       </body>
       </html>
       `
-  }
+}

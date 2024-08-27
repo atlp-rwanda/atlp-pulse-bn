@@ -39,6 +39,14 @@ const invitationSchema = gql`
 
     # Other mutations like delete, edit, and update go below
   }
+  type Query {
+    getAcceptedInvitations: Invitation
+    getAcceptedInvitationsCount: Int
+    getAcceptedInvitationsPercentsCount: Float
+  }
+  type Query {
+    getPendingInvitations: [Invitation]
+  }
 `;
 
 export default invitationSchema;

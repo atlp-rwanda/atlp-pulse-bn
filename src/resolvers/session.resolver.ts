@@ -32,8 +32,8 @@ const Sessionresolvers = {
           organizer:res.organizer 
         };
       } catch (error) {
-         console.error("Failed to create new session:", error);
-        throw new Error("Failed to create new session");
+        console.error('Failed to create new session:', error);
+        throw new Error('Failed to create new session');
       }
     },
     
@@ -45,7 +45,7 @@ const Sessionresolvers = {
       const session = await Session.findById(ID);
     
       if (!session) {
-        throw new Error("Session not found");
+        throw new Error('Session not found');
       }
     
       session.Sessionname = Sessionname;
@@ -58,8 +58,8 @@ const Sessionresolvers = {
         await session.save();
         return true;
       } catch (error) {
-        console.error("Failed to update session:", error);
-        throw new Error("Failed to update session");
+        console.error('Failed to update session:', error);
+        throw new Error('Failed to update session');
       }
     },
     

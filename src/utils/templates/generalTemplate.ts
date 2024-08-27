@@ -23,8 +23,8 @@ export default function Template({
                 ${message}
               </p>
               ${
-                link
-                  ? `<p style="margin-bottom: 5px">
+  link
+    ? `<p style="margin-bottom: 5px">
                 ${linkMessage || ''}
                 </p>
                 <a href="${link}" style="text-decoration: none; cursor: pointer">
@@ -46,14 +46,14 @@ export default function Template({
                 </a>
                 <br />
                 <br />`
-                  : ''
-              }
+    : ''
+}
 
               ${
-                closingText
-                  ? `<p>${closingText}</p>`
-                  : '<p>If you think this email reached your inbox by mistake, simply ignore it.</p>'
-              }
+  closingText
+    ? `<p>${closingText}</p>`
+    : '<p>If you think this email reached your inbox by mistake, simply ignore it.</p>'
+}
               <br />
               <br />
 

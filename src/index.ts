@@ -31,6 +31,8 @@ import ticketResolver from './resolvers/ticket.resolver';
 import DocumentationResolvers from './resolvers/DocumentationResolvers';
 import attendanceResolver from './resolvers/attendance.resolvers';
 import Sessionresolvers from './resolvers/session.resolver';
+import statisticsSchema from './schema/statics.schema'
+import StatisticsResolvers from './resolvers/staticResolver'
 import schemas from './schema/index';
 import cohortSchema from './schema/cohort.schema';
 import programSchema from './schema/program.schema';
@@ -51,6 +53,7 @@ export const typeDefs = mergeTypeDefs([
   phaseSchema,
   ticketSchema,
   invitationSchema,
+  statisticsSchema,
 ])
 
 export const resolvers = mergeResolvers([
@@ -71,6 +74,7 @@ export const resolvers = mergeResolvers([
   attendanceResolver,
   Sessionresolvers,
   invitationResolvers,
+  StatisticsResolvers
 ]);
 
 async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {

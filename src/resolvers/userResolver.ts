@@ -213,11 +213,11 @@ const resolvers: any = {
           'password should be minimum 6 characters',
           'ValidationError'
         )
-        let invitee;
-        const invitation = await Invitation.findOne({ 'invitees.email': email });
-        if (invitation) {
-          invitee = invitation.invitees.find(invitee => invitee.email === email);
-        }
+      let invitee
+      const invitation = await Invitation.findOne({ 'invitees.email': email })
+      if (invitation) {
+        invitee = invitation.invitees.find((invitee) => invitee.email === email)
+      }
       const user = await User.create({
         role: role || invitee?.role || 'user',
         email: email,
