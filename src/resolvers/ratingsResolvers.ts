@@ -13,6 +13,7 @@ import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
+import { pushNotification } from '../utils/notification/pushNotification'
 const pubsub = new PubSub()
 
 let org: InstanceType<typeof Organization>
@@ -22,8 +23,6 @@ const ratingResolvers: any = {
       subscribe: withFilter(
         () => pubsub.asyncIterator('NEW_RATING'),
         (payload, variables) => {
-          // Only push an update if the comment is on
-          // the correct repository for this operation
           return payload.newRating.receiver === variables.receiver
         }
       ),
@@ -252,26 +251,25 @@ const ratingResolvers: any = {
           })
 
           const coordinator = await User.findOne({ _id: context.userId })
-
-          const addNotifications = await Notification.create({
-            receiver: user,
-            message: 'Have rated you; check your scores.',
-            sender: coordinator,
-            read: false,
-            createdAt: new Date(),
-          })
-          if (userExists.pushNotifications) {
-            pubsub.publish('NEW_RATING', {
-              newRating: {
-                id: addNotifications._id,
-                receiver: user,
-                message: 'Have rated you; check your scores.',
-                sender: coordinator,
-                read: false,
-                createdAt: addNotifications.createdAt,
-              },
-            })
+          if (coordinator) {
+            pushNotification(
+              user,
+              'Have rated you; check your scores.',
+              coordinator!._id
+            )
           }
+          // if (userExists.pushNotifications) {
+          //   pubsub.publish('NEW_RATING', {
+          //     newRating: {
+          //       id: addNotifications._id,
+          //       receiver: user,
+          //       message: 'Have rated you; check your scores.',
+          //       sender: coordinator,
+          //       read: false,
+          //       createdAt: addNotifications.createdAt,
+          //     },
+          //   })
+          // }
           if (userExists.emailNotifications) {
             const content = generalTemplate({
               message:
@@ -595,23 +593,18 @@ const ratingResolvers: any = {
         },
       })
 
-      const addNotifications = await Notification.create({
-        receiver: sender?.id == rate?.coordinator ? user : rate?.coordinator,
-        message: content,
-        sender: sender?.id,
-        read: false,
-        createdAt: new Date(),
-      })
-      pubsub.publish('NEW_REPLY', {
-        newRating: {
-          id: addNotifications._id,
-          receiver: addNotifications.receiver,
-          message: addNotifications.message,
-          sender: addNotifications.sender,
-          read: false,
-          createdAt: addNotifications.createdAt,
-        },
-      })
+      // const addNotifications = await Notification.create({
+      //   receiver: sender?.id == rate?.coordinator ? user : rate?.coordinator,
+      //   message: content,
+      //   sender: sender?.id,
+      //   read: false,
+      //   createdAt: new Date(),
+      // })
+      pushNotification(
+        sender?.id == rate?.coordinator ? user : rate?.coordinator,
+        content,
+        sender?.id
+      )
       return {
         content,
         createdAt: new Date(),

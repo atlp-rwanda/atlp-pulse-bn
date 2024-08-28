@@ -37,12 +37,14 @@ import programSchema from './schema/program.schema';
 import coordinatorSchema from './schema/coordinator.schema';
 import phaseSchema from './schema/phase.schema';
 import ticketSchema from './schema/ticket.shema';
+import notificationSchema from './schema/notification.schema';
 import { IResolvers } from '@graphql-tools/utils';
 
 const PORT: number = parseInt(process.env.PORT!) || 4000;
 
 export const typeDefs = mergeTypeDefs([
   schemas,
+  notificationSchema,
   cohortSchema,
   programSchema,
   coordinatorSchema,

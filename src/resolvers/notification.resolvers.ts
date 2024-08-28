@@ -1,9 +1,30 @@
-import { Notification } from '../models/notification.model';
-import { Context } from './../context';
-import { checkUserLoggedIn } from '../helpers/user.helpers';
-import { User} from '../models/user';
+import { Notification } from '../models/notification.model'
+import { Context } from './../context'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { User } from '../models/user'
+import { PubSub, withFilter } from 'graphql-subscriptions'
+
+const pubSub = new PubSub()
+
+export const pubSubPublish = (payload: any) => {
+  pubSub.publish('SEND_NOTIFICATION', {
+    pushNotification: payload,
+  })
+}
 
 const notificationResolver = {
+  Subscription: {
+    pushNotification: {
+      subscribe: withFilter(
+        () => pubSub.asyncIterator(['SEND_NOTIFICATION']),
+        (payload, variable) => {
+          return (
+            payload.pushNotification.receiver.toString() === variable.receiverId
+          )
+        }
+      ),
+    },
+  },
   Mutation: {
     deleteNotifications: async (parent: any, args: any, context: Context) => {
       ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
