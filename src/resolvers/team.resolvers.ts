@@ -11,6 +11,8 @@ import { Context } from '../context';
 import { ProgramType } from './program.resolvers';
 import { OrganizationType } from './userResolver';
 import { Rating } from '../models/ratings';
+import { pushNotification } from '../utils/notification/pushNotification';
+import { Types } from 'mongoose';
 
 const resolvers = {
   Team: {
@@ -275,8 +277,12 @@ const resolvers = {
         });
         cohort.teams = cohort.teams + 1;
         cohort.save();
+        const newTeam = org.save()
 
-        return org.save();
+        const senderId = new Types.ObjectId(context.userId);
+        pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `Team "${name}" has been added to your cohort "${cohort.name}"`, senderId);
+        
+        return newTeam ;
       } catch (error: any) {
         const { message } = error as { message: any };
         throw new ApolloError(message.toString(), '500');
@@ -290,7 +296,7 @@ const resolvers = {
 
       if (findTeam.members.length > 0) {
         throw new ValidationError(
-          `you can't delete ${findTeam.name} becouse it has members`
+          `you can't delete ${findTeam.name} because it has members`
         )
       }
 
@@ -299,6 +305,9 @@ const resolvers = {
       await Team.findByIdAndDelete({ _id: args.id })
       cohort ? (cohort.teams = cohort.teams - 1) : null
       cohort?.save()
+      cohort && console.log('done-----------------', cohort.coordinator.toString())
+      const senderId = new Types.ObjectId(context.userId);
+      cohort && pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `Team "${findTeam.name}" was removed from your cohort "${cohort.name}"`, senderId);
       return 'Team deleted successfully'
     },
     updateTeam: async (
@@ -331,15 +340,16 @@ const resolvers = {
           },
         },
       })
-
-      const cohortProgram = team?.cohort?.program as ProgramType
-      const cohortOrg = cohortProgram.organization as OrganizationType
-      const org = await checkLoggedInOrganization(orgToken)
-
       if (!team) {
         throw new ValidationError(`team with id "${id}" doesn't exist`)
       }
 
+      const prevTeamName = team.name
+      const teamCohort = team?.cohort
+      const cohortProgram = team?.cohort?.program as ProgramType
+      const cohortOrg = cohortProgram.organization as OrganizationType
+      const org = await checkLoggedInOrganization(orgToken)
+      
       if (
         name &&
         name !== team.name &&
@@ -380,6 +390,11 @@ const resolvers = {
       name && (team.name = name)
 
       await team.save()
+
+      const senderId = new Types.ObjectId(context.userId);
+      if (teamCohort.coordinator && (prevTeamName !== name)) {
+        pushNotification(new Types.ObjectId(teamCohort.coordinator.toString()), `Team "${prevTeamName}" from cohort "${teamCohort.name}" has changed its name to "${name}"`, senderId);
+      }
 
       return team
     },

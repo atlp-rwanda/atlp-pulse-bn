@@ -13,6 +13,7 @@ import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
+import { pushNotification } from '../utils/notification/pushNotification'
 const pubsub = new PubSub()
 
 let org: InstanceType<typeof Organization>
@@ -22,8 +23,6 @@ const ratingResolvers: any = {
       subscribe: withFilter(
         () => pubsub.asyncIterator('NEW_RATING'),
         (payload, variables) => {
-          // Only push an update if the comment is on
-          // the correct repository for this operation
           return payload.newRating.receiver === variables.receiver
         }
       ),
@@ -167,17 +166,6 @@ const ratingResolvers: any = {
       ])
       return findRatings
     },
-    async getAllNotification(
-      _: any,
-      arg: any,
-      context: { role: string; userId: string }
-    ) {
-      const loggedId = context.userId
-      const findNotification = await Notification.find({ receiver: loggedId })
-        .sort({ createdAt: -1 })
-        .populate('sender')
-      return findNotification
-    },
   },
   Mutation: {
     addRatings: authenticated(
@@ -252,35 +240,34 @@ const ratingResolvers: any = {
           })
 
           const coordinator = await User.findOne({ _id: context.userId })
-
-          const addNotifications = await Notification.create({
-            receiver: user,
-            message: 'Have rated you; check your scores.',
-            sender: coordinator,
-            read: false,
-            createdAt: new Date(),
-          })
-          if (userExists.pushNotifications) {
-            pubsub.publish('NEW_RATING', {
-              newRating: {
-                id: addNotifications._id,
-                receiver: user,
-                message: 'Have rated you; check your scores.',
-                sender: coordinator,
-                read: false,
-                createdAt: addNotifications.createdAt,
-              },
-            })
+          if (coordinator) {
+            pushNotification(
+              user,
+              'Have rated you; check your scores.',
+              coordinator!._id
+            )
           }
+          // if (userExists.pushNotifications) {
+          //   pubsub.publish('NEW_RATING', {
+          //     newRating: {
+          //       id: addNotifications._id,
+          //       receiver: user,
+          //       message: 'Have rated you; check your scores.',
+          //       sender: coordinator,
+          //       read: false,
+          //       createdAt: addNotifications.createdAt,
+          //     },
+          //   })
+          // }
           if (userExists.emailNotifications) {
             const content = generalTemplate({
               message:
-                "We're excited to announce that your latest performance ratings are ready for review.",
+                'We\'re excited to announce that your latest performance ratings are ready for review.',
               linkMessage: 'To access your new ratings, click the button below',
               buttonText: 'View Ratings',
               link: `${process.env.FRONTEND_LINK}/performance`,
               closingText:
-                "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+                'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
             })
 
             await sendEmails(
@@ -361,9 +348,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                      `${oldData?.quantityRemark} ->`,
-                      quantityRemark?.toString(),
-                    ],
+                    `${oldData?.quantityRemark} ->`,
+                    quantityRemark?.toString(),
+                  ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -377,16 +364,16 @@ const ratingResolvers: any = {
                 professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                      `${oldData?.professional_Skills} ->`,
-                      professional_Skills?.toString(),
-                    ],
+                    `${oldData?.professional_Skills} ->`,
+                    professional_Skills?.toString(),
+                  ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                      `${oldData?.professionalRemark} ->`,
-                      professionalRemark?.toString(),
-                    ],
+                    `${oldData?.professionalRemark} ->`,
+                    professionalRemark?.toString(),
+                  ],
 
               feedbacks: oldData?.feedbacks.map((feedback) => {
                 feedbackContent === feedback.content
@@ -473,7 +460,7 @@ const ratingResolvers: any = {
             buttonText: 'View Ratings',
             link: `${process.env.FRONTEND_LINK}/performance`,
             closingText:
-              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+              'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
           })
 
           await sendEmails(
@@ -595,23 +582,18 @@ const ratingResolvers: any = {
         },
       })
 
-      const addNotifications = await Notification.create({
-        receiver: sender?.id == rate?.coordinator ? user : rate?.coordinator,
-        message: content,
-        sender: sender?.id,
-        read: false,
-        createdAt: new Date(),
-      })
-      pubsub.publish('NEW_REPLY', {
-        newRating: {
-          id: addNotifications._id,
-          receiver: addNotifications.receiver,
-          message: addNotifications.message,
-          sender: addNotifications.sender,
-          read: false,
-          createdAt: addNotifications.createdAt,
-        },
-      })
+      // const addNotifications = await Notification.create({
+      //   receiver: sender?.id == rate?.coordinator ? user : rate?.coordinator,
+      //   message: content,
+      //   sender: sender?.id,
+      //   read: false,
+      //   createdAt: new Date(),
+      // })
+      pushNotification(
+        sender?.id == rate?.coordinator ? user : rate?.coordinator,
+        content,
+        sender?.id
+      )
       return {
         content,
         createdAt: new Date(),
