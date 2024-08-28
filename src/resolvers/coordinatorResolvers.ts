@@ -16,6 +16,7 @@ import Program from '../models/program.model'
 import Team from '../models/team.model'
 import mongoose from 'mongoose'
 import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
+import logger from '../utils/logger.utils'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -737,6 +738,8 @@ const manageStudentResolvers = {
             ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
         const content = inviteUserTemplate(org?.name || '', link)
+        console.log('content', content)
+
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
         const emailSendReport = await sendEmail(
@@ -775,6 +778,7 @@ async function sendEmailOnAddMember(
         org!.name,
         `${process.env.FRONTEND_LINK}/login/org`
       )
+
       const link: any = process.env.FRONTEND_LINK + '/login/org'
 
       await sendEmail(

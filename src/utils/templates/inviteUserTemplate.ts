@@ -1,48 +1,37 @@
 export default function Template(orgName: string, link: string) {
-  return `
-    <div style="font-size: 16px; font-family: 'Rubik'; margin-top: 0px; text-align: left; color: black">
-    <div style="margin-top: 0px; color: black"> 
-      <p><strong>From:</strong> devpulseadmn@gmail.com</p> 
-      <p><strong>Subject:</strong> Invitation</p> 
-      <p><strong>Invitation</strong></p> <br/>
-      </div>
-      <img src="${process.env.FRONTEND_LINK}/images/logo.png" />
-
-      <br/><br/><br/>
-      
-      <p>Hello,</p> <br/>  
-
-      <p>You have been invited to join a Pulse organization called <strong>${orgName}</strong>.</p>
-
-      <p>The link below will take you to the registration page where you can create an account.</p>
-
-      <a href="${link}" style="text-decoration: none; cursor: pointer">
-        <button style="
-          font-size: 16px;
-          background-color: #d3d3d3;
-          font-family: 'Rubik';
-          text-align: center;
-          border: none;
-          border-radius: 3px;
-          padding: 5px;
-          cursor: pointer;
-          color: #800080;
-          text-decoration: underline;
-        ">
-          Join ${orgName}
-        </button>
-      </a>
-
-      <br />
-      <br />
-
-      <p>If you did not initiate the request or you think this email reached your inbox by mistake, simply ignore it.</p>
-
-      <br />
-      <br />
-
-      <p><strong>Best Regards,</strong></p>
-      <p>Pulse team</p>
-    </div>
-  `
-}
+      return `
+    <table style="border: 1px solid #ddd; padding: 16px; border-radius: 8px; background-color: #f9f9f9; max-width: 600px; margin: 0 auto; font-family: 'Rubik', sans-serif;">
+      <!-- Icon Container -->
+      <tr>
+        <td style="width: 100%; background-color: #E0E7FF; padding: 16px; text-align: center;">
+          <img src="https://res.cloudinary.com/ddf0u9tgz/image/upload/v1724949908/emailLogo_rmmwdi.png" style="width: 200px; height: 200px;" alt="Logo" />
+           <p style="margin: 10px 0 0; font-size: 18px; font-weight: bold; color: #8667F2;">Welcome to Devpulse</p>
+        </td>
+      </tr>
+      <!-- Message Container -->
+      <tr>
+        <td style="padding: 16px; color: black; text-align: left;">
+          <p>Hello,</p>
+          <p>Congratulations again for being selected to be part of the ${orgName}.</p>
+          <p>We would like to invite you to join <strong>${orgName}</strong>, where you will be accessing all the information about the program.</p>
+          <p>Click the button below to accept and join the program:</p>
+          <!-- Button -->
+          <table style="width: 100%; text-align: center; margin-top: 20px;">
+            <tr>
+              <td>
+                <a href="${link}" style="text-decoration: none;">
+                  <button style="font-size: 16px; background-color: #8667F2; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; cursor: pointer; color: #fff;">
+                    Accept Invitation
+                  </button>
+                </a>
+              </td>
+            </tr>
+          </table>
+          <p>If the button doesn't work, copy this link into your browser:</p>
+          <!-- Link -->
+          <a href="${link}" style="text-decoration: none; cursor: pointer;">${link}</a>
+        </td>
+      </tr>
+    </table>
+      `
+    }

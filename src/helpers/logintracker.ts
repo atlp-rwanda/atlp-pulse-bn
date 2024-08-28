@@ -2,8 +2,9 @@ import { sendEmail } from '../utils/sendEmail'
 
 export const checkloginAttepmts = async (Profile: any, user: any) => {
   try {
-    const { activity } = await Profile.findOne({ user })
-    if (activity && activity.length > 1) {
+    const profile = await Profile.findOne({ user })
+    if (profile && profile.activity && profile.activity.length > 1) {
+      const activity = profile.activity
       const inline = activity[activity.length - 1]
       const recent = Number(inline.failed) + 1 || 0
       if (
