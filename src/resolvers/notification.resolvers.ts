@@ -33,29 +33,35 @@ const notificationResolver = {
       arg: any,
       context: { role: string; userId: string }
     ) {
+      
+      
       try {
         const loggedId = context.userId
 
-        const findNotification = await Notification.find({
-          receiver: loggedId,
-        }).sort({ createdAt: -1 })
+        const findNotification = await Notification.find({ receiver: loggedId })
+          .sort({ createdAt: -1 })
 
-        const notifications = []
+        const notifications = [];
         for (let i = 0; i < findNotification.length; i++) {
-          const profile = await Profile.findOne({
-            user: findNotification[i].sender,
-          })
+          const profile = await Profile.findOne({user: findNotification[i].sender})
           // console.log(profile);
-          notifications.push({
-            ...findNotification[i].toObject(),
-            id: findNotification[i].id,
-            sender: { profile: profile?.toObject() },
+          notifications.push( {
+            ...findNotification[i].toObject(), id: findNotification[i].id, sender: {profile: profile?.toObject()}
           })
         }
-
+        // const notifications = await findNotification.map(async (notification) => {
+        //   const profile = await Profile.findOne({user: notification.sender})
+        //   // console.log(profile);
+        //   return {
+        //     ...notification, sender: {profile}
+        //   }
+        // })
+  
+        console.log(notifications);
         return notifications
       } catch (error) {
-        console.log(error)
+        console.log(error);
+        
       }
     },
   },

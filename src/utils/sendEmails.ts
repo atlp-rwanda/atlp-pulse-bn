@@ -8,7 +8,6 @@ export const sendEmails = async (
   subject: any,
   content: any
 ) => {
-  console.log('1', receiver)
   const transport = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
@@ -35,5 +34,4 @@ export const sendEmails = async (
     console.log('Message sent: %s', info)
     console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
   })
-  console.log('3', receiver)
 }
