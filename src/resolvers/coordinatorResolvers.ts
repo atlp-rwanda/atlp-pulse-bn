@@ -19,7 +19,6 @@ import { pushNotification } from '../utils/notification/pushNotification'
 import { Types } from 'mongoose'
 import DropTraineeTemplate from '../utils/templates/dropTraineeTemplate'
 import { Profile } from '../models/profile.model'
-import { pushNotification } from '../utils/notification/pushNotification'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 
 const SECRET: string = process.env.SECRET || 'test_secret'

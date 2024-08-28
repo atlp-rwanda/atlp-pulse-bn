@@ -247,6 +247,18 @@ const ratingResolvers: any = {
               'rating'
             )
           }
+          // if (userExists.pushNotifications) {
+          //   pubsub.publish('NEW_RATING', {
+          //     newRating: {
+          //       id: addNotifications._id,
+          //       receiver: user,
+          //       message: 'Have rated you; check your scores.',
+          //       sender: coordinator,
+          //       read: false,
+          //       createdAt: addNotifications.createdAt,
+          //     },
+          //   })
+          // }
           if (userExists.emailNotifications) {
             const content = generalTemplate({
               message:
