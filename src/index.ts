@@ -75,15 +75,13 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
+  invitationResolvers,
 ])
 
-async function startApolloServer(
-  typeDefs: DocumentNode,
-  resolvers: IResolvers
-) {
-  const app = express()
-  const httpServer = http.createServer(app)
-  const schema = makeExecutableSchema({ typeDefs, resolvers })
+async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
+  const app = express() as any;
+  const httpServer = http.createServer(app);
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
 
   const graphqlPath = '/'
 
@@ -136,7 +134,9 @@ async function startApolloServer(
     console.log('Database Connected.')
     console.log(`Environment is set to ${process.env.NODE_ENV}`)
     httpServer.listen({ port: PORT }, () => {
-      console.log(`🚀 Server ready at http://localhost:${PORT}${graphqlPath}`)
+      console.log(
+        `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
+      )
     })
   })
 }
