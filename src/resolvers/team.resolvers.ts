@@ -13,6 +13,7 @@ import { OrganizationType } from './userResolver'
 import { Rating } from '../models/ratings'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { Types } from 'mongoose'
+import { GraphQLError } from 'graphql'
 
 const resolvers = {
   Team: {

@@ -39,10 +39,10 @@ import programSchema from './schema/program.schema'
 import coordinatorSchema from './schema/coordinator.schema'
 import phaseSchema from './schema/phase.schema'
 import ticketSchema from './schema/ticket.shema'
+import notificationSchema from './schema/notification.schema'
+import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
 import invitationResolvers from './resolvers/invitation.resolvers'
-import { IResolvers } from '@graphql-tools/utils'
-import notificationSchema from './schema/notification.schema'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -78,10 +78,13 @@ export const resolvers = mergeResolvers([
   invitationResolvers,
 ])
 
-async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
-  const app = express() as any;
-  const httpServer = http.createServer(app);
-  const schema = makeExecutableSchema({ typeDefs, resolvers });
+async function startApolloServer(
+  typeDefs: DocumentNode,
+  resolvers: IResolvers
+) {
+  const app = express() as any
+  const httpServer = http.createServer(app)
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
 
   const graphqlPath = '/'
 
@@ -108,7 +111,7 @@ async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) 
       },
       logGraphQLRequests,
     ],
-    formatError: (err) => {
+    formatError: (err: any) => {
       // Log the error using tslog
       logger.error(`${err}`)
       return err
@@ -134,9 +137,7 @@ async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) 
     console.log('Database Connected.')
     console.log(`Environment is set to ${process.env.NODE_ENV}`)
     httpServer.listen({ port: PORT }, () => {
-      console.log(
-        `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
-      )
+      console.log(`🚀 Server ready at http://localhost:${PORT}${graphqlPath}`)
     })
   })
 }
