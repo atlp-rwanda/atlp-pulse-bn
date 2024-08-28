@@ -24,7 +24,7 @@ interface TraineeStatus {
 }
 
 interface Trainee {
-  traineeId: mongoose.Types.ObjectId
+  traineeId: string
   traineeEmail: string
   status: TraineeStatus[]
 }
@@ -97,6 +97,7 @@ const manageStudentResolvers = {
         // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
+        // console.log("User info:",User);
 
         return (
           await User.find({
@@ -425,10 +426,11 @@ const manageStudentResolvers = {
               if (!traineeEmailExists) {
                 // create new trainee
                 const newTrainee: Trainee = {
-                  traineeId: new mongoose.Types.ObjectId(),
+                  traineeId: user.id,
                   traineeEmail: email,
                   status: [],
                 }
+                // console.log("new trainee data:",newTrainee);
 
                 const attendanceLength: any = await Attendance.find({
                   coordinatorId: userId,

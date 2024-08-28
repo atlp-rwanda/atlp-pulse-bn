@@ -27,9 +27,7 @@ const Notification = mongoose.model(
         default: false,
       },
     },
-    {
-      timestamps: true,
-    }
+    { timestamps: true }
   )
 )
 
