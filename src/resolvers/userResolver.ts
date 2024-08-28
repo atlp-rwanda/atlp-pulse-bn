@@ -25,6 +25,7 @@ import Phase from '../models/phase.model'
 import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
+import { Invitation } from '../models/invitation.model'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -211,9 +212,13 @@ const resolvers: any = {
           'password should be minimum 6 characters',
           'ValidationError'
         )
-
+        let invitee;
+        const invitation = await Invitation.findOne({ 'invitees.email': email });
+        if (invitation) {
+          invitee = invitation.invitees.find(invitee => invitee.email === email);
+        }
       const user = await User.create({
-        role: role || 'user',
+        role: role || invitee?.role || 'user',
         email: email,
         password,
         organizations: org.name,
