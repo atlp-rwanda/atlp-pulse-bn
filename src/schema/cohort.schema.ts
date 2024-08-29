@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import gql from 'graphql-tag'
 
 const Schema = gql`
   scalar DateTime
@@ -39,6 +39,6 @@ const Schema = gql`
     ): Cohort
     deleteCohort(id: ID!, orgToken: String): Cohort
   }
-`;
+`
 
-export default Schema;
+export default Schema

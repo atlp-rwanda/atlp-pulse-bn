@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { ApolloError } from 'apollo-server-errors'
+import { GraphQLError } from 'graphql'
 import * as jwt from 'jsonwebtoken'
 import { JwtPayload, verify } from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
@@ -107,16 +107,21 @@ const resolvers: any = {
 
       const { data: checkOrg } = await octokit.orgs.get({ org: organisation })
       if (!checkOrg) {
-        throw new ApolloError(
-          'Organization Not found On GitHub',
-          'UserInputError'
-        )
+        throw new GraphQLError('Organization Not found On GitHub', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
       const { data: checkUser } = await octokit.users.getByUsername({
         username: username,
       })
       if (!checkUser) {
-        throw new ApolloError('User Not found On Github', 'UserInputError')
+        throw new GraphQLError('User Not found On Github', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
 
       let allRepos: any = []
@@ -159,7 +164,7 @@ const resolvers: any = {
               `Error retrieving commits for repository ${repo.name}:`,
               error
             )
-            throw new ApolloError(
+            throw new GraphQLError(
               'Error retrieving commits for repository ${repo.name}:'
             )
           }
@@ -197,21 +202,27 @@ const resolvers: any = {
 
       const userExists = await User.findOne({ email: email })
       if (userExists)
-        throw new ApolloError(
-          'User with a such email already exists',
-          'UserInputError'
-        )
+        throw new GraphQLError('User with a such email already exists', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
 
       const emailExpression =
         /^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       const isValidEmail = emailExpression.test(String(email).toLowerCase())
       if (!isValidEmail)
-        throw new ApolloError('invalid email format', 'ValidationError')
+        throw new GraphQLError('invalid email format', {
+          extensions: {
+            code: 'ValidationError',
+          },
+        })
       if (password.length < 6)
-        throw new ApolloError(
-          'password should be minimum 6 characters',
-          'ValidationError'
-        )
+        throw new GraphQLError('password should be minimum 6 characters', {
+          extensions: {
+            code: 'ValidationError',
+          },
+        })
         let invitee;
         const invitation = await Invitation.findOne({ 'invitees.email': email });
         if (invitation) {
@@ -449,7 +460,11 @@ const resolvers: any = {
             },
           }
         )
-        throw new ApolloError('Invalid credential', 'UserInputError')
+        throw new GraphQLError('Invalid credential', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
     },
 
@@ -566,10 +581,11 @@ const resolvers: any = {
           organization.status == Status.pending ||
           organization.status == Status.rejected
         ) {
-          throw new ApolloError(
-            'Your organization is not approved yet',
-            'UserInputError'
-          )
+          throw new GraphQLError('Your organization is not approved yet', {
+            extensions: {
+              code: 'UserInputError',
+            },
+          })
         }
       }
 
@@ -583,9 +599,13 @@ const resolvers: any = {
         }
         return data
       } else {
-        throw new ApolloError(
+        throw new GraphQLError(
           `We do not recognize this organization ${name}`,
-          'UserInputError'
+          {
+            extensions: {
+              code: 'UserInputError',
+            },
+          }
         )
       }
     },
@@ -600,17 +620,22 @@ const resolvers: any = {
         // Check if organization name already exists
         const orgExists = await Organization.findOne({ name })
         if (orgExists) {
-          throw new ApolloError(
-            `Organization name '${name}' already taken`,
-            'UserInputError'
-          )
+          throw new GraphQLError(`Organization name '${name}' already taken`, {
+            extensions: {
+              code: 'UserInputError',
+            },
+          })
         }
 
         // Validate email format
         const emailExpression = EmailPattern
         const isValidEmail = emailExpression.test(String(email).toLowerCase())
         if (!isValidEmail) {
-          throw new ApolloError('Invalid email format', 'ValidationError')
+          throw new GraphQLError('Invalid email format', {
+            extensions: {
+              code: 'ValidationError',
+            },
+          })
         }
 
         const existingUser = await User.findOne({
@@ -619,15 +644,23 @@ const resolvers: any = {
         })
         const admin = await User.findOne({ email, role: 'admin' })
         if (existingUser) {
-          throw new ApolloError(
+          throw new GraphQLError(
             `User with email '${email}' exists and is not an admin. Please use another email.`,
-            'UserInputError'
+            {
+              extensions: {
+                code: 'UserInputError',
+              },
+            }
           )
         }
         if (admin)
-          throw new ApolloError(
+          throw new GraphQLError(
             `User with ${email} exists.  Please use another email`,
-            'UserInputError'
+            {
+              extensions: {
+                code: 'UserInputError',
+              },
+            }
           )
 
         const password: any = generateRandomPassword()
@@ -680,7 +713,11 @@ const resolvers: any = {
       const orgExists = await Organization.findOne({ name: name, email: email })
       if (action == 'approve') {
         if (!orgExists) {
-          throw new ApolloError('Organization Not found ', 'UserInputError')
+          throw new GraphQLError('Organization Not found ', {
+            extensions: {
+              code: 'UserInputError',
+            },
+          })
         }
         if (orgExists) {
           const password: any = generateRandomPassword()
@@ -737,10 +774,11 @@ const resolvers: any = {
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
-          throw new ApolloError(
-            'Organization Name already taken ' + name,
-            'UserInputError'
-          )
+          throw new GraphQLError('Organization Name already taken ' + name, {
+            extensions: {
+              code: 'UserInputError',
+            },
+          })
         }
       }
 
@@ -800,7 +838,11 @@ const resolvers: any = {
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
-        throw new ApolloError('Organization Not found', 'UserInputError')
+        throw new GraphQLError('Organization Not found', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
 
       org.gitHubOrganisation = gitHubOrganisation
@@ -820,12 +862,20 @@ const resolvers: any = {
 
       const checkOrg = await Organization.findOne({ name: name })
       if (!checkOrg) {
-        throw new ApolloError('Organization Not found', 'UserInputError')
+        throw new GraphQLError('Organization Not found', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
 
       const allRepos = checkOrg.activeRepos
       if (allRepos.includes(repoUrl)) {
-        throw new ApolloError('Repository Already Exists', 'UserInputError')
+        throw new GraphQLError('Repository Already Exists', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
 
       checkOrg.activeRepos.push(repoUrl)
@@ -844,12 +894,20 @@ const resolvers: any = {
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
-        throw new ApolloError('Organization Not found', 'UserInputError')
+        throw new GraphQLError('Organization Not found', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
 
       const allRepos = org.activeRepos
       if (!allRepos.includes(repoUrl)) {
-        throw new ApolloError('Repository Not Found', 'UserInputError')
+        throw new GraphQLError('Repository Not Found', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
 
       const index = allRepos.indexOf(repoUrl)
