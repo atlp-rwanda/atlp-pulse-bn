@@ -189,6 +189,7 @@ const resolvers: any = {
         dateOfBirth,
         gender,
         orgToken,
+        invitationId,
       }: any
     ) {
       // checkLoggedInOrganization checks if the organization token passed was valid
@@ -222,6 +223,7 @@ const resolvers: any = {
         email: email,
         password,
         organizations: org.name,
+        invitationId,
       })
       const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
         expiresIn: '2h',
@@ -242,6 +244,11 @@ const resolvers: any = {
         },
         { new: true }
       )
+      if (invitationId) {
+        await Invitation.findByIdAndUpdate(invitationId, {
+          accepted: true,
+        })
+      }
 
       return { token, user: newUser }
     },
