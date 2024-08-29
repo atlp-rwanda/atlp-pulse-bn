@@ -38,6 +38,8 @@ import coordinatorSchema from './schema/coordinator.schema';
 import phaseSchema from './schema/phase.schema';
 import ticketSchema from './schema/ticket.shema';
 import { IResolvers } from '@graphql-tools/utils';
+import invitationSchema from './schema/invitation.schema';
+import InvitationResolver from './resolvers/invitation.resolver';
 
 const PORT: number = parseInt(process.env.PORT!) || 4000;
 
@@ -48,6 +50,7 @@ export const typeDefs = mergeTypeDefs([
   coordinatorSchema,
   phaseSchema,
   ticketSchema,
+  invitationSchema
 ])
 
 export const resolvers = mergeResolvers([
@@ -67,10 +70,11 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
+  InvitationResolver,
 ]);
 
 async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
-  const app = express();
+  const app = express() as any;
   const httpServer = http.createServer(app);
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 

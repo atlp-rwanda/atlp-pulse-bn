@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import mongoose, { model, Schema } from 'mongoose'
 import { Profile } from './profile.model'
+import { Invitation } from './invitation.model'
 
 mongoose.set('toJSON', {
   virtuals: true,
@@ -63,6 +64,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    invitationId: {
+      type: mongoose.Types.ObjectId,
+      ref: Invitation,
+      required: false,
+      allowNull: true,
+    },
   },
 
   {
@@ -120,4 +127,4 @@ const UserRole = mongoose.model(
 
 const User = model('User', userSchema)
 
-export { User, UserRole, }
+export { User, UserRole }

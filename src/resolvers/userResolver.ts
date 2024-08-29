@@ -25,6 +25,7 @@ import Phase from '../models/phase.model'
 import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
+import { Invitation } from '../models/invitation.model'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -188,6 +189,7 @@ const resolvers: any = {
         dateOfBirth,
         gender,
         orgToken,
+        invitationId,
       }: any
     ) {
       // checkLoggedInOrganization checks if the organization token passed was valid
@@ -217,6 +219,7 @@ const resolvers: any = {
         email: email,
         password,
         organizations: org.name,
+        invitationId,
       })
       const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
         expiresIn: '2h',
@@ -237,6 +240,11 @@ const resolvers: any = {
         },
         { new: true }
       )
+      if (invitationId) {
+        await Invitation.findByIdAndUpdate(invitationId, {
+          accepted: true,
+        })
+      }
 
       return { token, user: newUser }
     },
