@@ -5,7 +5,7 @@ import mongoose from 'mongoose'
 import logger from '../utils/logger.utils'
 
 // add your own uri below
-const uri =
+const uri = process.env.MONGO_DEV_URI
   process.env.NODE_ENV === 'production'
     ? process.env.MONGO_PROD_DB
     : process.env.NODE_ENV === 'test'
