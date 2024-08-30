@@ -12,6 +12,7 @@ import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import phaseSchema from '../schema/phase.schema'
 const pubsub = new PubSub()
 
@@ -275,12 +276,12 @@ const ratingResolvers: any = {
           if (userExists.emailNotifications) {
             const content = generalTemplate({
               message:
-                "We're excited to announce that your latest performance ratings are ready for review.",
+                'We@latos;re excited to announce that your latest performance ratings are ready for review.',
               linkMessage: 'To access your new ratings, click the button below',
               buttonText: 'View Ratings',
               link: `${process.env.FRONTEND_LINK}/performance`,
               closingText:
-                "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+                'If you have any questions or require additional information about your ratings, please don@latos;t hesitate to reach out to us.',
             })
 
             await sendEmails(
@@ -473,7 +474,7 @@ const ratingResolvers: any = {
             buttonText: 'View Ratings',
             link: `${process.env.FRONTEND_LINK}/performance`,
             closingText:
-              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+              'If you have any questions or require additional information about your ratings, please don@latos;t hesitate to reach out to us.',
           })
 
           await sendEmails(

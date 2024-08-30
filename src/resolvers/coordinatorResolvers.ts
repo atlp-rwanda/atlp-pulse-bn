@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError } from 'apollo-server'
 import Cohort from '../models/cohort.model'
 import * as jwt from 'jsonwebtoken'
@@ -15,6 +16,7 @@ import { Context } from './../context'
 import Program from '../models/program.model'
 import Team from '../models/team.model'
 import mongoose from 'mongoose'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
 
 const SECRET: string = process.env.SECRET || 'test_secret'

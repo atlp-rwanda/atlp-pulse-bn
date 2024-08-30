@@ -1,15 +1,13 @@
-/* eslint-disable indent */
 import { Invitation } from '../models/invitation.model'
-import { IntegerType, ObjectId } from 'mongodb'
-import { Context } from '../context'
 import { ApolloError } from 'apollo-server'
-import mongoose, { Error } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 
 const invitationResolver = {
   Query: {
+    // eslint-disable-next-line no-empty-pattern
     async getPendingInvitations(_: any, {}, context: any) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { userId, role } = (await checkUserLoggedIn(context))([
           'admin',
           'manager',

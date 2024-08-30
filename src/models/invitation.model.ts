@@ -1,11 +1,9 @@
 import mongoose, { Schema } from 'mongoose'
-
 const STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
   DENIED: 'denied',
 }
-
 const ROLE = {
   TRAINEE: 'trainee',
   ADMIN: 'admin',
@@ -46,6 +44,14 @@ const InvitationSchema = new Schema({
     required: true,
   },
 })
-
 const Invitation = mongoose.model('Invitation', InvitationSchema)
 export { Invitation }
+
+// usage
+// query GetInvitationStatistics($orgToken: String!) {
+//   getInvitationStatistics(orgToken: $orgToken) {
+//     totalInvitations
+//     totalPending
+//     totalAccepted
+//   }
+// }

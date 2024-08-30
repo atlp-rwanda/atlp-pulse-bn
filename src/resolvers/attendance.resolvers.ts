@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable indent */
 import { Attendance } from '../models/attendance.model'
 import { IntegerType, ObjectId } from 'mongodb'
@@ -135,7 +136,7 @@ const attendanceResolver = {
               'Friday',
             ]
             if (!validDays.includes(days)) {
-              throw new Error(" We don't have that day ")
+              throw new Error('We don@latos;t have that day')
             } else {
               attendances[weekIndex].trainees[traineeIndex].status.push({
                 days,
