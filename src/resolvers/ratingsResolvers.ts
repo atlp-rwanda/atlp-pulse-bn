@@ -166,17 +166,6 @@ const ratingResolvers: any = {
       ])
       return findRatings
     },
-    async getAllNotification(
-      _: any,
-      arg: any,
-      context: { role: string; userId: string }
-    ) {
-      const loggedId = context.userId
-      const findNotification = await Notification.find({ receiver: loggedId })
-        .sort({ createdAt: -1 })
-        .populate('sender')
-      return findNotification
-    },
   },
   Mutation: {
     addRatings: authenticated(

@@ -11,6 +11,36 @@ const Schema = gql`
     createdAt: String!
     updatedAt: String!
   }
+  type Profile {
+    firstName: String!
+    lastName: String!
+    name: String
+    cover: String
+    country: String
+    address: String
+    phoneNumber: String
+    id: ID!
+    avatar: String
+  }
+
+  type Sender {
+    profile: Profile!
+  }
+
+  type NotificationReturned {
+    id: ID!
+    receiver: ID!
+    message: String!
+    sender: Sender!
+    read: Boolean!
+    type: String
+    createdAt: String!
+    updatedAt: String!
+  }
+  type Query {
+    getAllNotification: [NotificationReturned]!
+  }
+
   type Mutation {
     deleteNotifications(id: ID!): String
     markAsRead(id: ID!): String

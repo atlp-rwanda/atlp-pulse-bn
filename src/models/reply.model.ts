@@ -1,12 +1,12 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 
 mongoose.set('toJSON', {
   virtuals: true,
   versionKey: false,
   transform: function (doc, ret) {
-    delete ret._id;
+    delete ret._id
   },
-});
+})
 const ReplySchema = new Schema(
   {
     user: {
@@ -47,11 +47,11 @@ const ReplySchema = new Schema(
   {
     timestamps: true,
   }
-);
+)
 ReplySchema.virtual('Rating', {
   ref: 'Rating',
   localField: 'user',
   foreignField: 'reply',
-});
+})
 
-export const Notifications = mongoose.model('Notifications', ReplySchema);
+export const Notifications = mongoose.model('Replies', ReplySchema)

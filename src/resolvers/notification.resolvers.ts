@@ -3,6 +3,8 @@ import { Context } from './../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { User } from '../models/user'
 import { PubSub, withFilter } from 'graphql-subscriptions'
+import { Query } from 'mongoose'
+import { Profile } from '../models/profile.model'
 
 const pubSub = new PubSub()
 
@@ -23,6 +25,46 @@ const notificationResolver = {
           )
         }
       ),
+    },
+  },
+  Query: {
+    async getAllNotification(
+      _: any,
+      arg: any,
+      context: { role: string; userId: string }
+    ) {
+      try {
+        const loggedId = context.userId
+
+        const findNotification = await Notification.find({
+          receiver: loggedId,
+        }).sort({ createdAt: -1 })
+
+        const notifications = []
+        for (let i = 0; i < findNotification.length; i++) {
+          const profile = await Profile.findOne({
+            user: findNotification[i].sender,
+          })
+          // console.log(profile);
+          notifications.push({
+            ...findNotification[i].toObject(),
+            id: findNotification[i].id,
+            sender: { profile: profile?.toObject() },
+          })
+        }
+        // const notifications = await findNotification.map(async (notification) => {
+        //   const profile = await Profile.findOne({user: notification.sender})
+        //   // console.log(profile);
+        //   return {
+        //     ...notification, sender: {profile}
+        //   }
+        // })
+
+        console.log(notifications)
+        return notifications
+      } catch (error) {
+        console.log(error)
+      }
     },
   },
   Mutation: {

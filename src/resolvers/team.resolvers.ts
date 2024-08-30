@@ -1,16 +1,18 @@
-import { ApolloError, ValidationError } from 'apollo-server';
-import { checkLoggedInOrganization } from '../helpers/organization.helper';
-import { checkUserLoggedIn } from '../helpers/user.helpers';
-import Team from '../models/team.model';
-import Program from '../models/program.model';
-import Phase from '../models/phase.model';
-import Cohort from '../models/cohort.model';
-import { User } from '../models/user';
-import { Organization } from '../models/organization.model';
-import { Context } from '../context';
-import { ProgramType } from './program.resolvers';
-import { OrganizationType } from './userResolver';
-import { Rating } from '../models/ratings';
+import { ApolloError, ValidationError } from 'apollo-server'
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import Team from '../models/team.model'
+import Program from '../models/program.model'
+import Phase from '../models/phase.model'
+import Cohort from '../models/cohort.model'
+import { User } from '../models/user'
+import { Organization } from '../models/organization.model'
+import { Context } from '../context'
+import { ProgramType } from './program.resolvers'
+import { OrganizationType } from './userResolver'
+import { Rating } from '../models/ratings'
+import { pushNotification } from '../utils/notification/pushNotification'
+import { Types } from 'mongoose'
 
 const resolvers = {
   Team: {
@@ -18,30 +20,30 @@ const resolvers = {
       return await Cohort.findById(parent.cohort)
     },
     async ttl(parent: any) {
-      return await User.findById(parent.ttl);
+      return await User.findById(parent.ttl)
     },
     async members(parent: any) {
-      return await User.find({ _id: { $in: parent.members } });
+      return await User.find({ _id: { $in: parent.members } })
     },
     async avgRatings(parent: any) {
-      const allRatings = await Rating.find({ user: { $in: parent.members } });
+      const allRatings = await Rating.find({ user: { $in: parent.members } })
       const averageQuantity =
         allRatings.reduce((tot, curr) => tot + Number(curr?.quantity ?? 0), 0) /
-        allRatings.length;
+        allRatings.length
       const averageQuality =
         allRatings.reduce((tot, curr) => tot + Number(curr?.quality ?? 0), 0) /
-        allRatings.length;
+        allRatings.length
       const averageAttendance =
         allRatings.reduce(
           (tot, curr) => tot + Number(curr?.professional_Skills ?? 0),
           0
-        ) / allRatings.length;
+        ) / allRatings.length
 
       return {
         quantity: averageQuantity.toString(),
         quality: averageQuality.toString(),
         professional_Skills: averageAttendance.toString(),
-      };
+      }
     },
   },
   Query: {
@@ -87,10 +89,10 @@ const resolvers = {
             // .populate({ path: 'members', model: User, strictPopulate: false })
             .filter((item: any) => {
               const org = (item.program as InstanceType<typeof Program>)
-                ?.organization;
-              return item.program !== null && org !== null;
+                ?.organization
+              return item.program !== null && org !== null
             })
-        );
+        )
       } catch (error) {
         const { message } = error as { message: any }
         throw new ApolloError(message.toString(), '500')
@@ -108,7 +110,7 @@ const resolvers = {
           'admin',
           'coordinator',
           'manager',
-        ]);
+        ])
 
         // get the organization if a superAdmin logs in
         let org
@@ -155,7 +157,7 @@ const resolvers = {
           'manager',
           'coordinator',
           'ttl',
-        ]);
+        ])
 
         // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
@@ -210,16 +212,16 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-            console.log(user);
+            console.log(user)
 
             return (
               user.team?.name === team &&
               // user?.organizations?.includes(org?.name)
               user.team?.cohort?.program?.organization.name == org?.name &&
               JSON.stringify(user.team?.ttl).replace(/['"]+/g, '') === userId
-            );
+            )
           }
-        });
+        })
       } catch (error) {
         const { message } = error as { message: any }
         throw new ApolloError(message.toString(), '500')
@@ -230,16 +232,16 @@ const resolvers = {
     addTeam: async (
       _: any,
       args: {
-        name: string;
-        cohortName: string;
-        orgToken: string;
-        startingPhase: Date;
-        ttlEmail: string;
+        name: string
+        cohortName: string
+        orgToken: string
+        startingPhase: Date
+        ttlEmail: string
       },
       context: Context
     ) => {
       try {
-        const { name, cohortName, orgToken, startingPhase, ttlEmail } = args;
+        const { name, cohortName, orgToken, startingPhase, ttlEmail } = args
 
         // some validations
         ;(await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager'])
@@ -260,10 +262,10 @@ const resolvers = {
         const ttlExist = await User.findOne({
           email: ttlEmail,
           role: 'ttl',
-        });
+        })
 
         if (!ttlExist) {
-          throw new ValidationError(`TTl with ${ttlEmail} doesn't exist`);
+          throw new ValidationError(`TTl with ${ttlEmail} doesn't exist`)
         }
 
         const org = new Team({
@@ -272,25 +274,33 @@ const resolvers = {
           organization: organ?.id,
           startingPhase,
           ttl: ttlExist?.id,
-        });
-        cohort.teams = cohort.teams + 1;
-        cohort.save();
+        })
+        cohort.teams = cohort.teams + 1
+        cohort.save()
+        const newTeam = org.save()
 
-        return org.save();
+        const senderId = new Types.ObjectId(context.userId)
+        pushNotification(
+          new Types.ObjectId(cohort.coordinator.toString()),
+          `Team "${name}" has been added to your cohort "${cohort.name}"`,
+          senderId
+        )
+
+        return newTeam
       } catch (error: any) {
-        const { message } = error as { message: any };
-        throw new ApolloError(message.toString(), '500');
+        const { message } = error as { message: any }
+        throw new ApolloError(message.toString(), '500')
       }
     },
     deleteTeam: async (parent: any, args: any, context: Context) => {
-      (await checkUserLoggedIn(context))(['admin', 'manager']);
-      const findTeam = await Team.findById(args.id);
+      ;(await checkUserLoggedIn(context))(['admin', 'manager'])
+      const findTeam = await Team.findById(args.id)
       if (!findTeam)
         throw new Error('The Team you want to delete does not exist')
 
       if (findTeam.members.length > 0) {
         throw new ValidationError(
-          `you can't delete ${findTeam.name} becouse it has members`
+          `you can't delete ${findTeam.name} because it has members`
         )
       }
 
@@ -299,6 +309,15 @@ const resolvers = {
       await Team.findByIdAndDelete({ _id: args.id })
       cohort ? (cohort.teams = cohort.teams - 1) : null
       cohort?.save()
+      cohort &&
+        console.log('done-----------------', cohort.coordinator.toString())
+      const senderId = new Types.ObjectId(context.userId)
+      cohort &&
+        pushNotification(
+          new Types.ObjectId(cohort.coordinator.toString()),
+          `Team "${findTeam.name}" was removed from your cohort "${cohort.name}"`,
+          senderId
+        )
       return 'Team deleted successfully'
     },
     updateTeam: async (
@@ -331,14 +350,15 @@ const resolvers = {
           },
         },
       })
-
-      const cohortProgram = team?.cohort?.program as ProgramType
-      const cohortOrg = cohortProgram.organization as OrganizationType
-      const org = await checkLoggedInOrganization(orgToken)
-
       if (!team) {
         throw new ValidationError(`team with id "${id}" doesn't exist`)
       }
+
+      const prevTeamName = team.name
+      const teamCohort = team?.cohort
+      const cohortProgram = team?.cohort?.program as ProgramType
+      const cohortOrg = cohortProgram.organization as OrganizationType
+      const org = await checkLoggedInOrganization(orgToken)
 
       if (
         name &&
@@ -380,6 +400,15 @@ const resolvers = {
       name && (team.name = name)
 
       await team.save()
+
+      const senderId = new Types.ObjectId(context.userId)
+      if (teamCohort.coordinator && prevTeamName !== name) {
+        pushNotification(
+          new Types.ObjectId(teamCohort.coordinator.toString()),
+          `Team "${prevTeamName}" from cohort "${teamCohort.name}" has changed its name to "${name}"`,
+          senderId
+        )
+      }
 
       return team
     },
