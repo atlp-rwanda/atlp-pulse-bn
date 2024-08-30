@@ -284,8 +284,8 @@ const ratingResolvers: any = {
             })
 
             await sendEmails(
-              process.env.COORDINATOR_EMAIL,
-              process.env.COORDINATOR_PASS,
+              process.env.SENDER_EMAIL,
+              process.env.ADMIN_PASS,
               userExists.email,
               'New Rating notice',
               content

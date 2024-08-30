@@ -72,8 +72,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
-  invitationResolvers,
-]);
+])
 
 async function startApolloServer(
   typeDefs: DocumentNode,

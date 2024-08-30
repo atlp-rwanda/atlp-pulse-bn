@@ -12,7 +12,7 @@ jobs:
           ports:
             - 6000:27017
       env:
-        MONGO_TEST_DB: mongodb://localhost:6000
+        MONGO_TEST_DB: ${{ secrets.MONGO_TEST_DB }}
         NODE_ENV: test
         MONGO_PROD_DB: 'oe'
       concurrency: test_environment
