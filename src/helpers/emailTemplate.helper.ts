@@ -1,11 +1,11 @@
 export default function generateTemplate({
-    message,
-    title = 'Notification Email',
-  }: {
-    message: string
-    title?: string
-  }) {
-    return `
+  message,
+  title = 'Notification Email',
+}: {
+  message: string
+  title?: string
+}) {
+  return `
   <!DOCTYPE html>
   <html lang="en-US">
   <head>
@@ -136,4 +136,4 @@ export default function generateTemplate({
   </body>
   </html>
       `
-  }
+}

@@ -1,5 +1,5 @@
 export default function Template(orgName: string, link: string) {
-      return `
+  return `
   <table style="border: 1px solid #ddd; padding: 16px; border-radius: 8px; background-color: #f9f9f9; max-width: 600px; margin: 0 auto; font-family: 'Rubik', sans-serif;">
         <!-- Icon Container -->
         <tr>
@@ -40,4 +40,4 @@ export default function Template(orgName: string, link: string) {
         </tr>
     </table>
     `
-    }
+}

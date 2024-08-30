@@ -1,5 +1,5 @@
 export default function Template(link: string) {
-    return `
+  return `
             <table style="border-collapse: collapse; border: 1px solid #ccc; border-radius: 8px; max-width: 600px; margin: 0 auto; background-color: #ffff; overflow: hidden; width: 100%;">
           <tr>
               <td style="background-color: #E0E7FF; color: #5C31EF; padding: 12px; height: 60px; font-size: 18px; text-align: center;">
@@ -23,4 +23,4 @@ export default function Template(link: string) {
           </tr>
       </table>
       `
-  }
+}

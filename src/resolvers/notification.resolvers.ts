@@ -1,9 +1,64 @@
-import { Notification } from '../models/notification.model';
-import { Context } from './../context';
-import { checkUserLoggedIn } from '../helpers/user.helpers';
-import { User} from '../models/user';
+import { Notification } from '../models/notification.model'
+import { Context } from './../context'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { User } from '../models/user'
+import { PubSub, withFilter } from 'graphql-subscriptions'
+import { Query } from 'mongoose'
+import { Profile } from '../models/profile.model'
+
+const pubSub = new PubSub()
+
+export const pubSubPublish = (payload: any) => {
+  pubSub.publish('SEND_NOTIFICATION', {
+    pushNotification: payload,
+  })
+}
 
 const notificationResolver = {
+  Subscription: {
+    pushNotification: {
+      subscribe: withFilter(
+        () => pubSub.asyncIterator(['SEND_NOTIFICATION']),
+        (payload, variable) => {
+          return (
+            payload.pushNotification.receiver.toString() === variable.receiverId
+          )
+        }
+      ),
+    },
+  },
+  Query: {
+    async getAllNotification(
+      _: any,
+      arg: any,
+      context: { role: string; userId: string }
+    ) {
+      try {
+        const loggedId = context.userId
+
+        const findNotification = await Notification.find({
+          receiver: loggedId,
+        }).sort({ createdAt: -1 })
+
+        const notifications = []
+        for (let i = 0; i < findNotification.length; i++) {
+          const profile = await Profile.findOne({
+            user: findNotification[i].sender,
+          })
+          // console.log(profile);
+          notifications.push({
+            ...findNotification[i].toObject(),
+            id: findNotification[i].id,
+            sender: { profile: profile?.toObject() },
+          })
+        }
+
+        return notifications
+      } catch (error) {
+        console.log(error)
+      }
+    },
+  },
   Mutation: {
     deleteNotifications: async (parent: any, args: any, context: Context) => {
       ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
