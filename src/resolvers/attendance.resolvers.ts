@@ -5,6 +5,7 @@ import { Context } from './../context'
 import { ApolloError } from 'apollo-server'
 import mongoose, { Error } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { pushNotification } from '../utils/notification/pushNotification'
 
 const attendanceResolver = {
   Query: {
@@ -112,7 +113,7 @@ const attendanceResolver = {
         throw new Error('Week not exist! ')
       }
 
-      trainees.forEach((trainee: any) => {
+      trainees.forEach(async (trainee: any) => {
         const traineeIndex = attendances[weekIndex].trainees.findIndex(
           (item: any) => item.traineeId.includes(trainee.traineeId)
         )
@@ -143,6 +144,16 @@ const attendanceResolver = {
               })
             }
           }
+          const receiver = trainee.traineeId
+          // console.log('Trainees:', trainees)
+
+          // console.log('Reciever Id:', receiver)
+          // console.log('Reciever email:', trainee.mail)
+
+          const message = `Your attendance for week ${week} has been updated.`
+          const sender = new mongoose.Types.ObjectId(userId)
+          const type = 'attendance'
+          await pushNotification(receiver, message, sender, type)
         } else {
           throw new Error(' Trainee not exist, choose correct trainee ')
         }

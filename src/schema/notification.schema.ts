@@ -1,16 +1,5 @@
 import { gql } from 'apollo-server'
-
 const Schema = gql`
-  type Notification1 {
-    id: ID!
-    receiver: ID!
-    message: String!
-    sender: ID!
-    read: Boolean!
-    type: String
-    createdAt: String!
-    updatedAt: String!
-  }
   type Profile {
     firstName: String!
     lastName: String!
@@ -22,12 +11,10 @@ const Schema = gql`
     id: ID!
     avatar: String
   }
-
   type Sender {
     profile: Profile!
   }
-
-  type NotificationReturned {
+  type Notification1 {
     id: ID!
     receiver: ID!
     message: String!
@@ -38,9 +25,8 @@ const Schema = gql`
     updatedAt: String!
   }
   type Query {
-    getAllNotification: [NotificationReturned]!
+    getAllNotification: [Notification1]!
   }
-
   type Mutation {
     deleteNotifications(id: ID!): String
     markAsRead(id: ID!): String
