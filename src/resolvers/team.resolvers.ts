@@ -1,5 +1,4 @@
 import { GraphQLError } from 'graphql'
-import { ValidationError } from 'apollo-server';
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import Team from '../models/team.model'
@@ -221,7 +220,6 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-            console.log(user)
 
             return (
               user.team?.name === team &&

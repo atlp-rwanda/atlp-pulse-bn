@@ -20,7 +20,7 @@ const Notification = mongoose.model(
       },
       type: {
         type: String,
-        enum: ['rating', 'performance', 'ticket', 'trainee', 'attendance'],
+        enum: ['rating', 'performance', 'ticket', 'trainee', 'attendance', 'team', 'cohort'],
       },
       read: {
         type: Boolean,
