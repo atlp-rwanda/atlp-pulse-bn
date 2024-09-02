@@ -28,7 +28,6 @@ export const sendEmails = async (
     subject: subject,
     html: generateTemplate({ message: content }),
   }
-  console.log('2', receiver)
   transport.sendMail(mailOptions, (error, info) => {
     if (error) {
       return console.log(error)

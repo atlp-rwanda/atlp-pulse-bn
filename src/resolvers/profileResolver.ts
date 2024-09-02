@@ -113,12 +113,12 @@ const profileResolvers: any = {
     ) => {
       // Ensure the user is logged in and has the 'ttl' role
       if (context.role !== 'ttl') {
-        throw new Error('You must be logged in as a TTL to view trainees.');
+        throw new Error('You must be logged in as a TTL to view trainees.')
       }
-    
+
       // Get the logged-in organization
-      const org = await checkLoggedInOrganization(args.orgToken);
-    
+      const org = await checkLoggedInOrganization(args.orgToken)
+
       // Find the TTL user based on the logged-in user's userId
       const ttlUser = await User.findOne({
         _id: context.userId, // Assuming userId uniquely identifies users
@@ -126,26 +126,26 @@ const profileResolvers: any = {
         role: 'ttl',
       })
         .populate('team')
-        .exec();
-    
+        .exec()
+
       if (!ttlUser) {
-        throw new Error('TTL user not found');
+        throw new Error('TTL user not found')
       }
-    
+
       // Check if the TTL user is assigned to a team
       if (!ttlUser?.team) {
-        throw new Error('You are not assigned to a team yet.');
+        throw new Error('You are not assigned to a team yet.')
       }
-    
+
       // Find all trainees in the same team as the TTL
       const traineesInSameTeam = await User.find({
         team: ttlUser.team, // Assuming the team field represents the team of a user
         role: 'trainee', // Filter users with role "trainee"
       })
         .populate('team')
-        .exec();
-    
-      return traineesInSameTeam;
+        .exec()
+
+      return traineesInSameTeam
     },
   },
   Mutation: {

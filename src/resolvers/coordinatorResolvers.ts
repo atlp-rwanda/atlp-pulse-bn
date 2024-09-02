@@ -15,6 +15,10 @@ import Program from '../models/program.model'
 import Team from '../models/team.model'
 import mongoose from 'mongoose'
 import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
+import DropTraineeTemplate from '../utils/templates/dropTraineeTemplate'
+import { Profile } from '../models/profile.model'
+import { pushNotification } from '../utils/notification/pushNotification'
+import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -462,14 +466,24 @@ const manageStudentResolvers = {
 
             // Send Email
             try {
-              await sendEmailOnAddMember(role, org, userId, user)
+              const content = getOrganizationTemplate(
+                org!.name,
+                `${process.env.FRONTEND_LINK}/login/org`
+              )
+              await sendEmailOnMembershipActions(
+                role,
+                org,
+                userId,
+                user,
+                content
+              )
             } catch (error: any) {
               throw new Error(
                 'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
               )
             }
 
-            return `member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`
+            return `Member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`
           }
 
           if (user.cohort) {
@@ -517,12 +531,18 @@ const manageStudentResolvers = {
     async dropTrainee(_: any, args: any, context: Context) {
       try {
         // coordinator validation
-        ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
+        const { userId, role } = (await checkUserLoggedIn(context))([
+          'admin',
+          'coordinator',
+        ])
+
+        // traineeId: String!, reason: String!, date: DateTime!, these are the arges am getting from the resolver
 
         const logedInUserOrg = await User.findById(context.userId).select(
           'organizations'
         )
         const orgName = logedInUserOrg?.organizations[0]
+        const organization = await Organization.findOne({ name: orgName })
 
         const trainee = await User.findOneAndUpdate(
           { _id: args.traineeId, organizations: orgName },
@@ -544,6 +564,37 @@ const manageStudentResolvers = {
               code: 'VALIDATION_ERROR',
             },
           })
+
+        //Send In app notification
+        const user = await User.findOne({ _id: userId })
+        pushNotification(
+          args.traineeId,
+          `You have been dropped from ${orgName} due to ${args.reason}`,
+          user?.id
+        )
+
+        // Send Email
+        const userProfile = await Profile.findOne({ user: trainee.id })
+        const name = `${userProfile?.firstName} ${userProfile?.lastName}`
+        try {
+          const content = DropTraineeTemplate(
+            orgName,
+            name,
+            args.reason,
+            args.date
+          )
+          await sendEmailOnMembershipActions(
+            role,
+            organization,
+            userId,
+            trainee,
+            content
+          )
+        } catch (error: any) {
+          throw new Error(
+            'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
+          )
+        }
 
         return 'Trainee dropped successfully!'
       } catch (error: any) {
@@ -645,13 +696,41 @@ const manageStudentResolvers = {
               return member.toString() !== checkMember.id.toString()
             }
           )
+
+          const cohortObj = await Cohort.findOne({ _id: checkMember.cohort })
+          const cohortName = cohortObj?.name
+
           await checkMember.team.save()
           checkMember.role = 'user'
           checkMember.coordinator = null
           checkMember.cohort = null
           checkMember.team = null
           await checkMember.save()
-          return `member with email ${email} is successfully removed from cohort`
+
+          // Send Email
+          const userProfile = await Profile.findOne({ user: checkMember.id })
+          const name = `${userProfile?.firstName} ${userProfile?.lastName}`
+          try {
+            const content = RemoveTraineeTemplate(
+              cohortName,
+              name,
+              teamName,
+              org.name
+            )
+            await sendEmailOnMembershipActions(
+              role,
+              org,
+              userId,
+              checkMember,
+              content
+            )
+          } catch (error: any) {
+            throw new Error(
+              'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
+            )
+          }
+
+          return `Member with email ${email} is successfully removed from cohort`
         } else {
           throw new Error('This member is not in this cohort')
         }
@@ -766,7 +845,7 @@ const manageStudentResolvers = {
         const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
-        const emailSendReport = await sendEmail(
+        await sendEmail(
           email,
           'Invitation',
           content,
@@ -784,11 +863,12 @@ const manageStudentResolvers = {
   },
 }
 
-async function sendEmailOnAddMember(
+async function sendEmailOnMembershipActions(
   role: string | any,
   org: any,
   userId: string | any,
-  user: any
+  user: any,
+  content: string
 ) {
   if (role === 'admin') {
     const organization: any = await Organization.findOne({
@@ -798,12 +878,7 @@ async function sendEmailOnAddMember(
       throw new Error("You don't have an organization yet")
     }
     if (organization.admin.includes(userId) && organization.name == org.name) {
-      const content = getOrganizationTemplate(
-        org!.name,
-        `${process.env.FRONTEND_LINK}/login/org`
-      )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
-
       await sendEmail(
         user.email,
         'Organization membership notice',

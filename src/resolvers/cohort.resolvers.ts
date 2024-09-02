@@ -169,9 +169,13 @@ const resolvers = {
           organization: organ?.id,
         })
 
-        const newCohort = org.save();
-        const senderId = new Types.ObjectId(context.userId);
-        pushNotification(coordinator.id, `You\'ve been assigned a new cohort "${name}"`, senderId);
+        const newCohort = org.save()
+        const senderId = new Types.ObjectId(context.userId)
+        pushNotification(
+          coordinator.id,
+          `You\'ve been assigned a new cohort "${name}"`,
+          senderId
+        )
 
         return newCohort
       } catch (error) {
@@ -338,43 +342,67 @@ const resolvers = {
         }
       }
 
-      const senderId = new Types.ObjectId(context.userId);
+      const senderId = new Types.ObjectId(context.userId)
 
       if (coordinatorEmail) {
         if (coordinator.id.toString() !== cohort.coordinator.toString()) {
-          pushNotification(coordinator.id, `You\'ve been assigned a new cohort "${cohort.name}"`, senderId);
-          (cohort.coordinator && pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `You're no longer coordinator of cohort "${cohort.name}"`, senderId));
+          pushNotification(
+            coordinator.id,
+            `You\'ve been assigned a new cohort "${cohort.name}"`,
+            senderId
+          )
+          cohort.coordinator &&
+            pushNotification(
+              new Types.ObjectId(cohort.coordinator.toString()),
+              `You're no longer coordinator of cohort "${cohort.name}"`,
+              senderId
+            )
         }
         cohort.coordinator = coordinator.id
       }
 
       const notificationChanges: string[] = []
-      if (name && (cohort.name !== name)) {
-        cohort.name = name;
+      if (name && cohort.name !== name) {
+        cohort.name = name
         notificationChanges.push('Name')
       }
-      if (phaseName && (cohort.phase.toString() !== phase.id.toString())) {
+      if (phaseName && cohort.phase.toString() !== phase.id.toString()) {
         cohort.phase = phase.id
         notificationChanges.push('Phase')
       }
 
-      if ((startDate || endDate) && (
-        (new Date(cohort.startDate).getTime() !== new Date(startDate).getTime()) ||
-        (cohort.endDate && endDate && (new Date(cohort.endDate).getTime() !== new Date(endDate).getTime())))) {
+      if (
+        (startDate || endDate) &&
+        (new Date(cohort.startDate).getTime() !==
+          new Date(startDate).getTime() ||
+          (cohort.endDate &&
+            endDate &&
+            new Date(cohort.endDate).getTime() !== new Date(endDate).getTime()))
+      ) {
         startDate && (cohort.startDate = startDate)
         endDate && (cohort.endDate = endDate)
         notificationChanges.push('Duration')
       }
 
-      if(programName && (cohortProgram._id.toString() !== program.id.toString())) {
+      if (
+        programName &&
+        cohortProgram._id.toString() !== program.id.toString()
+      ) {
         programName && (cohort.program = program.id)
         notificationChanges.push('Program')
       }
 
-      if(notificationChanges.length) {
-        pushNotification(coordinator.id, `${role[0].toUpperCase() + role.slice(1)} has made the following changes to "${cohort.name}": ${notificationChanges.join(', ')}`, senderId);
+      if (notificationChanges.length) {
+        pushNotification(
+          coordinator.id,
+          `${
+            role[0].toUpperCase() + role.slice(1)
+          } has made the following changes to "${
+            cohort.name
+          }": ${notificationChanges.join(', ')}`,
+          senderId
+        )
       }
-      
 
       await cohort.save()
 
@@ -446,8 +474,13 @@ const resolvers = {
         }
       }
 
-      const senderId = new Types.ObjectId(context.userId);
-      cohort.coordinator && pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `Your cohort "${cohort.name}" has been deactivated`, senderId);
+      const senderId = new Types.ObjectId(context.userId)
+      cohort.coordinator &&
+        pushNotification(
+          new Types.ObjectId(cohort.coordinator.toString()),
+          `Your cohort "${cohort.name}" has been deactivated`,
+          senderId
+        )
 
       return Cohort.disactivate(cohort?.id)
     },

@@ -6,6 +6,8 @@ import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Context } from './../context'
 import { GraphQLError } from 'graphql'
 import { Error } from 'mongoose'
+import { pushNotification } from '../utils/notification/pushNotification'
+import { Profile } from '../models/profile.model'
 
 const replyResolver = {
   Query: {
@@ -49,7 +51,7 @@ const replyResolver = {
         })
         if (findReply.length !== 0)
           throw new Error('Already replied on this remark')
-        const remarkToReplyOn = await Rating.find({ where: { id: rating } })
+        const remarkToReplyOn = await Rating.find({ _id: rating })
         if (!remarkToReplyOn)
           throw new Error('The remark you want to reply on, no longer exist!')
         const newReply = new Notifications({
@@ -63,6 +65,14 @@ const replyResolver = {
           bodyQuality,
           bodyProfessional,
         })
+        const userProfile = await Profile.findOne({ user: context.userId })
+        const message = `${userProfile?.firstName} ${userProfile?.lastName} has replied to your ratings`
+        pushNotification(
+          remarkToReplyOn[0].coordinator as ObjectId,
+          message,
+          userExists.id,
+          'rating'
+        )
         return newReply.save()
       } catch (error) {
         const { message } = error as { message: any }
