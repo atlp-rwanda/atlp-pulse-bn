@@ -29,13 +29,12 @@ export const sendEmail = async (
       address: senderEmail as string,
     },
   }
-  console.log('comtenttttt', content)
   return new Promise((res, rej) => {
     transport.sendMail(mailOptions, (error: any, info: any) => {
       if (error) {
         rej(`${mailOptions.subject}: Unable to send email!!!`)
         console.error(error)
-      } else res(info)
+      }else res(info)
     })
   })
 }

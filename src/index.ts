@@ -70,7 +70,7 @@ export const resolvers = mergeResolvers([
 ]);
 
 async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
-  const app = express();
+  const app = express() as any;
   const httpServer = http.createServer(app);
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
