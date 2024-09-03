@@ -10,7 +10,6 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { graphqlUploadExpress } from 'graphql-upload-ts'
-import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 // Import resolvers, schemas, utilities
 import { connect } from './database/db.config'

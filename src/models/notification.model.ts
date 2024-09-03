@@ -28,6 +28,7 @@ const Notification = mongoose.model(
           'attendance',
           'team',
           'cohort',
+          'session',
         ],
       },
       read: {

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose'
 import { Rating, TempData } from '../models/ratings'
 import { User } from '../models/user'
 import { Organization } from '../models/organization.model'
@@ -14,7 +13,7 @@ import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
-import { pushNotification } from '../utils/notification/pushNotification'
+import mongoose, { Types } from 'mongoose'
 const pubsub = new PubSub()
 
 let org: InstanceType<typeof Organization>
@@ -308,7 +307,7 @@ const ratingResolvers: any = {
           },
           context: { userId: string }
         ) => {
-          org = await checkLoggedInOrganization(orgToken)
+          const org = await checkLoggedInOrganization(orgToken)
 
           const userExists = await User.findById(user)
           if (!userExists) throw new Error('User does not exist!')
@@ -402,6 +401,17 @@ const ratingResolvers: any = {
                 professionalRemark: professionalRemark[0]?.toString(),
               }
             )
+
+            // Send a notification to the admin
+            const admin = await User.findOne({ role: 'admin' })
+            if (admin) {
+              await pushNotification(
+                admin._id,
+                `The rating for user ${userExists.email} was edited, you need to approve it`,
+                new Types.ObjectId(context.userId),
+                'rating'
+              )
+            }
 
             return updateRating
           }
