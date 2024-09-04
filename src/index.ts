@@ -1,5 +1,5 @@
 // Import libraries using ES Module syntax
-import express from 'express';
+import express, { Application } from 'express'
 import http from 'http';
 import { ApolloServer } from 'apollo-server-express';
 import { ApolloError, ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
@@ -37,6 +37,8 @@ import programSchema from './schema/program.schema';
 import coordinatorSchema from './schema/coordinator.schema';
 import phaseSchema from './schema/phase.schema';
 import ticketSchema from './schema/ticket.shema';
+import invitationSchema from './schema/invitation.schema';
+import invitationResolvers from './resolvers/invitation.resolvers';
 import { IResolvers } from '@graphql-tools/utils';
 
 const PORT: number = parseInt(process.env.PORT!) || 4000;
@@ -48,6 +50,7 @@ export const typeDefs = mergeTypeDefs([
   coordinatorSchema,
   phaseSchema,
   ticketSchema,
+  invitationSchema,
 ])
 
 export const resolvers = mergeResolvers([
@@ -67,10 +70,11 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
+  invitationResolvers,
 ]);
 
 async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
-  const app = express() as any;
+  const app:Application = express();
   const httpServer = http.createServer(app);
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
