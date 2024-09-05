@@ -22,8 +22,6 @@ const ratingResolvers: any = {
       subscribe: withFilter(
         () => pubsub.asyncIterator('NEW_RATING'),
         (payload, variables) => {
-          // Only push an update if the comment is on
-          // the correct repository for this operation
           return payload.newRating.receiver === variables.receiver
         }
       ),
@@ -39,9 +37,6 @@ const ratingResolvers: any = {
       subscribe: withFilter(
         () => pubsub.asyncIterator('NEW_FEEDBACKS'),
         (payload, variables: { sprint_user: string }): boolean => {
-          // make sure that sprint_user is the string on an json array
-          // in format of [{ spring: '1', user: 'userId' }, ...]
-
           const arr: { sprint: string; user: string }[] = JSON.parse(
             variables.sprint_user
           )
@@ -167,17 +162,6 @@ const ratingResolvers: any = {
       ])
       return findRatings
     },
-    async getAllNotification(
-      _: any,
-      arg: any,
-      context: { role: string; userId: string }
-    ) {
-      const loggedId = context.userId
-      const findNotification = await Notification.find({ receiver: loggedId })
-        .sort({ createdAt: -1 })
-        .populate('sender')
-      return findNotification
-    },
   },
   Mutation: {
     addRatings: authenticated(
@@ -284,8 +268,8 @@ const ratingResolvers: any = {
             })
 
             await sendEmails(
-              process.env.COORDINATOR_EMAIL,
-              process.env.COORDINATOR_PASS,
+              process.env.SENDER_EMAIL,
+              process.env.ADMIN_PASS,
               userExists.email,
               'New Rating notice',
               content

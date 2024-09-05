@@ -17,31 +17,32 @@ import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
 import logGraphQLRequests from './utils/logGraphQLRequests'
 import logger from './utils/logger.utils'
 
-import userResolvers from './resolvers/userResolver';
-import profileResolvers from './resolvers/profileResolver';
-import programResolvers from './resolvers/program.resolvers';
-import cohortResolvers from './resolvers/cohort.resolvers';
-import manageStudentResolvers from './resolvers/coordinatorResolvers';
-import createRatingSystemresolver from './resolvers/createRatingSystemresolver';
-import ratingResolvers from './resolvers/ratingsResolvers';
-import replyResolver from './resolvers/reply.resolver';
-import phaseResolver from './resolvers/phase.resolver';
-import teamResolver from './resolvers/team.resolvers';
-import notificationResolver from './resolvers/notification.resolvers';
-import eventResolvers from './resolvers/eventResolver';
-import ticketResolver from './resolvers/ticket.resolver';
-import DocumentationResolvers from './resolvers/DocumentationResolvers';
-import attendanceResolver from './resolvers/attendance.resolvers';
-import Sessionresolvers from './resolvers/session.resolver';
-import schemas from './schema/index';
-import cohortSchema from './schema/cohort.schema';
-import programSchema from './schema/program.schema';
-import coordinatorSchema from './schema/coordinator.schema';
-import phaseSchema from './schema/phase.schema';
-import ticketSchema from './schema/ticket.shema';
-import invitationSchema from './schema/invitation.schema';
-import invitationResolvers from './resolvers/invitation.resolvers';
-import { IResolvers } from '@graphql-tools/utils';
+import userResolvers from './resolvers/userResolver'
+import profileResolvers from './resolvers/profileResolver'
+import programResolvers from './resolvers/program.resolvers'
+import cohortResolvers from './resolvers/cohort.resolvers'
+import manageStudentResolvers from './resolvers/coordinatorResolvers'
+import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
+import ratingResolvers from './resolvers/ratingsResolvers'
+import replyResolver from './resolvers/reply.resolver'
+import phaseResolver from './resolvers/phase.resolver'
+import teamResolver from './resolvers/team.resolvers'
+import notificationResolver from './resolvers/notification.resolvers'
+import eventResolvers from './resolvers/eventResolver'
+import ticketResolver from './resolvers/ticket.resolver'
+import DocumentationResolvers from './resolvers/DocumentationResolvers'
+import attendanceResolver from './resolvers/attendance.resolvers'
+import Sessionresolvers from './resolvers/session.resolver'
+import schemas from './schema/index'
+import cohortSchema from './schema/cohort.schema'
+import programSchema from './schema/program.schema'
+import coordinatorSchema from './schema/coordinator.schema'
+import phaseSchema from './schema/phase.schema'
+import ticketSchema from './schema/ticket.shema'
+import invitationSchema from './schema/invitation.schema'
+import invitationResolvers from './resolvers/invitation.resolvers'
+import { IResolvers } from '@graphql-tools/utils'
+import notificationSchema from './schema/notification.schema'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -53,6 +54,7 @@ export const typeDefs = mergeTypeDefs([
   phaseSchema,
   ticketSchema,
   invitationSchema,
+  notificationSchema,
 ])
 
 export const resolvers = mergeResolvers([
@@ -72,8 +74,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
-  invitationResolvers,
-]);
+])
 
 async function startApolloServer(
   typeDefs: DocumentNode,
@@ -83,7 +84,7 @@ async function startApolloServer(
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
 
-  const graphqlPath: string = '/'
+  const graphqlPath = '/'
 
   const wsServer = new WebSocketServer({
     server: httpServer,
