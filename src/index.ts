@@ -43,6 +43,8 @@ import invitationSchema from './schema/invitation.schema'
 import invitationResolvers from './resolvers/invitation.resolvers'
 import { IResolvers } from '@graphql-tools/utils'
 import notificationSchema from './schema/notification.schema'
+import statisticsSchema from './schema/invitationStatics.schema'
+import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -55,6 +57,7 @@ export const typeDefs = mergeTypeDefs([
   ticketSchema,
   invitationSchema,
   notificationSchema,
+  statisticsSchema,
 ])
 
 export const resolvers = mergeResolvers([
@@ -74,6 +77,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
+  StatisticsResolvers,
 ])
 
 async function startApolloServer(
