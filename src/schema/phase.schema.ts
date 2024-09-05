@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server';
+import gql from 'graphql-tag'
 
 const phaseSchema = gql`
   type Phase {
@@ -21,6 +21,6 @@ const phaseSchema = gql`
       description: String
     ): Phase
   }
-`;
+`
 
-export default phaseSchema;
+export default phaseSchema

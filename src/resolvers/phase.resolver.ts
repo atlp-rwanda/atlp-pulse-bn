@@ -1,4 +1,4 @@
-import { ApolloError, ValidationError } from 'apollo-server'
+import { GraphQLError } from 'graphql'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { Context } from './../context'
@@ -37,7 +37,11 @@ const phaseResolver = {
         const findPhase = await Phase.find({ name, organization: org?.id })
 
         if (findPhase.length) {
-          throw new ValidationError(`a phase with name ${name} already exist`)
+          throw new GraphQLError(`a phase with name ${name} already exist`, {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
 
         return await Phase.create({
@@ -47,7 +51,11 @@ const phaseResolver = {
         })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
     updatePhase: async (
@@ -64,13 +72,21 @@ const phaseResolver = {
       // get the phase and its organization from the id and checks if it exists
       const phase = await Phase.findById(id).populate('organization')
       if (!phase) {
-        throw new ValidationError(`Phase with id "${id}" doesn't exist`)
+        throw new GraphQLError(`Phase with id "${id}" doesn't exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
 
       const phaseOrg = phase?.organization as OrganizationType
 
       if (name && name !== phase.name && (await Phase.findOne({ name }))) {
-        throw new ValidationError(`Phase with name ${name} already exist`)
+        throw new GraphQLError(`Phase with name ${name} already exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
 
       // check if a given user have priviledges to update this phase
@@ -78,13 +94,23 @@ const phaseResolver = {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (phaseOrg.id.toString() !== org.id.toString()) {
-          throw new ValidationError(
-            `Phase with id "${phase?.id}" doesn't exist in this organization`
+          throw new GraphQLError(
+            `Phase with id "${phase?.id}" doesn't exist in this organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (role === 'admin' && phaseOrg.admin.toString() !== userId) {
-          throw new ValidationError(
-            `Phase with id "${phase?.id}" doesn't exist in your organization`
+          throw new GraphQLError(
+            `Phase with id "${phase?.id}" doesn't exist in your organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
       }
@@ -107,7 +133,7 @@ const phaseResolver = {
 
       if (findPhaseInCohort)
         throw new Error(
-          'You can\'t delete this phase! Some cohorts belongs to it.'
+          "You can't delete this phase! Some cohorts belongs to it."
         )
 
       const deletedPhase = await Phase.findByIdAndRemove({ _id: args.id })

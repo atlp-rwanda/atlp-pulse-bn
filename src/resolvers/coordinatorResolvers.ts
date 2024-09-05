@@ -1,7 +1,6 @@
-import { ApolloError } from 'apollo-server'
+import { GraphQLError } from 'graphql'
 import Cohort from '../models/cohort.model'
 import * as jwt from 'jsonwebtoken'
-import { ValidationError } from 'apollo-server'
 import { User } from '../models/user'
 import { Attendance } from '../models/attendance.model'
 import { Organization } from '../models/organization.model'
@@ -49,11 +48,12 @@ const manageStudentResolvers = {
         return coordinators || []
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(
+        throw new GraphQLError(
           'An error occurred while fetching coordinators.',
-          'INTERNAL_SERVER_ERROR',
           {
-            detailedMessage: message.toString(),
+            extensions: {
+              code: 'INTERNAL_SERVER_ERROR',
+            },
           }
         )
       }
@@ -78,7 +78,11 @@ const manageStudentResolvers = {
         })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
@@ -142,7 +146,11 @@ const manageStudentResolvers = {
         })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
 
@@ -216,7 +224,11 @@ const manageStudentResolvers = {
         })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
 
@@ -492,7 +504,11 @@ const manageStudentResolvers = {
 
         // CATCH ERROR
       } catch (error: any) {
-        throw new ApolloError(error.message, '500')
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
 
@@ -520,11 +536,20 @@ const manageStudentResolvers = {
           }
         )
 
-        if (!trainee) return new ValidationError('Trainee not found')
+        if (!trainee)
+          return new GraphQLError('Trainee not found', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
 
         return 'Trainee dropped successfully!'
       } catch (error: any) {
-        throw new ApolloError(error.message, '500')
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
 

@@ -2,7 +2,6 @@
 import { Attendance } from '../models/attendance.model'
 import { IntegerType, ObjectId } from 'mongodb'
 import { Context } from './../context'
-import { ApolloError } from 'apollo-server'
 import mongoose, { Error } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 

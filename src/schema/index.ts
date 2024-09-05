@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import gql from 'graphql-tag'
 
 const Schema = gql`
   type Cohort {
@@ -289,7 +289,6 @@ const Schema = gql`
     verifyResetPasswordToken(token: String!): String
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
-    getAllNotification: [Notification]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
   }
 

@@ -9,4 +9,4 @@ const logGraphQLRequests = {
             JSON.stringify(requestContext.request.variables));
   },
 };
-export default logGraphQLRequests;
+export default logGraphQLRequests

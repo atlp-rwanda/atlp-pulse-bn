@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server'
+import { GraphQLError } from 'graphql'
 import 'dotenv/config'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
@@ -13,13 +13,21 @@ export interface AuthTokenPayload {
 export function decodeAuthHeader(authHeader: string): AuthTokenPayload {
   const token = authHeader.replace('Bearer ', '')
   if (!token) {
-    throw new ApolloError('Missing or expired token', 'JWT_MISSING')
+    throw new GraphQLError('Missing or expired token', {
+      extensions: {
+        code: 'JWT_MISSING',
+      },
+    })
   }
   try {
     const data = jwt.verify(token, SECRET)
     return data as AuthTokenPayload
   } catch (error: any) {
-    throw new ApolloError('Missing or expired token', 'JWT_EXPIRED')
+    throw new GraphQLError('Missing or expired token', {
+      extensions: {
+        code: 'JWT_EXPIRED',
+      },
+    })
   }
 }
 
@@ -28,7 +36,7 @@ export interface Context {
   role?: string
 }
 
-export const context = ({ req }: { req: Request }): Context => {
+export const context = async ({ req }: { req: Request }): Promise<Context> => {
   const token =
     req && req.headers.authorization
       ? decodeAuthHeader(req.headers.authorization)

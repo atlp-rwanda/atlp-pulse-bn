@@ -1,3 +1,4 @@
+
 import { ApolloError } from 'apollo-server'
 import { Invitation } from '../models/invitation.model'
 import { IResolvers } from '@graphql-tools/utils'

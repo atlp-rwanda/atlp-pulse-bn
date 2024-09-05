@@ -1,19 +1,21 @@
 // Import libraries using ES Module syntax
-import express, { Application } from 'express'
-import http from 'http';
-import { ApolloServer } from 'apollo-server-express';
-import { ApolloError, ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import { DocumentNode, execute, subscribe } from 'graphql';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { PubSub } from 'graphql-subscriptions';
+import express from 'express'
+import http from 'http'
+import { ApolloServer } from '@apollo/server'
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
+import { expressMiddleware } from '@apollo/server/express4'
+import cors from 'cors'
+import { DocumentNode } from 'graphql'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { WebSocketServer } from 'ws'
+import { useServer } from 'graphql-ws/lib/use/ws'
 
 // Import resolvers, schemas, utilities
-import { connect } from './database/db.config';
-import { context } from './context';
-import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
+import { connect } from './database/db.config'
+import { context } from './context'
+import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
 import logGraphQLRequests from './utils/logGraphQLRequests'
-import logger from './utils/logger.utils';
+import logger from './utils/logger.utils'
 
 import userResolvers from './resolvers/userResolver';
 import profileResolvers from './resolvers/profileResolver';
@@ -33,6 +35,7 @@ import attendanceResolver from './resolvers/attendance.resolvers';
 import Sessionresolvers from './resolvers/session.resolver';
 import statisticsSchema from './schema/statics.schema'
 import StatisticsResolvers from './resolvers/staticResolver'
+import notificationSchema from './schema/notification.schema'
 import schemas from './schema/index';
 import cohortSchema from './schema/cohort.schema';
 import programSchema from './schema/program.schema';
@@ -43,7 +46,8 @@ import invitationSchema from './schema/invitation.schema';
 import invitationResolvers from './resolvers/invitation.resolvers';
 import { IResolvers } from '@graphql-tools/utils';
 
-const PORT: number = parseInt(process.env.PORT!) || 4000;
+
+const PORT: number = parseInt(process.env.PORT!) || 4000
 
 export const typeDefs = mergeTypeDefs([
   schemas,
@@ -54,6 +58,7 @@ export const typeDefs = mergeTypeDefs([
   ticketSchema,
   invitationSchema,
   statisticsSchema,
+  notificationSchema,
 ])
 
 export const resolvers = mergeResolvers([
@@ -77,12 +82,25 @@ export const resolvers = mergeResolvers([
   StatisticsResolvers
 ]);
 
-async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) {
-  const app = express() as any;
-  const httpServer = http.createServer(app);
-  const schema = makeExecutableSchema({ typeDefs, resolvers });
+])
 
-  const pubsub = new PubSub();
+async function startApolloServer(
+  typeDefs: DocumentNode,
+  resolvers: IResolvers
+) {
+  const app = express()
+  const httpServer = http.createServer(app)
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
+
+  const graphqlPath = '/'
+
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: graphqlPath,
+  })
+
+  const wsServerCleanup = useServer({ schema }, wsServer)
+
   const server = new ApolloServer({
     schema,
     introspection: true,
@@ -92,52 +110,44 @@ async function startApolloServer(typeDefs: DocumentNode, resolvers: IResolvers) 
         async serverWillStart() {
           return {
             async drainServer() {
-              subscriptionServer.close();
+              await wsServerCleanup.dispose()
             },
-          };
+          }
         },
       },
       logGraphQLRequests,
     ],
-    context,
     formatError: (err) => {
       // Log the error using tslog
-      logger.error(`${err}`);
-      return err;
+      logger.error(`${err}`)
+      return err
     },
     csrfPrevention: true,
-  });
+  })
 
-  const subscriptionServer = SubscriptionServer.create({
-    schema,
-    execute,
-    subscribe,
-    onConnect() {
-      logger.info('Connected!');
-      return { pubsub };
-    },
-    onDisconnect() {
-      logger.warn('Disconnected!');
-    },
-  }, {
-    server: httpServer,
-    path: '/',
-  });
+  await server.start()
 
-  app.use('/images', express.static('public'));
-
-  await server.start();
-  server.applyMiddleware({ app, path: '/' });
+  app.use(
+    graphqlPath,
+    cors({
+      origin: '*',
+    }),
+    express.json(),
+    expressMiddleware(server, {
+      context,
+    })
+  )
+  app.use('/images', express.static('public'))
 
   connect().then(() => {
-    console.log('Database Connected.');
-    console.log(`Environment is set to ${process.env.NODE_ENV}`);
+    console.log('Database Connected.')
+    console.log(`Environment is set to ${process.env.NODE_ENV}`)
     httpServer.listen({ port: PORT }, () => {
-      console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
-    });
-  });
+      console.log(`🚀 Server ready at http://localhost:${PORT}${graphqlPath}`)
+    })
+  })
 }
 
-startApolloServer(typeDefs, resolvers).catch(error => {
-  logger.error('Failed to start the server:', error);
-});
+startApolloServer(typeDefs, resolvers).catch((error) => {
+  logger.error('Failed to start the server:', error)
+})
