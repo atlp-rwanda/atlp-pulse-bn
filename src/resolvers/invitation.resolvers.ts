@@ -3,7 +3,6 @@ import { Invitation } from '../models/invitation.model';
 import { IResolvers } from '@graphql-tools/utils';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
 import { checkLoggedInOrganization } from '../helpers/organization.helper';
-import Template from '../utils/templates/inviteUserTemplate';
 import { sendEmail } from '../utils/sendEmail';
 import  jwt  from 'jsonwebtoken';
 import { User } from '../models/user';
