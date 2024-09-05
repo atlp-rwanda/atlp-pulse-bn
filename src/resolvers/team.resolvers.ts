@@ -1,16 +1,16 @@
-import { ApolloError, ValidationError } from 'apollo-server';
-import { checkLoggedInOrganization } from '../helpers/organization.helper';
-import { checkUserLoggedIn } from '../helpers/user.helpers';
-import Team from '../models/team.model';
-import Program from '../models/program.model';
-import Phase from '../models/phase.model';
-import Cohort from '../models/cohort.model';
-import { User } from '../models/user';
-import { Organization } from '../models/organization.model';
-import { Context } from '../context';
-import { ProgramType } from './program.resolvers';
-import { OrganizationType } from './userResolver';
-import { Rating } from '../models/ratings';
+import { GraphQLError } from 'graphql'
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import Team from '../models/team.model'
+import Program from '../models/program.model'
+import Phase from '../models/phase.model'
+import Cohort from '../models/cohort.model'
+import { User } from '../models/user'
+import { Organization } from '../models/organization.model'
+import { Context } from '../context'
+import { ProgramType } from './program.resolvers'
+import { OrganizationType } from './userResolver'
+import { Rating } from '../models/ratings'
 
 const resolvers = {
   Team: {
@@ -18,30 +18,30 @@ const resolvers = {
       return await Cohort.findById(parent.cohort)
     },
     async ttl(parent: any) {
-      return await User.findById(parent.ttl);
+      return await User.findById(parent.ttl)
     },
     async members(parent: any) {
-      return await User.find({ _id: { $in: parent.members } });
+      return await User.find({ _id: { $in: parent.members } })
     },
     async avgRatings(parent: any) {
-      const allRatings = await Rating.find({ user: { $in: parent.members } });
+      const allRatings = await Rating.find({ user: { $in: parent.members } })
       const averageQuantity =
         allRatings.reduce((tot, curr) => tot + Number(curr?.quantity ?? 0), 0) /
-        allRatings.length;
+        allRatings.length
       const averageQuality =
         allRatings.reduce((tot, curr) => tot + Number(curr?.quality ?? 0), 0) /
-        allRatings.length;
+        allRatings.length
       const averageAttendance =
         allRatings.reduce(
           (tot, curr) => tot + Number(curr?.professional_Skills ?? 0),
           0
-        ) / allRatings.length;
+        ) / allRatings.length
 
       return {
         quantity: averageQuantity.toString(),
         quality: averageQuality.toString(),
         professional_Skills: averageAttendance.toString(),
-      };
+      }
     },
   },
   Query: {
@@ -87,13 +87,17 @@ const resolvers = {
             // .populate({ path: 'members', model: User, strictPopulate: false })
             .filter((item: any) => {
               const org = (item.program as InstanceType<typeof Program>)
-                ?.organization;
-              return item.program !== null && org !== null;
+                ?.organization
+              return item.program !== null && org !== null
             })
-        );
+        )
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
     getAllTeamInCohort: async (
@@ -108,7 +112,7 @@ const resolvers = {
           'admin',
           'coordinator',
           'manager',
-        ]);
+        ])
 
         // get the organization if a superAdmin logs in
         let org
@@ -140,7 +144,11 @@ const resolvers = {
         })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
     getTeamTrainees: async (
@@ -155,7 +163,7 @@ const resolvers = {
           'manager',
           'coordinator',
           'ttl',
-        ]);
+        ])
 
         // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
@@ -210,19 +218,23 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-            console.log(user);
+            console.log(user)
 
             return (
               user.team?.name === team &&
               // user?.organizations?.includes(org?.name)
               user.team?.cohort?.program?.organization.name == org?.name &&
               JSON.stringify(user.team?.ttl).replace(/['"]+/g, '') === userId
-            );
+            )
           }
-        });
+        })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
   },
@@ -230,16 +242,16 @@ const resolvers = {
     addTeam: async (
       _: any,
       args: {
-        name: string;
-        cohortName: string;
-        orgToken: string;
-        startingPhase: Date;
-        ttlEmail: string;
+        name: string
+        cohortName: string
+        orgToken: string
+        startingPhase: Date
+        ttlEmail: string
       },
       context: Context
     ) => {
       try {
-        const { name, cohortName, orgToken, startingPhase, ttlEmail } = args;
+        const { name, cohortName, orgToken, startingPhase, ttlEmail } = args
 
         // some validations
         ;(await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager'])
@@ -249,21 +261,34 @@ const resolvers = {
 
         // validate inputs
         if (await Team.findOne({ name, organization: organ?.id })) {
-          throw new ValidationError(`Team with name ${name} already exist`)
+          throw new GraphQLError(`Team with name ${name} already exist`, {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
         if (!cohort) {
-          throw new ValidationError(
-            `Cohort with name ${cohortName} doesn't exist`
+          throw new GraphQLError(
+            `Cohort with name ${cohortName} doesn't exist`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
 
         const ttlExist = await User.findOne({
           email: ttlEmail,
           role: 'ttl',
-        });
+        })
 
         if (!ttlExist) {
-          throw new ValidationError(`TTl with ${ttlEmail} doesn't exist`);
+          throw new GraphQLError(`TTl with ${ttlEmail} doesn't exist`, {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
 
         const org = new Team({
@@ -272,25 +297,34 @@ const resolvers = {
           organization: organ?.id,
           startingPhase,
           ttl: ttlExist?.id,
-        });
-        cohort.teams = cohort.teams + 1;
-        cohort.save();
+        })
+        cohort.teams = cohort.teams + 1
+        cohort.save()
 
-        return org.save();
+        return org.save()
       } catch (error: any) {
-        const { message } = error as { message: any };
-        throw new ApolloError(message.toString(), '500');
+        const { message } = error as { message: any }
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
     deleteTeam: async (parent: any, args: any, context: Context) => {
-      (await checkUserLoggedIn(context))(['admin', 'manager']);
-      const findTeam = await Team.findById(args.id);
+      ;(await checkUserLoggedIn(context))(['admin', 'manager'])
+      const findTeam = await Team.findById(args.id)
       if (!findTeam)
         throw new Error('The Team you want to delete does not exist')
 
       if (findTeam.members.length > 0) {
-        throw new ValidationError(
-          `you can't delete ${findTeam.name} becouse it has members`
+        throw new GraphQLError(
+          `you can't delete ${findTeam.name} becouse it has members`,
+          {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          }
         )
       }
 
@@ -337,7 +371,11 @@ const resolvers = {
       const org = await checkLoggedInOrganization(orgToken)
 
       if (!team) {
-        throw new ValidationError(`team with id "${id}" doesn't exist`)
+        throw new GraphQLError(`team with id "${id}" doesn't exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
 
       if (
@@ -345,35 +383,58 @@ const resolvers = {
         name !== team.name &&
         (await Team.findOne({ name, organization: org?.id }))
       ) {
-        throw new ValidationError(`Team with name ${name} already exist`)
+        throw new GraphQLError(`Team with name ${name} already exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
 
       if (role !== 'superAdmin') {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (cohortOrg.id.toString() !== org.id.toString()) {
-          throw new ValidationError(
-            `Team with id "${team?.id}" doesn't exist in this organization`
+          throw new GraphQLError(
+            `Team with id "${team?.id}" doesn't exist in this organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (role === 'admin' && !cohortOrg.admin.includes(userId)) {
-          throw new ValidationError(
-            `Team with id "${id}" doesn't exist in your organization`
+          throw new GraphQLError(
+            `Team with id "${id}" doesn't exist in your organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (
           role === 'manager' &&
           cohortProgram?.manager?.toString() !== userId?.toString()
         ) {
-          throw new ValidationError(
-            `Team with id "${id}" doesn't exist in your program`
+          throw new GraphQLError(
+            `Team with id "${id}" doesn't exist in your program`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (
           role === 'coordinator' &&
           team?.cohort?.coordinator.toString() !== userId?.toString()
         ) {
-          throw new ValidationError('You are not assigned to this Team!')
+          throw new GraphQLError('You are not assigned to this Team!', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
       }
 

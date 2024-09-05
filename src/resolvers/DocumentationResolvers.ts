@@ -1,7 +1,4 @@
-import { ApolloError, ValidationError } from 'apollo-server'
-import { AuthenticationError } from 'apollo-server'
-import { UserInputError } from 'apollo-server'
-import { DocumentNode } from 'graphql'
+import { DocumentNode, GraphQLError } from 'graphql'
 import { Documentation } from '../models/documentation.model'
 
 const DocumentationResolvers = {
@@ -25,14 +22,22 @@ const DocumentationResolvers = {
         { new: true }
       )
       if (!documentation) {
-        throw new UserInputError('Documentation not found.')
+        throw new GraphQLError('Documentation not found.', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
       return documentation
     },
     async deleteDocumentation(_: any, args: any, context: any) {
       const documentation = await Documentation.findByIdAndRemove(args.id)
       if (!documentation) {
-        throw new UserInputError('Documentation not found.')
+        throw new GraphQLError('Documentation not found.', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
       return 'Documentation deleted successfully'
     },
@@ -42,7 +47,11 @@ const DocumentationResolvers = {
       //find the documentation by id
       const documentation = await Documentation.findById(id)
       if (!documentation) {
-        throw new UserInputError('Documentation not found.')
+        throw new GraphQLError('Documentation not found.', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
       //update the documentation
       documentation.subDocuments.push({ title, description })
@@ -54,7 +63,11 @@ const DocumentationResolvers = {
       //find the documentation by id
       const documentation = await Documentation.findById(id)
       if (!documentation) {
-        throw new UserInputError('Documentation not found.')
+        throw new GraphQLError('Documentation not found.', {
+          extensions: {
+            code: 'UserInputError',
+          },
+        })
       }
       //update the documentation
 

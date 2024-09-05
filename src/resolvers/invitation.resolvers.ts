@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server';
+import { GraphQLError } from 'graphql';
 import { Invitation } from '../models/invitation.model';
 import { IResolvers } from '@graphql-tools/utils';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
@@ -20,12 +20,20 @@ const invitationResolvers: IResolvers = {
       try {
         const { userId } =(await checkUserLoggedIn(context))(['admin']);
         if (!userId) {
-          throw new ApolloError('User is not logged in', 'UNAUTHENTICATED');
+          throw new GraphQLError('User is not logged in',{
+            extensions:{
+              code:'UNAUTHENTICATED'
+            }
+          });
         }
 
         const org = await checkLoggedInOrganization(orgToken);
         if (!org) {
-          throw new ApolloError('Invalid organization token', 'FORBIDDEN');
+          throw new GraphQLError('Invalid organization token',{
+            extensions:{
+              code: 'FORBIDDEN'
+            }
+          });
         }
         const email = invitees.map(invitee => invitee?.email);
         const userExists: any = await User.findOne(
@@ -69,7 +77,11 @@ const invitationResolvers: IResolvers = {
           return newInvitation;
         }
       } catch (error:any) {
-        throw new ApolloError(error.message, 'INTERNAL_SERVER_ERROR');
+        throw new GraphQLError(error.message,{
+          extensions:{
+            code: 'INTERNAL_SERVER_ERROR'
+          }
+        });
       }
     },
   },

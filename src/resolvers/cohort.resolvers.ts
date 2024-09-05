@@ -1,4 +1,4 @@
-import { ApolloError, ValidationError } from 'apollo-server'
+import { GraphQLError } from 'graphql'
 import { isAfter } from 'date-fns'
 import differenceInDays from 'date-fns/differenceInDays'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
@@ -65,7 +65,11 @@ const resolvers = {
         })
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
   },
@@ -105,32 +109,52 @@ const resolvers = {
 
         // validate inputs
         if (!phase) {
-          throw new ValidationError(
-            `Phase with name ${phaseName} doesn't exist`
-          )
+          throw new GraphQLError(`Phase with name ${phaseName} doesn't exist`, {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
 
         if (!coordinator) {
-          throw new ValidationError(
-            `Coordinator with email ${coordinatorEmail} doesn't exist`
+          throw new GraphQLError(
+            `Coordinator with email ${coordinatorEmail} doesn't exist`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (!program) {
-          throw new ValidationError(
-            `Program with name ${programName} doesn't exist`
+          throw new GraphQLError(
+            `Program with name ${programName} doesn't exist`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
-        
+
         if (
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
         ) {
-          throw new ValidationError('End Date can\'t be before Start Date');
+          throw new GraphQLError("End Date can't be before Start Date", {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
 
         const findCohort = await Cohort.find({ name, organization: organ?.id })
         if (findCohort.length) {
-          throw new ValidationError(`Cohort with name ${name} already exist`)
+          throw new GraphQLError(`Cohort with name ${name} already exist`, {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
 
         const org = new Cohort({
@@ -146,7 +170,11 @@ const resolvers = {
         return org.save()
       } catch (error) {
         const { message } = error as { message: any }
-        throw new ApolloError(message.toString(), '500')
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
     updateCohort: async (
@@ -200,30 +228,44 @@ const resolvers = {
       const cohortOrg = cohortProgram.organization as OrganizationType
 
       if (!cohort) {
-        throw new ValidationError(`Cohort with id "${id}" doesn't exist`)
+        throw new GraphQLError(`Cohort with id "${id}" doesn't exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
       if (!coordinator) {
-        throw new ValidationError(
-          `Coordinator with email ${coordinatorEmail} doesn't exist`
+        throw new GraphQLError(
+          `Coordinator with email ${coordinatorEmail} doesn't exist`,
+          {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          }
         )
       }
       if (!phase) {
-        throw new ValidationError(`Phase with name ${phaseName} doesn't exist`)
+        throw new GraphQLError(`Phase with name ${phaseName} doesn't exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
       if (!program) {
-        throw new ValidationError(
-          `Program with name ${programName} doesn't exist`
-        )
+        throw new GraphQLError(`Program with name ${programName} doesn't exist`)
       }
       if (
         name &&
         name !== cohort.name &&
         (await Cohort.findOne({ name, organization: organ?.id }))
       ) {
-        throw new ValidationError(`Phase with name ${name} already exist`)
+        throw new GraphQLError(`Phase with name ${name} already exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
 
-      
       if (
         endDate &&
         (isAfter(
@@ -235,35 +277,58 @@ const resolvers = {
             new Date(endDate)
           ))
       ) {
-        throw new ValidationError('End Date can\'t be before Start Date');
+        throw new GraphQLError("End Date can't be before Start Date", {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
 
       if (role !== 'superAdmin') {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (cohortOrg.id.toString() !== org.id.toString()) {
-          throw new ValidationError(
-            `Cohort with id "${cohort?.id}" doesn't exist in this organization`
+          throw new GraphQLError(
+            `Cohort with id "${cohort?.id}" doesn't exist in this organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (role === 'admin' && !cohortOrg?.admin?.includes(userId)) {
-          throw new ValidationError(
-            `Cohort with id "${id}" doesn't exist in your organization`
+          throw new GraphQLError(
+            `Cohort with id "${id}" doesn't exist in your organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (
           role === 'manager' &&
           cohortProgram?.manager?.toString() !== userId?.toString()
         ) {
-          throw new ValidationError(
-            `Cohort with id "${id}" doesn't exist in your program`
+          throw new GraphQLError(
+            `Cohort with id "${id}" doesn't exist in your program`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (
           role === 'coordinator' &&
           cohort?.coordinator?.toString() !== userId?.toString()
         ) {
-          throw new ValidationError('You are not assigned this cohort!')
+          throw new GraphQLError('You are not assigned this cohort!', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         }
       }
 
@@ -294,7 +359,11 @@ const resolvers = {
         },
       })
       if (!cohort) {
-        throw new ValidationError(`Cohort with id "${id}" doesn't exist`)
+        throw new GraphQLError(`Cohort with id "${id}" doesn't exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
       }
       const cohortProgram = cohort.program as ProgramType
       const cohortOrg = cohortProgram.organization as OrganizationType
@@ -303,24 +372,39 @@ const resolvers = {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (cohortOrg.id.toString() !== org.id.toString()) {
-          throw new ValidationError(
-            `Cohort with id "${cohort?.id}" doesn't exist in this organization`
+          throw new GraphQLError(
+            `Cohort with id "${cohort?.id}" doesn't exist in this organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (
           role === 'admin' &&
           cohortOrg.admin.toString() !== userId?.toString()
         ) {
-          throw new ValidationError(
-            `Cohort with id "${id}" doesn't exist in your organization`
+          throw new GraphQLError(
+            `Cohort with id "${id}" doesn't exist in your organization`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
         if (
           role === 'manager' &&
           cohortProgram?.manager?.toString() !== userId?.toString()
         ) {
-          throw new ValidationError(
-            `Cohort with id "${id}" doesn't exist in your program`
+          throw new GraphQLError(
+            `Cohort with id "${id}" doesn't exist in your program`,
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
         }
       }

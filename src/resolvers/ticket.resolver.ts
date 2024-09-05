@@ -1,4 +1,4 @@
-import { ApolloError, ValidationError } from 'apollo-server'
+import { GraphQLError } from 'graphql'
 import Ticket from '../models/ticket.model'
 import { Context } from '../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
@@ -156,7 +156,11 @@ const resolvers = {
 
         return tickets
       } catch (error: any) {
-        throw new ApolloError(error.message, '500')
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
   },
@@ -215,20 +219,31 @@ const resolvers = {
               'Your message has been received! We will get back to you shortly.',
           }
       } catch (error: any) {
-        throw new ApolloError(error.message, '500')
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
 
     replyToTicket: async (_: any, args: Reply, context: Context) => {
       try {
-        if (!context.userId) throw new ValidationError('Loggin first')
+        if (!context.userId)
+          throw new GraphQLError('Loggin first', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
         const { ticketId, replyMessage } = args
 
         const ticket = await Ticket.findById(ticketId)
         if (!ticket)
-          throw new ValidationError(
-            'Ticket you are replying to does not exist.'
-          )
+          throw new GraphQLError('Ticket you are replying to does not exist.', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
 
         const { user } = ticket
         // Allow both superAdmin and admin to reply to the ticket
@@ -237,8 +252,13 @@ const resolvers = {
           context.role !== 'admin' &&
           user?.toString() !== context.userId
         )
-          throw new ValidationError(
-            'Access denied! You can only reply if you are the owner of the ticket, or you are an admin/super admin.'
+          throw new GraphQLError(
+            'Access denied! You can only reply if you are the owner of the ticket, or you are an admin/super admin.',
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
 
         const res = await createReply(
@@ -264,7 +284,11 @@ const resolvers = {
 
         return res
       } catch (error: any) {
-        throw new ApolloError(error.message, '500')
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
 
@@ -281,14 +305,24 @@ const resolvers = {
 
         const ticket = await Ticket.findById(ticketId)
 
-        if (!ticket) throw new ValidationError('Ticket does not exist.')
+        if (!ticket)
+          throw new GraphQLError('Ticket does not exist.', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
 
         if (
           context.userId !== ticket?.user?.toString() &&
           context.role !== 'superAdmin'
         )
-          throw new ValidationError(
-            'Access denied! You do not possess permission to close this ticket.'
+          throw new GraphQLError(
+            'Access denied! You do not possess permission to close this ticket.',
+            {
+              extensions: {
+                code: 'VALIDATION_ERROR',
+              },
+            }
           )
 
         ticket.status = 'closed'
@@ -298,7 +332,11 @@ const resolvers = {
           responseMsg: 'Ticket was successfully closed!',
         }
       } catch (error: any) {
-        throw new ApolloError(error.message, '500')
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
       }
     },
   },
