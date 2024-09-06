@@ -9,6 +9,7 @@ import { DocumentNode } from 'graphql'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
+import { graphqlUploadExpress } from 'graphql-upload-ts';
 
 // Import resolvers, schemas, utilities
 import { connect } from './database/db.config'
@@ -33,6 +34,7 @@ import ticketResolver from './resolvers/ticket.resolver'
 import DocumentationResolvers from './resolvers/DocumentationResolvers'
 import attendanceResolver from './resolvers/attendance.resolvers'
 import Sessionresolvers from './resolvers/session.resolver'
+import invitationResolvers from './resolvers/invitation.resolvers';
 import schemas from './schema/index'
 import cohortSchema from './schema/cohort.schema'
 import programSchema from './schema/program.schema'
@@ -42,7 +44,6 @@ import ticketSchema from './schema/ticket.shema'
 import notificationSchema from './schema/notification.schema'
 import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
-import invitationResolvers from './resolvers/invitation.resolvers'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -94,6 +95,12 @@ async function startApolloServer(
   })
 
   const wsServerCleanup = useServer({ schema }, wsServer)
+
+  app.use(graphqlUploadExpress({
+    maxFileSize: 10000000,
+    maxFiles: 10,
+    overrideSendResponse: false
+  }));
 
   const server = new ApolloServer({
     schema,
