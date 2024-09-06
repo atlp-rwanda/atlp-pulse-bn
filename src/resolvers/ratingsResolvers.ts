@@ -153,14 +153,16 @@ const ratingResolvers: any = {
       args: any,
       context: { role: string; userId: string }
     ) {
-      const findRatings = await Rating.find({ user: context.userId }).populate([
-        'user',
-        'cohort',
-        {
-          path: 'feedbacks',
-          populate: 'sender',
-        },
-      ])
+      const findRatings = await Rating.find({ user: context.userId })
+        .populate([
+          'user',
+          'cohort',
+          {
+            path: 'feedbacks',
+            populate: 'sender',
+          },
+        ])
+        .sort({ createdAt: -1 })
       return findRatings
     },
   },
@@ -185,7 +187,7 @@ const ratingResolvers: any = {
             average,
             orgToken,
           },
-          context: { userId: string }
+          context: { userId: string; role: string }
         ) => {
           // get the organization if someone  logs in
           org = await checkLoggedInOrganization(orgToken)
@@ -240,22 +242,11 @@ const ratingResolvers: any = {
           if (coordinator) {
             pushNotification(
               user,
-              'Have rated you; check your scores.',
-              coordinator!._id
+              `Your ${context.role} has rated you, check your scores.`,
+              coordinator!._id,
+              'rating'
             )
           }
-          // if (userExists.pushNotifications) {
-          //   pubsub.publish('NEW_RATING', {
-          //     newRating: {
-          //       id: addNotifications._id,
-          //       receiver: user,
-          //       message: 'Have rated you; check your scores.',
-          //       sender: coordinator,
-          //       read: false,
-          //       createdAt: addNotifications.createdAt,
-          //     },
-          //   })
-          // }
           if (userExists.emailNotifications) {
             const content = generalTemplate({
               message:
@@ -579,17 +570,11 @@ const ratingResolvers: any = {
         },
       })
 
-      // const addNotifications = await Notification.create({
-      //   receiver: sender?.id == rate?.coordinator ? user : rate?.coordinator,
-      //   message: content,
-      //   sender: sender?.id,
-      //   read: false,
-      //   createdAt: new Date(),
-      // })
       pushNotification(
         sender?.id == rate?.coordinator ? user : rate?.coordinator,
-        content,
-        sender?.id
+        `Rating feedback: ${content}`,
+        sender?.id,
+        'rating'
       )
       return {
         content,

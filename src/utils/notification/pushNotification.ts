@@ -7,7 +7,7 @@ export const pushNotification = async (
   receiver: mongoose.Types.ObjectId,
   message: string,
   sender: mongoose.Types.ObjectId,
-  type?: string
+  type?: 'rating' | 'performance' | 'ticket' | 'trainee' | 'attendance'
 ) => {
   const notification = await Notification.create({
     receiver: receiver,

@@ -11,6 +11,8 @@ import { Context } from '../context'
 import { ProgramType } from './program.resolvers'
 import { OrganizationType } from './userResolver'
 import { Rating } from '../models/ratings'
+import { Types } from 'mongoose'
+import { pushNotification } from '../utils/notification/pushNotification'
 
 const resolvers = {
   Team: {
@@ -333,6 +335,15 @@ const resolvers = {
       await Team.findByIdAndDelete({ _id: args.id })
       cohort ? (cohort.teams = cohort.teams - 1) : null
       cohort?.save()
+      cohort &&
+        console.log('done-----------------', cohort.coordinator.toString())
+      const senderId = new Types.ObjectId(context.userId)
+      cohort &&
+        pushNotification(
+          new Types.ObjectId(cohort.coordinator.toString()),
+          `Team "${findTeam.name}" was removed from your cohort "${cohort.name}"`,
+          senderId
+        )
       return 'Team deleted successfully'
     },
     updateTeam: async (
@@ -365,7 +376,16 @@ const resolvers = {
           },
         },
       })
+      if (!team) {
+        throw new GraphQLError(`team with id "${id}" doesn't exist`, {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
+      }
 
+      const prevTeamName = team.name
+      const teamCohort = team?.cohort
       const cohortProgram = team?.cohort?.program as ProgramType
       const cohortOrg = cohortProgram.organization as OrganizationType
       const org = await checkLoggedInOrganization(orgToken)
@@ -441,6 +461,15 @@ const resolvers = {
       name && (team.name = name)
 
       await team.save()
+
+      const senderId = new Types.ObjectId(context.userId)
+      if (teamCohort.coordinator && prevTeamName !== name) {
+        pushNotification(
+          new Types.ObjectId(teamCohort.coordinator.toString()),
+          `Team "${prevTeamName}" from cohort "${teamCohort.name}" has changed its name to "${name}"`,
+          senderId
+        )
+      }
 
       return team
     },
