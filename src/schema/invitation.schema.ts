@@ -1,6 +1,8 @@
 import gql from 'graphql-tag';
 
 const invitationSchema = gql`
+  scalar Upload
+
   enum Status {
     pending
     accepted
@@ -31,13 +33,27 @@ const invitationSchema = gql`
     role: Role!
   }
 
+  type InvitationResult {
+    success: Boolean!
+    email: String!
+    error: String
+  }
+
+  type FileData {
+    filename: String!
+    data: [InvitationResult!]!
+    invalidRows: [String!]!
+    message: String!
+    sentEmails:Int!
+  }
+
   type Mutation {
     sendInvitation(
       invitees: [InviteeInput!]!
       orgToken: String!
     ): Invitation!
 
-    # Other mutations like delete, edit, and update go below
+    uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
   }
 `;
 
