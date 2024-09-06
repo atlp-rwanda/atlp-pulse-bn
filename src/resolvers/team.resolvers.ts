@@ -11,6 +11,7 @@ import { Context } from '../context'
 import { ProgramType } from './program.resolvers'
 import { OrganizationType } from './userResolver'
 import { Rating } from '../models/ratings'
+
 import { pushNotification } from '../utils/notification/pushNotification'
 import { Types } from 'mongoose'
 import { GraphQLError } from 'graphql'
@@ -317,7 +318,7 @@ const resolvers = {
         )
 
         return newTeam
-      } catch (error: any) {
+ } catch (error: any) {
         const { message } = error as { message: any }
         throw new GraphQLError(message.toString(), {
           extensions: {
