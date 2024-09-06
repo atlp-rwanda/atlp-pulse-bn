@@ -11,8 +11,8 @@ import { Context } from '../context'
 import { ProgramType } from './program.resolvers'
 import { OrganizationType } from './userResolver'
 import { Rating } from '../models/ratings'
-import { Types } from 'mongoose'
-import { pushNotification } from '../utils/notification/pushNotification'
+import { pushNotification } from '../utils/notification/pushNotification';
+import { Types } from 'mongoose';
 
 const resolvers = {
   Team: {
@@ -220,7 +220,6 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-            console.log(user)
 
             return (
               user.team?.name === team &&
@@ -299,11 +298,15 @@ const resolvers = {
           organization: organ?.id,
           startingPhase,
           ttl: ttlExist?.id,
-        })
-        cohort.teams = cohort.teams + 1
-        cohort.save()
+        });
+        cohort.teams = cohort.teams + 1;
+        cohort.save();
+        const newTeam = org.save()
 
-        return org.save()
+        const senderId = new Types.ObjectId(context.userId);
+        pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `Team "${name}" has been added to your cohort "${cohort.name}"`, senderId);
+        
+        return newTeam ;
       } catch (error: any) {
         const { message } = error as { message: any }
         throw new GraphQLError(message.toString(), {

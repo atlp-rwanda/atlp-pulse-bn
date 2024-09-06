@@ -3,11 +3,12 @@ import { Notification } from '../../models/notification.model'
 import { pubSubPublish } from '../../resolvers/notification.resolvers'
 import { User } from '../../models/user'
 import { Profile } from '../../models/profile.model'
+
 export const pushNotification = async (
   receiver: mongoose.Types.ObjectId,
   message: string,
   sender: mongoose.Types.ObjectId,
-  type?: 'rating' | 'performance' | 'ticket' | 'trainee' | 'attendance'
+  type?: 'rating'|'performance'| 'ticket'| 'trainee'| 'attendance'| 'team'| 'cohort'
 ) => {
   const notification = await Notification.create({
     receiver: receiver,

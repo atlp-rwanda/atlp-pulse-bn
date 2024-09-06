@@ -12,11 +12,9 @@ const Schema = gql`
     id: ID!
     avatar: String
   }
-
   type Sender {
     profile: Profile!
   }
-
   type Notification1 {
     id: ID!
     receiver: ID!
@@ -30,7 +28,6 @@ const Schema = gql`
   type Query {
     getAllNotification: [Notification1]!
   }
-
   type Mutation {
     deleteNotifications(id: ID!): String
     markAsRead(id: ID!): String
