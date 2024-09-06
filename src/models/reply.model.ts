@@ -54,4 +54,4 @@ ReplySchema.virtual('Rating', {
   foreignField: 'reply',
 });
 
-export const Notifications = mongoose.model('Notifications', ReplySchema);
+export const Notifications = mongoose.model('Replies', ReplySchema);

@@ -23,9 +23,9 @@ const seedUsers = async () => {
       githubUserName: '',
     },
     {
-      firstName: 'Leivin',
-      lastName: 'NIYOYANDIKA',
-      email: 'niyoyandikalie@gmail.com',
+      firstName: 'paciFique',
+      lastName: 'Mbonimana',
+      email: 'pacifiquemboni123@gmail.com',
       githubUserName: '',
     },
     {

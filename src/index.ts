@@ -48,6 +48,7 @@ const PORT: number = parseInt(process.env.PORT!) || 4000
 
 export const typeDefs = mergeTypeDefs([
   schemas,
+  notificationSchema,
   cohortSchema,
   programSchema,
   coordinatorSchema,
