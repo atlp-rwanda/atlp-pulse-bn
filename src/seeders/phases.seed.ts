@@ -1,5 +1,5 @@
-import Phase from '../models/phase.model';
-import { Organization } from '../models/organization.model';
+import Phase from '../models/phase.model'
+import { Organization } from '../models/organization.model'
 
 const seedPhases = async () => {
   const phases = [
@@ -23,12 +23,12 @@ const seedPhases = async () => {
       description: 'Team project phase',
       organization: (await Organization.find())[1]?.id,
     },
-  ];
+  ]
 
-  await Phase.deleteMany({});
+  await Phase.deleteMany({})
 
-  await Phase.insertMany(phases);
-  return null;
-};
+  await Phase.insertMany(phases)
+  return null
+}
 
-export default seedPhases;
+export default seedPhases

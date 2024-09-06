@@ -9,10 +9,6 @@ const Notification = mongoose.model(
         ref: 'User',
         required: true,
       },
-      type: {
-        type: String,
-        enum: ['rating', 'performance', 'ticket', 'trainee', 'attendance'],
-      },
       message: {
         type: String,
         required: true,
@@ -22,14 +18,16 @@ const Notification = mongoose.model(
         ref: 'User',
         required: true,
       },
+      type: {
+        type: String,
+        enum: ['rating', 'performance', 'ticket', 'trainee', 'attendance', 'team', 'cohort'],
+      },
       read: {
         type: Boolean,
         default: false,
       },
     },
-    {
-      timestamps: true,
-    }
+    { timestamps: true }
   )
 )
 

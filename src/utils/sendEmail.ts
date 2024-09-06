@@ -34,7 +34,7 @@ export const sendEmail = async (
       if (error) {
         rej(`${mailOptions.subject}: Unable to send email!!!`)
         console.error(error)
-      }else res(info)
+      } else res(info)
     })
   })
 }

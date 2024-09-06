@@ -8,7 +8,7 @@ export const pushNotification = async (
   receiver: mongoose.Types.ObjectId,
   message: string,
   sender: mongoose.Types.ObjectId,
-  type?: string
+  type?: 'rating'|'performance'| 'ticket'| 'trainee'| 'attendance'| 'team'| 'cohort'
 ) => {
   const notification = await Notification.create({
     receiver: receiver,
@@ -16,17 +16,13 @@ export const pushNotification = async (
     sender: sender,
     type,
   })
-
   const profile = await Profile.findOne({ user: notification.sender })
-
   const sanitizedNotification = {
     ...notification.toObject(),
     id: notification.id,
     sender: { profile: profile?.toObject() },
   }
-
   const userExists = await User.findOne({ _id: receiver })
-
   if (userExists && userExists.pushNotifications) {
     pubSubPublish(sanitizedNotification)
   }

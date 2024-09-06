@@ -9,6 +9,7 @@ import { DocumentNode } from 'graphql'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
+import { graphqlUploadExpress } from 'graphql-upload-ts';
 
 // Import resolvers, schemas, utilities
 import { connect } from './database/db.config'
@@ -33,23 +34,27 @@ import ticketResolver from './resolvers/ticket.resolver'
 import DocumentationResolvers from './resolvers/DocumentationResolvers'
 import attendanceResolver from './resolvers/attendance.resolvers'
 import Sessionresolvers from './resolvers/session.resolver'
+import invitationResolvers from './resolvers/invitation.resolvers';
 import schemas from './schema/index'
 import cohortSchema from './schema/cohort.schema'
 import programSchema from './schema/program.schema'
 import coordinatorSchema from './schema/coordinator.schema'
 import phaseSchema from './schema/phase.schema'
 import ticketSchema from './schema/ticket.shema'
-import invitationSchema from './schema/invitation.schema'
-import invitationResolvers from './resolvers/invitation.resolvers'
-import { IResolvers } from '@graphql-tools/utils'
 import notificationSchema from './schema/notification.schema'
+
 import statisticsSchema from './schema/invitationStatics.schema'
 import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
+
+import { IResolvers } from '@graphql-tools/utils'
+import invitationSchema from './schema/invitation.schema'
+
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
 export const typeDefs = mergeTypeDefs([
   schemas,
+  notificationSchema,
   cohortSchema,
   programSchema,
   coordinatorSchema,
@@ -77,14 +82,18 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
+
   StatisticsResolvers,
+
+  invitationResolvers,
+
 ])
 
 async function startApolloServer(
   typeDefs: DocumentNode,
   resolvers: IResolvers
 ) {
-  const app = express()
+  const app = express() as any
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -96,6 +105,12 @@ async function startApolloServer(
   })
 
   const wsServerCleanup = useServer({ schema }, wsServer)
+
+  app.use(graphqlUploadExpress({
+    maxFileSize: 10000000,
+    maxFiles: 10,
+    overrideSendResponse: false
+  }));
 
   const server = new ApolloServer({
     schema,
@@ -113,7 +128,7 @@ async function startApolloServer(
       },
       logGraphQLRequests,
     ],
-    formatError: (err) => {
+    formatError: (err: any) => {
       // Log the error using tslog
       logger.error(`${err}`)
       return err

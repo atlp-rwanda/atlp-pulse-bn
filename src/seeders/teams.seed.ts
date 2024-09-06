@@ -1,9 +1,9 @@
-import Cohort from '../models/cohort.model';
-import Team from '../models/team.model';
-import { Organization } from '../models/organization.model';
+import Cohort from '../models/cohort.model'
+import Team from '../models/team.model'
+import { Organization } from '../models/organization.model'
 
 const seedTeams = async () => {
-  const cohort = await Cohort.find();
+  const cohort = await Cohort.find()
   const teams = [
     {
       name: 'Team I',
@@ -40,12 +40,12 @@ const seedTeams = async () => {
       startingPhase: '2023-06-07',
       // ttl: (await User.find({ role: 'ttl' }))[4]?.id,
     },
-  ];
+  ]
 
-  await Team.deleteMany({});
+  await Team.deleteMany({})
 
-  await Team.insertMany(teams);
-  return null;
-};
+  await Team.insertMany(teams)
+  return null
+}
 
-export default seedTeams;
+export default seedTeams

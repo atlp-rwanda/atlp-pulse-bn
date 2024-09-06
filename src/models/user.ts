@@ -120,4 +120,4 @@ const UserRole = mongoose.model(
 
 const User = model('User', userSchema)
 
-export { User, UserRole, }
+export { User, UserRole }

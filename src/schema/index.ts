@@ -492,6 +492,7 @@ const Schema = gql`
 
   type Mutation {
     addReply(
+      rating: ID!
       sprint: Int!
       bodyQuantity: String
       bodyQuality: String

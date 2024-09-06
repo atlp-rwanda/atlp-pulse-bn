@@ -15,6 +15,11 @@ import Program from '../models/program.model'
 import Team from '../models/team.model'
 import mongoose from 'mongoose'
 import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
+import { pushNotification } from '../utils/notification/pushNotification'
+import { Types } from 'mongoose'
+import DropTraineeTemplate from '../utils/templates/dropTraineeTemplate'
+import { Profile } from '../models/profile.model'
+import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -24,7 +29,7 @@ interface TraineeStatus {
 }
 
 interface Trainee {
-  traineeId: mongoose.Types.ObjectId
+  traineeId: string
   traineeEmail: string
   status: TraineeStatus[]
 }
@@ -97,6 +102,7 @@ const manageStudentResolvers = {
         // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
+        // console.log("User info:",User);
 
         return (
           await User.find({
@@ -357,7 +363,7 @@ const manageStudentResolvers = {
         if (team && user) {
           if (team.cohort.program.organization.name !== org?.name) {
             throw new Error(
-              " You logged into an organization that doesn't have such a team"
+              ' You logged into an organization that doesn\'t have such a team'
             )
           }
           const programId = team.cohort.program.id
@@ -425,10 +431,11 @@ const manageStudentResolvers = {
               if (!traineeEmailExists) {
                 // create new trainee
                 const newTrainee: Trainee = {
-                  traineeId: new mongoose.Types.ObjectId(),
+                  traineeId: user.id,
                   traineeEmail: email,
                   status: [],
                 }
+                // console.log("new trainee data:",newTrainee);
 
                 const attendanceLength: any = await Attendance.find({
                   coordinatorId: userId,
@@ -460,14 +467,24 @@ const manageStudentResolvers = {
 
             // Send Email
             try {
-              await sendEmailOnAddMember(role, org, userId, user)
+              const content = getOrganizationTemplate(
+                org!.name,
+                `${process.env.FRONTEND_LINK}/login/org`
+              )
+              await sendEmailOnMembershipActions(
+                role,
+                org,
+                userId,
+                user,
+                content
+              )
             } catch (error: any) {
               throw new Error(
                 'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
               )
             }
 
-            return `member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`
+            return `Member with email ${email} is successfully added to cohort '${team.cohort.name}' in team '${team.name}'`
           }
 
           if (user.cohort) {
@@ -515,12 +532,18 @@ const manageStudentResolvers = {
     async dropTrainee(_: any, args: any, context: Context) {
       try {
         // coordinator validation
-        ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
+        const { userId, role } = (await checkUserLoggedIn(context))([
+          'admin',
+          'coordinator',
+        ])
+
+        // traineeId: String!, reason: String!, date: DateTime!, these are the arges am getting from the resolver
 
         const logedInUserOrg = await User.findById(context.userId).select(
           'organizations'
         )
         const orgName = logedInUserOrg?.organizations[0]
+        const organization = await Organization.findOne({ name: orgName })
 
         const trainee = await User.findOneAndUpdate(
           { _id: args.traineeId, organizations: orgName },
@@ -542,6 +565,37 @@ const manageStudentResolvers = {
               code: 'VALIDATION_ERROR',
             },
           })
+
+        //Send In app notification
+        const user = await User.findOne({ _id: userId })
+        pushNotification(
+          args.traineeId,
+          `You have been dropped from ${orgName} due to ${args.reason}`,
+          user?.id
+        )
+
+        // Send Email
+        const userProfile = await Profile.findOne({ user: trainee.id })
+        const name = `${userProfile?.firstName} ${userProfile?.lastName}`
+        try {
+          const content = DropTraineeTemplate(
+            orgName,
+            name,
+            args.reason,
+            args.date
+          )
+          await sendEmailOnMembershipActions(
+            role,
+            organization,
+            userId,
+            trainee,
+            content
+          )
+        } catch (error: any) {
+          throw new Error(
+            'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
+          )
+        }
 
         return 'Trainee dropped successfully!'
       } catch (error: any) {
@@ -643,13 +697,41 @@ const manageStudentResolvers = {
               return member.toString() !== checkMember.id.toString()
             }
           )
+
+          const cohortObj = await Cohort.findOne({ _id: checkMember.cohort })
+          const cohortName = cohortObj?.name
+
           await checkMember.team.save()
           checkMember.role = 'user'
           checkMember.coordinator = null
           checkMember.cohort = null
           checkMember.team = null
           await checkMember.save()
-          return `member with email ${email} is successfully removed from cohort`
+
+          // Send Email
+          const userProfile = await Profile.findOne({ user: checkMember.id })
+          const name = `${userProfile?.firstName} ${userProfile?.lastName}`
+          try {
+            const content = RemoveTraineeTemplate(
+              cohortName,
+              name,
+              teamName,
+              org.name
+            )
+            await sendEmailOnMembershipActions(
+              role,
+              org,
+              userId,
+              checkMember,
+              content
+            )
+          } catch (error: any) {
+            throw new Error(
+              'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
+            )
+          }
+
+          return `Member with email ${email} is successfully removed from cohort`
         } else {
           throw new Error('This member is not in this cohort')
         }
@@ -659,7 +741,7 @@ const manageStudentResolvers = {
     async editMember(
       _: any,
       { removedFromTeamName, addedToTeamName, email, orgToken }: any,
-      context: any
+      context: Context
     ) {
       // Coordinator validation
       ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
@@ -712,6 +794,11 @@ const manageStudentResolvers = {
             await teamToChange?.save()
           }
         }
+        pushNotification(
+          member.id,
+          `You've been moved to a new team ${newTeam.name}`,
+          new Types.ObjectId(context.userId)
+        )
         const content = generalTemplate({
           message: `Hey there, just here to inform you that your account has been updated, and you've been moved ${
             removedFromTeamName ? `from team ${removedFromTeamName} ` : ''
@@ -764,7 +851,7 @@ const manageStudentResolvers = {
         const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
-        const emailSendReport = await sendEmail(
+        await sendEmail(
           email,
           'Invitation',
           content,
@@ -782,26 +869,22 @@ const manageStudentResolvers = {
   },
 }
 
-async function sendEmailOnAddMember(
+async function sendEmailOnMembershipActions(
   role: string | any,
   org: any,
   userId: string | any,
-  user: any
+  user: any,
+  content: string
 ) {
   if (role === 'admin') {
     const organization: any = await Organization.findOne({
       _id: org.id,
     })
     if (!organization) {
-      throw new Error("You don't have an organization yet")
+      throw new Error('You don\'t have an organization yet')
     }
     if (organization.admin.includes(userId) && organization.name == org.name) {
-      const content = getOrganizationTemplate(
-        org!.name,
-        `${process.env.FRONTEND_LINK}/login/org`
-      )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
-
       await sendEmail(
         user.email,
         'Organization membership notice',
@@ -818,7 +901,7 @@ async function sendEmailOnAddMember(
   if (role === 'manager') {
     const program: any = await Program.findOne({ manager: userId })
     if (!program) {
-      throw new Error("You dont't have a program yet")
+      throw new Error('You dont\'t have a program yet')
     }
     if (program.organization._id.toString() == org?.id.toString()) {
       const content = getOrganizationTemplate(
@@ -842,7 +925,7 @@ async function sendEmailOnAddMember(
   if (role === 'coordinator') {
     const cohort: any = await Cohort.findOne({ coordinator: userId })
     if (!cohort) {
-      throw new Error("You don't have a coordinator yet")
+      throw new Error('You don\'t have a coordinator yet')
     }
     const program: any = await Program.findOne({
       _id: cohort.program,
