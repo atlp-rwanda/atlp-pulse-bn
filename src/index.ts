@@ -9,13 +9,13 @@ import { DocumentNode } from 'graphql'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
-import { graphqlUploadExpress } from 'graphql-upload-ts';
+import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 // Import resolvers, schemas, utilities
 import { connect } from './database/db.config'
 import { context } from './context'
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
-import logGraphQLRequests from './utils/logGraphQLRequests'
+import logGraphQLRequests from './utils/logGraphQLRequests';
 import logger from './utils/logger.utils'
 
 import userResolvers from './resolvers/userResolver'
@@ -48,6 +48,7 @@ import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
 
 import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
+import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
 
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
@@ -86,7 +87,7 @@ export const resolvers = mergeResolvers([
   StatisticsResolvers,
 
   invitationResolvers,
-
+  TableViewInvitationResolver,
 ])
 
 async function startApolloServer(
@@ -106,11 +107,13 @@ async function startApolloServer(
 
   const wsServerCleanup = useServer({ schema }, wsServer)
 
-  app.use(graphqlUploadExpress({
-    maxFileSize: 10000000,
-    maxFiles: 10,
-    overrideSendResponse: false
-  }));
+  app.use(
+    graphqlUploadExpress({
+      maxFileSize: 10000000,
+      maxFiles: 10,
+      overrideSendResponse: false,
+    })
+  )
 
   const server = new ApolloServer({
     schema,
@@ -130,7 +133,7 @@ async function startApolloServer(
     ],
     formatError: (err: any) => {
       // Log the error using tslog
-      logger.error(`${err}`)
+      logger.error(`${err.message}`)
       return err
     },
     csrfPrevention: true,
