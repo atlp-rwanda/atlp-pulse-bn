@@ -473,13 +473,8 @@ const resolvers = {
         }
       }
 
-      const senderId = new Types.ObjectId(context.userId)
-      cohort.coordinator &&
-        pushNotification(
-          new Types.ObjectId(cohort.coordinator.toString()),
-          `Your cohort "${cohort.name}" has been deactivated`,
-          senderId
-        )
+      const senderId = new Types.ObjectId(context.userId);
+      cohort.coordinator && pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `Your cohort "${cohort.name}" has been deactivated`, senderId);
 
       return Cohort.disactivate(cohort?.id)
     },

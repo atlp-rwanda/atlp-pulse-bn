@@ -9,7 +9,7 @@
     "seed": "tsc --noEmit && ts-node-dev --transpile-only --no-notify --exit-child src/seeders/index.ts",
     "dev": "tsc --noEmit && ts-node-dev --respawn --transpile-only --no-notify --exit-child src/index.ts",
     "build": "tsc",
-    "test": "NODE_ENV=test npm run seed && tsc && nyc mocha",
+    "test": "npm run seed &&  tsc && nyc mocha",
     "lint": "eslint src --fix .",
     "format": "npx prettier --write .",
     "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",

@@ -15,9 +15,10 @@ import Program from '../models/program.model'
 import Team from '../models/team.model'
 import mongoose from 'mongoose'
 import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
+import { pushNotification } from '../utils/notification/pushNotification'
+import { Types } from 'mongoose'
 import DropTraineeTemplate from '../utils/templates/dropTraineeTemplate'
 import { Profile } from '../models/profile.model'
-import { pushNotification } from '../utils/notification/pushNotification'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
@@ -740,7 +741,7 @@ const manageStudentResolvers = {
     async editMember(
       _: any,
       { removedFromTeamName, addedToTeamName, email, orgToken }: any,
-      context: any
+      context: Context
     ) {
       // Coordinator validation
       ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
@@ -793,6 +794,11 @@ const manageStudentResolvers = {
             await teamToChange?.save()
           }
         }
+        pushNotification(
+          member.id,
+          `You've been moved to a new team ${newTeam.name}`,
+          new Types.ObjectId(context.userId)
+        )
         const content = generalTemplate({
           message: `Hey there, just here to inform you that your account has been updated, and you've been moved ${
             removedFromTeamName ? `from team ${removedFromTeamName} ` : ''
