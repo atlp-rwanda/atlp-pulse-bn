@@ -9,7 +9,7 @@ const statisticsSchema = gql`
     getPendingInvitationsPercentsCount: Int!
   }
   type Query {
-    getInvitationStatistics(orgToken: String!): Statistics!
+    getInvitationStatistics: Statistics!
   }
 `
 
