@@ -6,7 +6,7 @@ RUN npm ci
 COPY . .
 ARG NODE_ENV
 ARG MONGO_PROD_DB
-RUN npm run seed
+# RUN npm run seed
 RUN npm run build
 RUN npm prune --omit=dev
 EXPOSE 4000
