@@ -223,13 +223,13 @@ const resolvers: any = {
             code: 'ValidationError',
           },
         })
-      let invitee;
+      let invitee
       const invitation = await Invitation.findOne({ 'invitees.email': email })
         .sort({ createdAt: -1 })
-        .exec();
-      
+        .exec()
+
       if (invitation) {
-        invitee = invitation.invitees.find(invitee => invitee.email === email);
+        invitee = invitation.invitees.find((invitee) => invitee.email === email)
       }
       const user = await User.create({
         role: role || invitee?.role || 'user',
