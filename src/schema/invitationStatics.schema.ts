@@ -7,6 +7,8 @@ const statisticsSchema = gql`
     pendingInvitationsCount: Int!
     getAcceptedInvitationsPercentsCount: Float!
     getPendingInvitationsPercentsCount: Float!
+    cancelledInvitationsCount: Int!
+    getCancelledInvitationsPercentsCount: Float!
   }
   type Query {
     getInvitationStatistics(

@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import gql from 'graphql-tag'
 
 const invitationSchema = gql`
   scalar Upload
@@ -7,6 +7,7 @@ const invitationSchema = gql`
     pending
     accepted
     denied
+    cancelled
   }
 
   enum Role {
@@ -79,7 +80,8 @@ const invitationSchema = gql`
     updateInvitation(invitationId: ID!, orgToken: String!, newEmail: String, newRole: String): Invitation
     uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
     deleteInvitation(invitationId: ID!): DeleteMessage
+    cancelInvitation(orgToken: String!, id: ID!): Invitation!
   }
 `;
 
-export default invitationSchema;
+export default invitationSchema
