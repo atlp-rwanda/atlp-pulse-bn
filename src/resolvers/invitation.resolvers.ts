@@ -134,10 +134,7 @@ const invitationResolvers: IResolvers = {
           const { email, role } = invitee 
           const newInvitation = new Invitation({
             inviterId:userId.toString(),
-            invitees: invitees.map(invitee => ({
-              email: invitee.email,
-              role: invitee.role
-            })),
+            invitees:[{email,role}],
             orgToken
           });
           const result = await sendInvitationEmail(email, {role, org, userId, orgToken});
