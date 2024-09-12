@@ -317,7 +317,7 @@ const resolvers: any = {
           { $push: { activity: { $each: [newActivity] } } }
         )
         if (
-          user?.role === 'trainee' &&
+          user?.role === 'trainee' ||
           user?.organizations?.includes(org?.name)
         ) {
           const token = jwt.sign(
