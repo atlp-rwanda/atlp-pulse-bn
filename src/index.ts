@@ -15,7 +15,7 @@ import { graphqlUploadExpress } from 'graphql-upload-ts'
 import { connect } from './database/db.config'
 import { context } from './context'
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge'
-import logGraphQLRequests from './utils/logGraphQLRequests';
+import logGraphQLRequests from './utils/logGraphQLRequests'
 import logger from './utils/logger.utils'
 
 import userResolvers from './resolvers/userResolver'
@@ -34,7 +34,7 @@ import ticketResolver from './resolvers/ticket.resolver'
 import DocumentationResolvers from './resolvers/DocumentationResolvers'
 import attendanceResolver from './resolvers/attendance.resolvers'
 import Sessionresolvers from './resolvers/session.resolver'
-import invitationResolvers from './resolvers/invitation.resolvers';
+import invitationResolvers from './resolvers/invitation.resolvers'
 import schemas from './schema/index'
 import cohortSchema from './schema/cohort.schema'
 import programSchema from './schema/program.schema'
@@ -49,7 +49,6 @@ import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
 import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
 import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
-
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
