@@ -66,11 +66,15 @@ const invitationSchema = gql`
     message: String!
     sentEmails: Int!
   }
+  type DeleteMessage {
+    message: String!
+  }
 
   type Mutation {
     sendInvitation(invitees: [InviteeInput!]!, orgToken: String!): Invitation!
 
     uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
+    deleteInvitation(invitationId: ID!): DeleteMessage
   }
 `;
 

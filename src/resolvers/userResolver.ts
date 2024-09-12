@@ -232,7 +232,7 @@ const resolvers: any = {
         invitee = invitation.invitees.find((invitee) => invitee.email === email)
       }
       const user = await User.create({
-        role: role || invitee?.role || 'user',
+        role: role || 'user',
         email: email,
         password,
         organizations: org.name,

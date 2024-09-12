@@ -1,4 +1,3 @@
-import mongoose from 'mongoose'
 import { Rating, TempData } from '../models/ratings'
 import { User } from '../models/user'
 import { Organization } from '../models/organization.model'
@@ -14,6 +13,7 @@ import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
+import mongoose, { Types } from 'mongoose'
 const pubsub = new PubSub()
 
 let org: InstanceType<typeof Organization>
@@ -262,12 +262,12 @@ const ratingResolvers: any = {
           if (userExists.emailNotifications) {
             const content = generalTemplate({
               message:
-                'We\'re excited to announce that your latest performance ratings are ready for review.',
+                "We're excited to announce that your latest performance ratings are ready for review.",
               linkMessage: 'To access your new ratings, click the button below',
               buttonText: 'View Ratings',
               link: `${process.env.FRONTEND_LINK}/performance`,
               closingText:
-                'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
+                "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
             })
 
             await sendEmails(
@@ -307,7 +307,7 @@ const ratingResolvers: any = {
           },
           context: { userId: string }
         ) => {
-          org = await checkLoggedInOrganization(orgToken)
+          const org = await checkLoggedInOrganization(orgToken)
 
           const userExists = await User.findById(user)
           if (!userExists) throw new Error('User does not exist!')
@@ -348,9 +348,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                    `${oldData?.quantityRemark} ->`,
-                    quantityRemark?.toString(),
-                  ],
+                      `${oldData?.quantityRemark} ->`,
+                      quantityRemark?.toString(),
+                    ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -364,16 +364,16 @@ const ratingResolvers: any = {
                 professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                    `${oldData?.professional_Skills} ->`,
-                    professional_Skills?.toString(),
-                  ],
+                      `${oldData?.professional_Skills} ->`,
+                      professional_Skills?.toString(),
+                    ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                    `${oldData?.professionalRemark} ->`,
-                    professionalRemark?.toString(),
-                  ],
+                      `${oldData?.professionalRemark} ->`,
+                      professionalRemark?.toString(),
+                    ],
 
               feedbacks: oldData?.feedbacks.map((feedback) => {
                 feedbackContent === feedback.content
@@ -401,6 +401,17 @@ const ratingResolvers: any = {
                 professionalRemark: professionalRemark[0]?.toString(),
               }
             )
+
+            // Send a notification to the admin
+            const admin = await User.findOne({ role: 'admin' })
+            if (admin) {
+              await pushNotification(
+                admin._id,
+                `The rating for user ${userExists.email} was edited, you need to approve it`,
+                new Types.ObjectId(context.userId),
+                'rating'
+              )
+            }
 
             return updateRating
           }
@@ -460,7 +471,7 @@ const ratingResolvers: any = {
             buttonText: 'View Ratings',
             link: `${process.env.FRONTEND_LINK}/performance`,
             closingText:
-              'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
+              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
           })
 
           await sendEmails(
