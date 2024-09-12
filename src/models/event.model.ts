@@ -1,4 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
+
+const INVITEE_STATUS = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  DECLINED: 'declined'
+}
+
 const Event = mongoose.model(
   'Event',
   new Schema({
@@ -31,6 +38,19 @@ const Event = mongoose.model(
       type: String,
       required: true,
     },
+    invitees: [
+      {
+        email:{
+          type: String,
+          required: true
+        },
+        status:{
+          type: String,
+          enum: INVITEE_STATUS,
+          default: INVITEE_STATUS.PENDING,
+        }
+      }
+    ]
   })
 );
 export { Event };
