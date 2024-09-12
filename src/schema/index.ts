@@ -499,7 +499,13 @@ const Schema = gql`
       bodyProfessional: String
     ): Notifications!
     deleteTeam(id: ID!): String!
-    updateTeam(id: ID!, orgToken: String, name: String): Team
+    updateTeam(
+      id: ID!
+      orgToken: String
+      name: String
+      cohort: String
+      TTL: String
+    ): Team
     deleteReply: String!
   }
   type Event {

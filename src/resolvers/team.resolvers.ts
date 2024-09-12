@@ -221,7 +221,6 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-
             return (
               user.team?.name === team &&
               // user?.organizations?.includes(org?.name)
@@ -356,15 +355,9 @@ const resolvers = {
     },
     updateTeam: async (
       _: any,
-      args: {
-        id: any
-        orgToken: string
-        name: string
-      },
+      { id, orgToken, name, cohort, TTL }: any,
       context: Context
     ) => {
-      const { id, name, orgToken } = args
-
       const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
@@ -465,9 +458,28 @@ const resolvers = {
           })
         }
       }
+      const getcohort: any = await Cohort.findOne({ name: cohort })
+      const getTtl: any = await User.findOne({ email: TTL })
+
+      if (!getcohort) {
+        throw new GraphQLError('this cohot does not exist!', {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
+      }
+
+      if (!getTtl) {
+        throw new GraphQLError('Ttl does not exist!', {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
+      }
 
       name && (team.name = name)
-
+      getcohort && (team.cohort = getcohort.id)
+      getTtl && (team.ttl = getTtl.id)
       await team.save()
 
       const senderId = new Types.ObjectId(context.userId)
