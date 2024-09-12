@@ -63,12 +63,18 @@ const resolvers: any = {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
+        'trainee',
       ])
 
-      const where = role === 'superAdmin' ? {} : { admin: userId, name }
+      const organization = await Organization.findOne({ name })
 
-      const organization = await Organization.find(where)
-      return organization[0]
+      if (!organization) {
+        throw new Error('Organization not found')
+      }
+
+      const org = organization.toObject()
+      const orgAdmin = await User.findById(org.admin)
+      return { ...org, admin: orgAdmin }
     },
 
     async getSignupOrganization(_: any, { orgToken }: any) {
@@ -861,8 +867,6 @@ const resolvers: any = {
     },
 
     async addActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
-
       const checkOrg = await Organization.findOne({ name: name })
       if (!checkOrg) {
         throw new GraphQLError('Organization Not found', {
@@ -887,6 +891,7 @@ const resolvers: any = {
       return {
         admin: checkOrg.admin,
         name: checkOrg.name,
+        activeRepos: checkOrg.activeRepos,
         description: checkOrg.description,
         status: checkOrg.status,
       }
