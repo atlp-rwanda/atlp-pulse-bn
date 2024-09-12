@@ -158,6 +158,41 @@ const invitationResolvers: IResolvers = {
         message: `Invitations sent to ${sentEmails} invitees`,
       }
     },
+    async deleteInvitation(
+      _: any,
+      { invitationId }: { invitationId: string },
+      context: any
+    ) {
+      const { userId } = (await checkUserLoggedIn(context))(['admin']);
+      if (!userId) {
+        throw new GraphQLError('User is not logged in', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+          },
+        });
+      }
+
+      const invitation = await Invitation.findById(invitationId);
+
+      if (!invitation) {
+        throw new GraphQLError('Invitation not found', {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
+      }
+
+      if (invitation.inviterId.toString() !== userId.toString()) {
+        throw new GraphQLError('You are not authorized to delete this invitation', {
+          extensions: {
+            code: 'FORBIDDEN',
+          },
+        })
+      }
+
+      await Invitation.findByIdAndDelete(invitationId);
+      return { message: 'Invitation deleted successfully ' };
+    },
   },
 };
 
