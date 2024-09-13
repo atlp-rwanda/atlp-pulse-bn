@@ -77,22 +77,31 @@ const TableViewInvitationResolver = {
         const offset = args.offset ?? 0;
         const { role, status } = args;
 
-        if (!role &&!status) throw new GraphQLError('No filter criteria provided');
+        if (!role && !status) throw new GraphQLError('No filter criteria provided');
 
-        let invitations = [];
+        let invitations: any = [];
         let totalInvitations = 0
-        invitations = await Invitation.find()
-        
-        invitations = invitations.filter(result => {
-          const inv = result.invitees
-          let found = false
-          inv.forEach(invitee => {
-            if ( invitee.role === role )
-              found = true
+
+        if (role && status) { 
+          invitations = await Invitation.find({
+            $and: [
+              { 'invitees.role': { $regex: role, $options: 'i' } },
+              { status: { $regex: status, $options: 'i' } }
+            ]
+          });
+        } else if (status) {
+        invitations = await Invitation.find({
+          status: { $regex: status, $options: 'i' },
+        })          
+        .skip(offset)
+        .limit(limit)
+        } else if (role) {
+        invitations = await Invitation.find({
+          'invitees.role': { $regex: role, $options: 'i' },
         })
-          return ((result.status === status) && found)
-        })
-        invitations = invitations.splice(offset, limit)
+        .skip(offset)
+        .limit(limit)
+        }
 
         totalInvitations = invitations.length;
       
