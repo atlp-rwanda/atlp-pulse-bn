@@ -4,12 +4,10 @@ import { Invitation } from '../models/invitation.model';
 import { IResolvers } from '@graphql-tools/utils';
 import { checkUserLoggedIn } from '../helpers/user.helpers';
 import { checkLoggedInOrganization } from '../helpers/organization.helper';
-import { sendEmail } from '../utils/sendEmail';
 import { User } from '../models/user';
 import sendInvitationEmail from '../helpers/sendInvitaitonEmail';
-import  jwt  from 'jsonwebtoken';
-import inviteUserTemplate from '../utils/templates/inviteUserTemplate';
 import { extractFileData } from '../utils/extractFileData'
+import generateInvitationTokenAndLink from '../helpers/generateInvitationToken.helper';
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 
@@ -65,8 +63,10 @@ const invitationResolvers: IResolvers = {
             })),
             orgToken
           });
-        
-          const result= await sendInvitationEmail(email,{org,orgToken,role,userId})
+          
+          const { newToken,link } = await generateInvitationTokenAndLink(email, role, org.name)
+          newInvitation.invitationToken = newToken
+          const result= await sendInvitationEmail(email, org.name, link)
         
 
           if(result.success){
@@ -137,7 +137,10 @@ const invitationResolvers: IResolvers = {
             invitees:[{email,role}],
             orgToken
           });
-          const result = await sendInvitationEmail(email, {role, org, userId, orgToken});
+
+          const { newToken,link } = await generateInvitationTokenAndLink(email, role, org.name)
+          newInvitation.invitationToken = newToken
+          const result= await sendInvitationEmail(email, org.name, link)
 
           if (result.success) {
             await newInvitation.save()
@@ -155,6 +158,72 @@ const invitationResolvers: IResolvers = {
         message: `Invitations sent to ${sentEmails} invitees`,
       }
     },
+
+    async updateInvitation(
+      _: any,
+      { orgToken, invitationId, newEmail, newRole }: { orgToken: string, invitationId: string; newEmail?: string; newRole?: string },
+      context: any
+    ){
+      try {
+        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        if (!userId) {
+          throw new GraphQLError('User is not logged in', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+            },
+          })
+        }
+
+        const org = await checkLoggedInOrganization(orgToken)
+        if (!org) {
+          throw new GraphQLError('Invalid organization token', {
+            extensions: {
+              code: 'FORBIDDEN',
+            },
+          })
+        }
+
+        const invitation = await Invitation.findById(invitationId)
+        if(!invitation){
+          throw new GraphQLError('Invitation not found')
+        }
+
+        if (invitation.inviterId.toString() !== userId.toString()) {
+          throw new GraphQLError('You are not authorized to delete this invitation', {
+            extensions: {
+              code: 'FORBIDDEN',
+            },
+          })
+        }
+
+        const userExists: any = await User.findOne({ email: invitation.invitees[0].email });
+
+        if (userExists || invitation.status !== 'pending') {
+          throw new Error(`This invitation has already received a response.`)
+        }
+
+        const email = newEmail || invitation.invitees[0]?.email;
+        const role = newRole || invitation.invitees[0]?.role;
+
+        invitation.invitees[0] = { email, role };
+
+        if(email){
+          const { newToken,link } = await generateInvitationTokenAndLink(email, role, org.name)
+          invitation.invitationToken = newToken
+          await sendInvitationEmail(email, org.name, link, true)
+        }
+
+        await invitation.save()
+        return invitation
+      } catch (error:any) {
+        throw new GraphQLError(error.message,{
+          extensions:{
+            code: 'INTERNAL_SERVER_ERROR'
+          }
+        });
+      }
+    },
+    
     async deleteInvitation(
       _: any,
       { invitationId }: { invitationId: string },

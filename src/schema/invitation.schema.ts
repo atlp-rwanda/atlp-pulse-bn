@@ -72,7 +72,7 @@ const invitationSchema = gql`
 
   type Mutation {
     sendInvitation(invitees: [InviteeInput!]!, orgToken: String!): Invitation!
-
+    updateInvitation(invitationId: ID!, orgToken: String!, newEmail: String, newRole: String): Invitation
     uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
     deleteInvitation(invitationId: ID!): DeleteMessage
   }

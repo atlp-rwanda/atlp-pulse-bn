@@ -41,6 +41,10 @@ const InvitationSchema = new Schema({
     type:String,
     required:true
   },
+  invitationToken:{
+    type: String,
+    maxlength: 2048,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

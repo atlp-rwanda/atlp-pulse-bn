@@ -1,5 +1,6 @@
 import { sendEmail } from '../utils/sendEmail';
 import inviteUserTemplate from '../utils/templates/inviteUserTemplate';
+import updateInvitationTemplate from '../utils/templates/updateInvitationTemplate';
 import { Role } from '../resolvers/invitation.resolvers';
 import  jwt  from 'jsonwebtoken';
 
@@ -12,23 +13,12 @@ interface Payload{
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 export default async function sendInvitationEmail(
   email: string,
-  payLoad:Payload
+  orgName: string,
+  link: string,
+  updateInvitation = false
 ) {
   try {
-    // Create a token for the invitation
-    const token = jwt.sign(
-      {
-        name:payLoad.org.name,
-        email,
-        role:payLoad.role,
-      },
-      SECRET,
-      { expiresIn: '2d' }
-    );
-  
-    const newToken = token.replace(/\./g, '*');
-    const link = `${process.env.REGISTER_FRONTEND_URL}/${newToken}`;
-    const content = inviteUserTemplate(payLoad.org?.name || '', link);
+    const content = updateInvitation ? updateInvitationTemplate(orgName || '', link) : inviteUserTemplate(orgName || '', link);
   
     // Send invitation email
     await sendEmail(

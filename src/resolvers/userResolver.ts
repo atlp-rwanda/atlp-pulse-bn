@@ -228,9 +228,20 @@ const resolvers: any = {
         .sort({ createdAt: -1 })
         .exec()
 
-      if (invitation) {
+      if (!invitation || invitation.status === 'cancelled') {
+        throw new GraphQLError('Invalid or expired invitation. Please request a new one.');
+      } else{
+        let invitationToken: any = invitation.invitationToken;
+        if (invitationToken){
+          invitationToken = invitationToken.replaceAll('*', '.');
+        }
+
         invitee = invitation.invitees.find((invitee) => invitee.email === email)
+        if(orgToken !== invitationToken){
+          throw new GraphQLError('Invalid or expired invitation token.');
+        }
       }
+      
       const user = await User.create({
         role: role || 'user',
         email: email,
@@ -240,6 +251,11 @@ const resolvers: any = {
       const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
         expiresIn: '2h',
       })
+
+      if(user && invitation){
+        invitation.status = 'accepted'
+        await invitation.save()
+      }
 
       const newProfile = await Profile.create({
         user,
