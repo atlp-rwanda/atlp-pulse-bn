@@ -1,12 +1,50 @@
 import { Invitation } from '../models/invitation.model'
 import { GraphQLError } from 'graphql'
 
+interface InvitationStatistics {
+  totalInvitations: number
+  acceptedInvitationsCount: number
+  pendingInvitationsCount: number
+  getAcceptedInvitationsPercentsCount: number
+  getPendingInvitationsPercentsCount: number
+}
+
+interface QueryArguments {
+  orgToken: string
+  startDate?: string
+  endDate?: string
+  daysRange?: number
+}
 const StatisticsResolvers = {
   Query: {
-    getInvitationStatistics: async () => {
-      const invitations = await Invitation.find()
+    getInvitationStatistics: async (
+      _: any,
+      args: QueryArguments
+    ): Promise<InvitationStatistics> => {
+      const { orgToken, startDate, endDate, daysRange } = args
 
       try {
+        const query: any = { 'invitees.orgToken': orgToken }
+
+        if (daysRange) {
+          const today = new Date()
+          const rangeStartDate = new Date(today)
+          rangeStartDate.setDate(today.getDate() - daysRange)
+
+          query.createdAt = {
+            $gte: rangeStartDate,
+            $lte: today,
+          }
+        }
+
+        if (startDate || endDate) {
+          query.createdAt = query.createdAt || {}
+          if (startDate) query.createdAt.$gte = new Date(startDate)
+          if (endDate) query.createdAt.$lte = new Date(endDate)
+        }
+
+        const invitations = await Invitation.find(query)
+
         if (!invitations.length) {
           return {
             totalInvitations: 0,
@@ -34,9 +72,9 @@ const StatisticsResolvers = {
           totalInvitations,
           acceptedInvitationsCount,
           pendingInvitationsCount,
-          getAcceptedInvitationsPercentsCount: () =>
+          getAcceptedInvitationsPercentsCount:
             (acceptedInvitationsCount / totalInvitations) * 100,
-          getPendingInvitationsPercentsCount: () =>
+          getPendingInvitationsPercentsCount:
             (pendingInvitationsCount / totalInvitations) * 100,
         }
       } catch (error) {
