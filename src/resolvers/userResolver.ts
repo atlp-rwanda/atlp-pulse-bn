@@ -235,19 +235,21 @@ const resolvers: any = {
         .exec()
 
       if (!invitation || invitation.status === 'cancelled') {
-        throw new GraphQLError('Invalid or expired invitation. Please request a new one.');
-      } else{
-        let invitationToken: any = invitation.invitationToken;
-        if (invitationToken){
-          invitationToken = invitationToken.replaceAll('*', '.');
+        throw new GraphQLError(
+          'Invalid or expired invitation. Please request a new one.'
+        )
+      } else {
+        let invitationToken: any = invitation.invitationToken
+        if (invitationToken) {
+          invitationToken = invitationToken.replaceAll('*', '.')
         }
 
         invitee = invitation.invitees.find((invitee) => invitee.email === email)
-        if(orgToken !== invitationToken){
-          throw new GraphQLError('Invalid or expired invitation token.');
+        if (orgToken !== invitationToken) {
+          throw new GraphQLError('Invalid or expired invitation token.')
         }
       }
-      
+
       const user = await User.create({
         role: role || 'user',
         email: email,
@@ -258,7 +260,7 @@ const resolvers: any = {
         expiresIn: '2h',
       })
 
-      if(user && invitation){
+      if (user && invitation) {
         invitation.status = 'accepted'
         await invitation.save()
       }

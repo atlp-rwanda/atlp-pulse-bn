@@ -104,11 +104,17 @@ const ratingResolvers: any = {
           },
         },
       })
+
       return trainees
     },
 
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['coordinator', 'admin', 'trainee'])
+      ;(await checkUserLoggedIn(context))([
+        'coordinator',
+        'admin',
+        'trainee',
+        'ttl',
+      ])
       return (
         await Rating.find({}).populate([
           'cohort',
@@ -168,7 +174,7 @@ const ratingResolvers: any = {
   },
   Mutation: {
     addRatings: authenticated(
-      validateRole('coordinator')(
+      validateRole('ttl')(
         async (
           root,
           {
@@ -192,6 +198,7 @@ const ratingResolvers: any = {
           // get the organization if someone  logs in
           org = await checkLoggedInOrganization(orgToken)
           const userExists: any = await User.findOne({ _id: user })
+
           if (!userExists) throw new Error('User does not exist!')
           const Kohort = await Cohort.findOne({ _id: cohort })
           const Phase = await Cohort.findOne({ _id: cohort }).populate(
@@ -290,7 +297,7 @@ const ratingResolvers: any = {
       return 'The rating table has been deleted successfully'
     },
     updateRating: authenticated(
-      validateRole('coordinator')(
+      validateRole('ttl')(
         async (
           root,
           {
