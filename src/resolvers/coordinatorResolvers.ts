@@ -66,7 +66,12 @@ const manageStudentResolvers = {
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // coordinator validation
-        ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
+        ;(await checkUserLoggedIn(context))([
+          'admin',
+          'manager',
+          'coordinator',
+          'ttl',
+        ])
 
         // get the organization if someone logs in
         const org: InstanceType<typeof Organization> =
@@ -96,6 +101,7 @@ const manageStudentResolvers = {
           'admin',
           'manager',
           'coordinator',
+          'ttl',
         ])
 
         // get the organization if someone  logs in
@@ -170,6 +176,7 @@ const manageStudentResolvers = {
           'admin',
           'manager',
           'coordinator',
+          'ttl',
         ])
 
         // get the organization if someone  logs in
