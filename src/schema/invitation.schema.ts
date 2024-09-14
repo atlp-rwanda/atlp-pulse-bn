@@ -53,6 +53,10 @@ const invitationSchema = gql`
     getAllInvitations(limit: Int, offset: Int): PaginatedInvitations!
   }
 
+    type Query {
+    filterInvitations(limit: Int, offset: Int, role: String, status: String): PaginatedInvitations!
+  }
+
   type InvitationResult {
     success: Boolean!
     email: String!

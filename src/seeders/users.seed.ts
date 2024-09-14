@@ -70,6 +70,12 @@ const seedUsers = async () => {
       email: 'ntihindukaelissa77@gmail.com',
       githubUserName: '',
     },
+    {
+      firstName: 'Jean Paul Elisa',
+      lastName: 'Ndevu',
+      email: 'jeanpaulelisa77@gmail.com',
+      githubUserName: '',
+    },
   ]
 
   // Share random Users Among organizations
