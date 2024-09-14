@@ -52,7 +52,7 @@ const TableViewInvitationResolver = {
         const limit = args.limit ?? 10
         const offset = args.offset ?? 0
 
-        const invitations = await Invitation.find({}).skip(offset).limit(limit)
+        const invitations = await Invitation.find({})
 
         const totalInvitations = await Invitation.countDocuments()
 
