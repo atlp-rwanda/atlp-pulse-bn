@@ -67,13 +67,12 @@ const manageStudentResolvers = {
       try {
         // coordinator validation
         ;(await checkUserLoggedIn(context))([
+          'superAdmin',
           'admin',
           'manager',
           'coordinator',
-          'ttl',
         ])
 
-        // get the organization if someone logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
 
@@ -94,42 +93,59 @@ const manageStudentResolvers = {
         })
       }
     },
+
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // coordinator validation
         const { userId, role }: any = (await checkUserLoggedIn(context))([
+          'superAdmin',
           'admin',
           'manager',
           'coordinator',
           'ttl',
         ])
 
-        // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
-        // console.log("User info:",User);
 
-        return (
-          await User.find({
-            role: 'trainee',
-            organizations: org.name,
-          }).populate({
-            path: 'team',
+        const query: any = {
+          role: 'trainee',
+          organizations: org.name,
+        }
+
+        let teamId: Types.ObjectId | undefined
+
+        if (role === 'ttl') {
+          const userTeam = await Team.findOne({
+            members: new Types.ObjectId(userId),
+          })
+          if (!userTeam) {
+            return []
+          }
+
+          teamId = userTeam._id
+          query['team'] = teamId
+        }
+        const trainees = await User.find(query).populate({
+          path: 'team',
+          strictPopulate: false,
+          populate: {
+            path: 'cohort',
             strictPopulate: false,
             populate: {
-              path: 'cohort',
+              path: 'program',
               strictPopulate: false,
               populate: {
-                path: 'program',
+                path: 'organization',
                 strictPopulate: false,
-                populate: {
-                  path: 'organization',
-                  strictPopulate: false,
-                },
               },
             },
-          })
-        ).filter((user: any) => {
+          },
+        })
+        if (role === 'ttl') {
+          return trainees
+        }
+
+        return trainees.filter((user: any) => {
           if (role === 'admin') {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
@@ -154,6 +170,7 @@ const manageStudentResolvers = {
               ) == userId
             )
           }
+          return false
         })
       } catch (error) {
         const { message } = error as { message: any }
@@ -192,14 +209,14 @@ const manageStudentResolvers = {
               path: 'cohort',
 
               strictPopulate: false,
-              //
+
               populate: {
                 path: 'program',
                 strictPopulate: false,
-                //
+
                 populate: {
                   path: 'organization',
-                  //
+
                   strictPopulate: false,
                 },
               },

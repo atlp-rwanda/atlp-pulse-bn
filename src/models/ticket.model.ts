@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose'
 
 const ticketSchema = new Schema(
   {
@@ -6,6 +6,11 @@ const ticketSchema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    assignee: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+      required: false,
     },
     subject: {
       type: String,
@@ -45,13 +50,13 @@ const ticketSchema = new Schema(
     toJSON: { virtuals: true },
     timestamps: true,
   }
-);
+)
 
 ticketSchema.pre('find', function (next) {
-  this.sort('-createdAt');
-  next();
-});
+  this.sort('-createdAt')
+  next()
+})
 
-const Ticket = mongoose.model('Ticket', ticketSchema);
+const Ticket = mongoose.model('Ticket', ticketSchema)
 
-export default Ticket;
+export default Ticket
