@@ -142,7 +142,22 @@ const profileResolvers: any = {
         team: ttlUser.team, // Assuming the team field represents the team of a user
         role: 'trainee', // Filter users with role "trainee"
       })
-        .populate('team')
+        .populate({
+          path: 'team',
+          strictPopulate: false,
+          populate: {
+            path: 'cohort',
+            strictPopulate: false,
+            populate: {
+              path: 'program',
+              strictPopulate: false,
+              populate: {
+                path: 'organization',
+                strictPopulate: false,
+              },
+            },
+          },
+        })
         .exec()
 
       return traineesInSameTeam
@@ -186,7 +201,6 @@ const profileResolvers: any = {
           cover,
           githubUsername,
         }: any = args
-        console.log(githubUsername)
         const { userId }: any = context
 
         if (!userId) {
