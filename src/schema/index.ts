@@ -90,6 +90,19 @@ const Schema = gql`
   input OrgInput {
     name: String
   }
+
+  input DeleteUserInput {
+    id: ID!
+  }
+
+  type DeleteUserPayload {
+    message: String!
+  }
+
+  type Mutation {
+    deleteUser(input: DeleteUserInput!): DeleteUserPayload!
+  }
+
   type Profile {
     id: ID!
     user: User!
