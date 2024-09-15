@@ -272,6 +272,7 @@ const resolvers: any = {
 
       return { token, user: newUser }
     },
+
     async createProfile(_: any, args: any, context: { userId: any }) {
       if (!context.userId) throw new Error('Unauthorized')
       if (!mongoose.isValidObjectId(context.userId))
@@ -289,6 +290,7 @@ const resolvers: any = {
 
       return profile.toJSON()
     },
+
     async loginUser(
       _: any,
       { loginInput: { email, password, orgToken, activity } }: any
@@ -491,6 +493,25 @@ const resolvers: any = {
           },
         })
       }
+    },
+
+    async deleteUser(_: any, { input }: any, context: { userId: any }) {
+      const requester = await User.findById(context.userId)
+      console.log(input)
+      if (!requester) {
+        throw new Error('Requester does not exist')
+      }
+      if (requester.role !== 'admin' && requester.role !== 'superAdmin') {
+        throw new Error('You do not have permission to delete users')
+      }
+      const userToDelete = await User.findById(input.id)
+      if (!userToDelete) {
+        throw new Error('User to be deleted does not exist')
+      }
+
+      await User.findByIdAndDelete(input.id)
+      await Profile.deleteOne({ user: input.id })
+      return { message: 'User deleted successfully' }
     },
 
     async updateUserRole(_: any, { id, name, orgToken }: any) {
@@ -797,6 +818,7 @@ const resolvers: any = {
 
       return orgExists
     },
+
     async addOrganization(
       _: any,
       { organizationInput: { name, email, description }, action: action }: any,
@@ -982,6 +1004,7 @@ const resolvers: any = {
         )
       return deleteOrg
     },
+
     async forgotPassword(_: any, { email }: any) {
       const userExists: any = await User.findOne({ email })
 
@@ -1007,6 +1030,7 @@ const resolvers: any = {
         throw new Error('Something went wrong!\nCheck your credentials')
       }
     },
+
     async updateEmailNotifications(_: any, { id }: any, context: Context) {
       const user: any = await User.findOne({ _id: id })
       if (!user) {
@@ -1019,6 +1043,7 @@ const resolvers: any = {
       )
       return 'updated successful'
     },
+
     async updatePushNotifications(_: any, { id }: any, context: Context) {
       const user: any = await User.findOne({ _id: id })
       if (!user) {
@@ -1029,6 +1054,7 @@ const resolvers: any = {
       const updatedPushNotifications = user.pushNotifications
       return 'updated successful'
     },
+
     async resetUserPassword(
       _: any,
       { password, confirmPassword, token }: any,
