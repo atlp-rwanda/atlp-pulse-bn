@@ -38,7 +38,6 @@ const RatingSchema = new Schema(
         },
       },
     ],
-
     quality: {
       type: String,
       required: true,
@@ -73,12 +72,10 @@ const RatingSchema = new Schema(
       type: String,
       required: false,
     },
-
     bodyQuality: {
       type: String,
       required: false,
     },
-
     bodyProfessional: {
       type: String,
       required: false,
@@ -93,90 +90,93 @@ const RatingSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true } // already present
 )
 
 const Rating = mongoose.model('Rating', RatingSchema)
 
 const TempData = mongoose.model(
   'TempData',
-  new Schema({
-    user: {
-      type: mongoose.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    sprint: {
-      type: Number,
-      required: true,
-    },
-    quantity: {
-      type: [String],
-      default: [],
-    },
-    quantityRemark: {
-      type: [String],
-      default: ['no remark'],
-    },
-    quality: {
-      type: [String],
-      default: [],
-    },
-    qualityRemark: {
-      type: [String],
-      default: ['no remark'],
-    },
-    professional_Skills: {
-      type: [String],
-      default: [],
-    },
-    professionalRemark: {
-      type: [String],
-      default: ['no remark'],
-    },
-    feedbacks: [
-      {
-        sender: {
-          type: mongoose.Types.ObjectId,
-          ref: 'User',
-        },
-        content: {
-          type: String,
-        },
-        createdAt: {
-          type: Date,
-          default: new Date(),
-        },
+  new Schema(
+    {
+      user: {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+        required: true,
       },
-    ],
-    oldFeedback: {
-      type: [String],
-      default: [],
+      sprint: {
+        type: Number,
+        required: true,
+      },
+      quantity: {
+        type: [String],
+        default: [],
+      },
+      quantityRemark: {
+        type: [String],
+        default: ['no remark'],
+      },
+      quality: {
+        type: [String],
+        default: [],
+      },
+      qualityRemark: {
+        type: [String],
+        default: ['no remark'],
+      },
+      professional_Skills: {
+        type: [String],
+        default: [],
+      },
+      professionalRemark: {
+        type: [String],
+        default: ['no remark'],
+      },
+      feedbacks: [
+        {
+          sender: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User',
+          },
+          content: {
+            type: String,
+          },
+          createdAt: {
+            type: Date,
+            default: new Date(),
+          },
+        },
+      ],
+      oldFeedback: {
+        type: [String],
+        default: [],
+      },
+      coordinator: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Cohort',
+        required: true,
+      },
+      cohort: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Cohort',
+        required: true,
+      },
+      approved: {
+        type: Boolean,
+        default: false,
+      },
+      average: {
+        type: String,
+        required: false,
+      },
+      organization: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Organization',
+        required: true,
+      },
     },
-    coordinator: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Cohort',
-      required: true,
-    },
-    cohort: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Cohort',
-      required: true,
-    },
-    approved: {
-      type: Boolean,
-      default: false,
-    },
-    average: {
-      type: String,
-      required: false,
-    },
-    organization: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Organization',
-      required: true,
-    },
-  })
+    { timestamps: true }
+  )
 )
 
 export { Rating, TempData }
