@@ -34,7 +34,7 @@ export default async function isAssigned(organName: String, userId: String) {
   for (const element of programs) {
     if (element.organization?.name === organName) {
       isAssignedToProgramOrCohort = true;
-      break;
+      return isAssignedToProgramOrCohort;
     }
   }
 
@@ -42,12 +42,10 @@ export default async function isAssigned(organName: String, userId: String) {
   for (const cohort of cohorts) {
     if (cohort.program.organization?.name === organName) {
       if (cohort.users.some((user: { _id: { toString: () => String; }; }) => user._id.toString() === userId)) {
-        console.log(userId)
         isAssignedToProgramOrCohort = true;
-        break;
+        return isAssignedToProgramOrCohort;
       }
     }
   }
-  
   return isAssignedToProgramOrCohort;
 }

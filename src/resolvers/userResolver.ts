@@ -26,7 +26,7 @@ import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
 import { Invitation } from '../models/invitation.model'
-import isAssgined from '../helpers/isAssignedToProgramOrCohort'
+import isAssigned from '../helpers/isAssignedToProgramOrCohort'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -345,8 +345,7 @@ const resolvers: any = {
           user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
-         
-          if (await isAssgined(org?.name,user._id)) {
+          if (await isAssigned(org?.name,user._id)) {
             const token = jwt.sign(
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
@@ -363,7 +362,7 @@ const resolvers: any = {
             )
           }
         }
-
+       else 
         if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
           if(user.cohort && user.team){
             const token = jwt.sign(
