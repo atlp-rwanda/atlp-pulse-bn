@@ -4,8 +4,12 @@ import { Invitation } from '../models/invitation.model'
 import { IResolvers } from '@graphql-tools/utils'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { sendEmail } from '../utils/sendEmail'
 import { User } from '../models/user'
 import sendInvitationEmail from '../helpers/sendInvitaitonEmail'
+import sendCancelInvitationEmail from '../helpers/cancelInvitationEmail'
+import jwt from 'jsonwebtoken'
+import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import { extractFileData } from '../utils/extractFileData'
 import generateInvitationTokenAndLink from '../helpers/generateInvitationToken.helper'
 
@@ -86,6 +90,77 @@ const invitationResolvers: IResolvers = {
         })
       }
     },
+    cancelInvitation: async (
+      _,
+      { id, orgToken }: { id: string; orgToken: string },
+      context
+    ) => {
+      try {
+        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        if (!userId) {
+          throw new GraphQLError('User is not logged in', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+            },
+          })
+        }
+
+        const org = await checkLoggedInOrganization(orgToken)
+        if (!org) {
+          throw new GraphQLError('Invalid organization token', {
+            extensions: {
+              code: 'FORBIDDEN',
+            },
+          })
+        }
+
+        const invitation = await Invitation.findById(id)
+        if (!invitation) {
+          throw new GraphQLError('Invitation not found', {
+            extensions: {
+              code: 'NOT_FOUND',
+            },
+          })
+        }
+
+        if (invitation.inviterId.toString() !== userId.toString()) {
+          throw new GraphQLError(
+            'You are not authorized to cancel this invitation',
+            {
+              extensions: {
+                code: 'FORBIDDEN',
+              },
+            }
+          )
+        }
+
+        if (invitation.status === 'cancelled') {
+          throw new GraphQLError('Invitation already cancelled', {
+            extensions: {
+              code: 'BAD_REQUEST',
+            },
+          })
+        }
+
+        invitation.status = 'cancelled'
+        await invitation.save()
+
+        const email = invitation.invitees[0].email as string
+        const orgName = org.name
+        const result = await sendCancelInvitationEmail(email, orgName)
+
+        if (result.success) {
+          await invitation.save()
+          return invitation
+        }
+      } catch (error: any) {
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: 'INTERNAL_SERVER_ERROR',
+          },
+        })
+      }
+    },
 
     async uploadInvitationFile(
       _: any,
@@ -116,7 +191,6 @@ const invitationResolvers: IResolvers = {
         throw new GraphQLError('No valid invitees found in the file.')
       }
 
-      // Check if any invitees already exist in the system
       const existingUsers = await User.find({
         email: { $in: invitees.map((invitee) => invitee.email) },
       })

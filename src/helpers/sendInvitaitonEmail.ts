@@ -4,11 +4,11 @@ import updateInvitationTemplate from '../utils/templates/updateInvitationTemplat
 import { Role } from '../resolvers/invitation.resolvers';
 import  jwt  from 'jsonwebtoken';
 
-interface Payload{
-  role:Role,
-  org:{name:string},
-  userId:string,
-  orgToken:string
+interface Payload {
+  role: Role
+  org: { name: string }
+  userId: string
+  orgToken: string
 }
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 export default async function sendInvitationEmail(
@@ -28,15 +28,14 @@ export default async function sendInvitationEmail(
       null,
       process.env.ADMIN_EMAIL,
       process.env.ADMIN_PASS
-    );
+    )
 
-    return { success: true, email };
+    return { success: true, email }
   } catch (error: unknown) {
     if (error instanceof Error) {
-      return { success: false, email, error: error.message };
+      return { success: false, email, error: error.message }
     } else {
-      return { success: false, email, error: 'Unknown error' };
+      return { success: false, email, error: 'Unknown error' }
     }
   }
 }
-  

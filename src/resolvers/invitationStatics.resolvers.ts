@@ -7,6 +7,8 @@ interface InvitationStatistics {
   pendingInvitationsCount: number
   getAcceptedInvitationsPercentsCount: number
   getPendingInvitationsPercentsCount: number
+  getCancelledInvitationsPercentsCount: number
+  cancelledInvitationsCount: number
 }
 
 interface QueryArguments {
@@ -50,8 +52,10 @@ const StatisticsResolvers = {
             totalInvitations: 0,
             acceptedInvitationsCount: 0,
             pendingInvitationsCount: 0,
+            cancelledInvitationsCount: 0,
             getAcceptedInvitationsPercentsCount: 0,
             getPendingInvitationsPercentsCount: 0,
+            getCancelledInvitationsPercentsCount: 0,
           }
         }
 
@@ -68,14 +72,22 @@ const StatisticsResolvers = {
           (inv) => inv.status == 'pending'
         ).length
 
+        // CALCULATE CANCELLED INVITATION COUNT
+        const cancelledInvitationsCount = await invitations.filter(
+          (inv) => inv.status == 'cancelled'
+        ).length
+
         return {
           totalInvitations,
           acceptedInvitationsCount,
           pendingInvitationsCount,
+          cancelledInvitationsCount,
           getAcceptedInvitationsPercentsCount:
             (acceptedInvitationsCount / totalInvitations) * 100,
           getPendingInvitationsPercentsCount:
             (pendingInvitationsCount / totalInvitations) * 100,
+          getCancelledInvitationsPercentsCount:
+            (cancelledInvitationsCount / totalInvitations) * 100,
         }
       } catch (error) {
         //
