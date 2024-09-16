@@ -741,10 +741,18 @@ const resolvers: any = {
     ) {
       // check if requester is super admin
       ;(await checkUserLoggedIn(context))(['superAdmin'])
-      const orgExists = await Organization.findOne({ name: name, email: email })
+      const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
           throw new GraphQLError('Organization Not found ', {
+            extensions: {
+              code: 'UserInputError',
+            },
+          })
+        }
+        const adminUser = await User.findOne({ _id: orgExists.admin[0] })
+        if (!adminUser || adminUser.email !== email) {
+          throw new GraphQLError('Admin email does not match', {
             extensions: {
               code: 'UserInputError',
             },
