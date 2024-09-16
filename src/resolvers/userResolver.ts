@@ -345,7 +345,8 @@ const resolvers: any = {
           user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
-          if (await isAssgined(org?.name)) {
+         
+          if (await isAssgined(org?.name,user._id)) {
             const token = jwt.sign(
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
@@ -364,18 +365,22 @@ const resolvers: any = {
         }
 
         if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
+          if(user.cohort && user.team){
+            const token = jwt.sign(
+              { userId: user._id, role: user._doc?.role || 'user' },
+              SECRET,
+              {
+                expiresIn: '2h',
+              }
+            )
+            const data = {
+              token: token,
+              user: user.toJSON(),
             }
-          )
-          const data = {
-            token: token,
-            user: user.toJSON(),
+            return data
+          }else{
+            throw new Error('You are not assigned to any cohort ot team yet.')
           }
-          return data
         }
         const organization: any = await Organization.findOne({
           name: org?.name,
