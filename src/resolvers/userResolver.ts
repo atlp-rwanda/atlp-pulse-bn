@@ -26,6 +26,7 @@ import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
 import { Invitation } from '../models/invitation.model'
+import isAssgined from '../helpers/isAssignedToProgramOrCohort'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -251,7 +252,7 @@ const resolvers: any = {
       }
 
       const user = await User.create({
-        role: role || 'user',
+        role: role || invitee?.role || 'user',
         email: email,
         password,
         organizations: org.name,
@@ -341,21 +342,24 @@ const resolvers: any = {
           { $push: { activity: { $each: [newActivity] } } }
         )
         if (
-          user?.role === 'trainee' ||
+          user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
-          )
-          const data = {
-            token: token,
-            user: user.toJSON(),
+         
+          if (await isAssgined(org?.name)) {
+            const token = jwt.sign(
+              { userId: user._id, role: user._doc?.role || 'user' },
+              SECRET,
+              { expiresIn: '2h' }
+            );
+            const data = {
+              token: token,
+              user: user.toJSON(),
+            };
+            return data;
+          } else {
+            throw new Error('You are not assigned to any valid program or cohort in this organization.');
           }
-          return data
         }
 
         if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
