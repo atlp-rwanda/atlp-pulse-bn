@@ -6,7 +6,11 @@ import { Context } from './../context'
 import Cohort from '../models/cohort.model'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Notification } from '../models/notification.model'
-import { authenticated, validateRole } from '../utils/validate-role'
+import {
+  authenticated,
+  validateRole,
+  validateTtlOrCoordinator,
+} from '../utils/validate-role'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
@@ -174,7 +178,7 @@ const ratingResolvers: any = {
   },
   Mutation: {
     addRatings: authenticated(
-      validateRole('ttl')(
+      validateTtlOrCoordinator(['coordinator', 'ttl'])(
         async (
           root,
           {
@@ -297,7 +301,7 @@ const ratingResolvers: any = {
       return 'The rating table has been deleted successfully'
     },
     updateRating: authenticated(
-      validateRole('ttl')(
+      validateTtlOrCoordinator(['coordinator', 'ttl'])(
         async (
           root,
           {

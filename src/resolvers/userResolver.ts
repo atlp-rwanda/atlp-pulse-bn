@@ -345,20 +345,21 @@ const resolvers: any = {
           user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
-         
           if (await isAssgined(org?.name)) {
             const token = jwt.sign(
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
               { expiresIn: '2h' }
-            );
+            )
             const data = {
               token: token,
               user: user.toJSON(),
-            };
-            return data;
+            }
+            return data
           } else {
-            throw new Error('You are not assigned to any valid program or cohort in this organization.');
+            throw new Error(
+              'You are not assigned to any valid program or cohort in this organization.'
+            )
           }
         }
 
