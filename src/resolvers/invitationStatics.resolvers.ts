@@ -1,3 +1,4 @@
+import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Invitation } from '../models/invitation.model'
 import { GraphQLError } from 'graphql'
 
@@ -21,12 +22,19 @@ const StatisticsResolvers = {
   Query: {
     getInvitationStatistics: async (
       _: any,
-      args: QueryArguments
+      args: QueryArguments,
+      context:any
     ): Promise<InvitationStatistics> => {
       const { orgToken, startDate, endDate, daysRange } = args
 
       try {
-        const query: any = { 'invitees.orgToken': orgToken }
+        const { userId } = (await checkUserLoggedIn(context))(['admin']);
+        const query: any = {
+          $and: [
+            { 'invitees.orgToken': orgToken },
+            { inviterId: userId }
+          ]
+        };
 
         if (daysRange) {
           const today = new Date()

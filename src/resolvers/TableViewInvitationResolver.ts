@@ -2,12 +2,13 @@
 import { Invitation } from '../models/invitation.model'
 import { ApolloError } from 'apollo-server'
 import { GraphQLError } from 'graphql'
+import { checkUserLoggedIn } from '../helpers/user.helpers';
 
 const TableViewInvitationResolver = {
   Query: {
     async getInvitations(
       parent: any,
-      args: { query: string; limit: number; offset: number }
+      args: { query: string; limit: number; offset: number },context: any
     ) {
       try {
         const { query } = args;
@@ -15,14 +16,19 @@ const TableViewInvitationResolver = {
         const offset = args.offset ?? 0;
 
         if (!query) throw new GraphQLError('No query provided')
-
-        const searchCriteria = {
-          $or: [
-            { 'invitees.email': { $regex: query, $options: 'i' } },
-            { 'invitees.role': { $regex: query, $options: 'i' } },
-            { status: { $regex: query, $options: 'i' } },
-          ],
-        }
+          const { userId } = (await checkUserLoggedIn(context))(['admin']);
+          const searchCriteria = {
+            $and: [
+              { inviterId: userId }, 
+              {
+                $or: [
+                  { 'invitees.email': { $regex: query, $options: 'i' } },
+                  { 'invitees.role': { $regex: query, $options: 'i' } },
+                  { status: { $regex: query, $options: 'i' } },
+                ],
+              },
+            ],
+          };
 
         const invitations = await Invitation.find(searchCriteria)
           .skip(offset)
@@ -46,13 +52,10 @@ const TableViewInvitationResolver = {
       }
     },
 
-    async getAllInvitations(_: any, args: { limit: number; offset: number }) {
+    async getAllInvitations(_: any, args: { limit: number; offset: number }, context: any) {
       try {
-        const limit = args.limit ?? 5;
-        const offset = args.offset ?? 0;
-
-        const invitations = await Invitation.find({})
-
+        const { userId } = (await checkUserLoggedIn(context))(['admin']);
+        const invitations = await Invitation.find({inviterId:userId})
         const totalInvitations = invitations.length;
 
         return {
