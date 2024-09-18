@@ -345,7 +345,7 @@ const resolvers: any = {
           user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
-          if (await isAssigned(org?.name,user._id)) {
+          if (await isAssigned(org?.name, user._id)) {
             const token = jwt.sign(
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
@@ -361,10 +361,11 @@ const resolvers: any = {
               'You are not assigned to any valid program or cohort in this organization.'
             )
           }
-        }
-       else 
-        if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
-          if(user.cohort && user.team){
+        } else if (
+          user?.role === 'ttl' &&
+          user?.organizations?.includes(org?.name)
+        ) {
+          if (user.cohort && user.team) {
             const token = jwt.sign(
               { userId: user._id, role: user._doc?.role || 'user' },
               SECRET,
@@ -377,7 +378,7 @@ const resolvers: any = {
               user: user.toJSON(),
             }
             return data
-          }else{
+          } else {
             throw new Error('You are not assigned to any cohort ot team yet.')
           }
         }
