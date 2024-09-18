@@ -27,6 +27,7 @@ import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
 import { Invitation } from '../models/invitation.model'
 import isAssigned from '../helpers/isAssignedToProgramOrCohort'
+import { pushNotification } from '../utils/notification/pushNotification'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -497,7 +498,6 @@ const resolvers: any = {
 
     async deleteUser(_: any, { input }: any, context: { userId: any }) {
       const requester = await User.findById(context.userId)
-      console.log(input)
       if (!requester) {
         throw new Error('Requester does not exist')
       }
@@ -508,7 +508,30 @@ const resolvers: any = {
       if (!userToDelete) {
         throw new Error('User to be deleted does not exist')
       }
-
+      if (userToDelete.role === 'coordinator') {
+        const hasCohort = await Cohort.findOne({ coordinator: input.id })
+        if (hasCohort) {
+          await Cohort.findOneAndReplace(
+            { coordinator: input.id },
+            { coordinator: null }
+          )
+          await pushNotification(
+            context.userId,
+            `You have deleted the coordinator of ${hasCohort.name}, Assign the new coordinator`,
+            context.userId
+          )
+        }
+      } else if (userToDelete.role === 'ttl') {
+        const hasTeam = await Team.findOne({ ttl: input.id })
+        if (hasTeam) {
+          await Team.findOneAndReplace({ ttl: input.id }, { ttl: null })
+          await pushNotification(
+            context.userId,
+            `You have deleted the TTL of  ${Team.name}, Assign the new TTL`,
+            context.userId
+          )
+        }
+      }
       await User.findByIdAndDelete(input.id)
       await Profile.deleteOne({ user: input.id })
       return { message: 'User deleted successfully' }
