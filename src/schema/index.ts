@@ -595,20 +595,25 @@ const Schema = gql`
 
   type Attendance {
     id: ID!
+    phase: Phase!
+    cohort: Cohort!
     week: String!
-    coordinator: [String!]
+    teams: [AttendanceTeam]!
+  }
+  type AttendanceTeam {
+    team: Team!
     trainees: [TraineeAttendance!]!
   }
 
   type TraineeAttendance {
-    traineeId: [String!]
-    traineeEmail: String!
+    trainee: User!
     status: [AttendanceStatus!]!
   }
 
   type AttendanceStatus {
-    days: String!
-    value: Int!
+    day: String!
+    date: String!
+    score: Int!
   }
 
   type AttendanceStats {
@@ -629,31 +634,38 @@ const Schema = gql`
   }
 
   type Query {
-    getTraineeAttendance(orgToken: String): [Attendance]
+    getTeamAttendance(orgToken: String, team: String!): [Attendance]
     getTraineeAttendanceByID(traineeEmail: String!): [weeklyAttendance]
     getAttendanceStats(orgToken: String!): [AttendanceStats]
   }
   type Mutation {
     recordAttendance(
-      week: String!
-      days: String!
+      week: Int!
+      team: String!
+      date: String!
       trainees: [TraineeInput!]!
       orgToken: String!
-    ): Attendance
+    ): AttendanceTeam
 
-    deleteAttendance(
-      week: String!
-      days: String!
-      traineeId: ID!
+    updateAttendance(
+      week: Int!
+      team: String!
+      phase: String!
+      trainees: [TraineeInput!]!
       orgToken: String!
-    ): Attendance
+    ): [Attendance]
+
+    deleteAttendance(week: String!, team: String!, day: String!): [Attendance]
   }
+
   input StatusInput {
-    value: String!
+    day: String!
+    score: String!
   }
+
   input TraineeInput {
-    traineeId: ID!
-    status: [StatusInput]
+    trainee: ID!
+    status: StatusInput!
   }
   type Session {
     id: String
