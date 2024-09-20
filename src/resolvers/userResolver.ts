@@ -345,6 +345,14 @@ const resolvers: any = {
           user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
+          if (
+            !user.cohort ||
+            user.cohort === null ||
+            !user.team ||
+            user.team === null
+          ) {
+            throw new Error('Please wait to be added to a program or cohort')
+          }
           if (await isAssigned(org?.name, user._id)) {
             const token = jwt.sign(
               { userId: user._id, role: user._doc?.role || 'user' },
