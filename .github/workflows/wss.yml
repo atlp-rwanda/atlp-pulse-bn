@@ -22,7 +22,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       WS_BACKEND_URL: "ue"
       SOUL: "train"
-      WS_BACKEND: "web socket"
+      WS_BACKEND_A: "web socket"
       NAr: "uMY"
     steps:
       - uses: actions/checkout@v3
@@ -42,7 +42,7 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_KEY }}
           port: ${{ secrets.DO_PORT }}
-          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, SOUL, NAr, WS_BACKEND, WS_BACKEND_URL;
+          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, SOUL, NAr, WS_BACKEND_A, WS_BACKEND_URL;
           script: |
             rm -f env
             echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} >> env
@@ -64,7 +64,7 @@ jobs:
             else
               echo "No existing container found"
             fi
-            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e SOUL -e NAr -e WS_BACKEND -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV -e WS_BACKEND_URL devpulse/atlp-pulse-bn:latest)
+            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e SOUL -e NAr -e WS_BACKEND_A -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV -e WS_BACKEND_URL devpulse/atlp-pulse-bn:latest)
             if [ $? -eq 0 ]; then
               echo "New container spinned up successfully"
             else
