@@ -20,7 +20,7 @@ jobs:
       COORDINATOR_EMAIL: ${{ secrets.COORDINATOR_EMAIL }} 
       COORDINATOR_PASS: ${{ secrets.COORDINATOR_PASS }} 
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      WS_BACKEND_URL: ${{ secrets.WS_BACKEND_URL }}
+      WS_BACKEND_URL: "ue"
       SOUL: "train"
     steps:
       - uses: actions/checkout@v3
