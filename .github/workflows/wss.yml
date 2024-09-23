@@ -62,7 +62,7 @@ jobs:
             else
               echo "No existing container found"
             fi
-            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV -e WS_BACKEND_URL devpulse/atlp-pulse-bn:latest)
+            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e SOUL -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV -e WS_BACKEND_URL devpulse/atlp-pulse-bn:latest)
             if [ $? -eq 0 ]; then
               echo "New container spinned up successfully"
             else
