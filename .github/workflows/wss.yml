@@ -20,7 +20,8 @@ jobs:
       COORDINATOR_EMAIL: ${{ secrets.COORDINATOR_EMAIL }} 
       COORDINATOR_PASS: ${{ secrets.COORDINATOR_PASS }} 
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      WS_BACKEND_URL: "wss://beta-backend.devpulse.org"
+      WS_BACKEND_URL: ${{ secrets.WS_BACKEND_URL }}
+      SOUL: "train"
     steps:
       - uses: actions/checkout@v3
       - name: Build and push Docker Image
@@ -52,7 +53,6 @@ jobs:
             echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> env
             echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> env
             echo NODE_ENV=${{ secrets.NODE_ENV }} >> env
-            echo WS_BACKEND_URL="wss://beta-backend.devpulse.org" >> env
             cat env
             docker pull devpulse/atlp-pulse-bn:latest
             existing_container=$(docker ps | grep 4000)
