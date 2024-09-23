@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
-      REGISTER_FRONTEND_URL: "https://beta.devpulse.org/register"
+      REGISTER_FRONTEND_URL: "https://eta.devpulse.org/register"
       REGISTER_ORG_FRONTEND_URL: "https://beta.devpulse.org/signup/org"
       FRONTEND_LINK: "https://beta.devpulse.org"
       NODE_ENV: "production"
