@@ -53,7 +53,7 @@ jobs:
             echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> .env
             echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> .env
             echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
-            echo WS_BACKEND_URL = "web " >> .env
+            echo WS_BACKEND_URL="web " >> .env
             cat .env
             docker pull devpulse/atlp-pulse-bn:latest
             existing_container=$(docker ps | grep 4000)
