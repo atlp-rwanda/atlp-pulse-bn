@@ -43,6 +43,8 @@ jobs:
           port: ${{ secrets.DO_PORT }}
           envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, SOUL, NAr, WS_BACKEND_URL;
           script: |
+            cat env
+            echo "env content"
             rm -f env
             echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} >> env
             echo ADMIN_PASS=${{ secrets.ADMIN_PASS }} >> env
@@ -54,6 +56,7 @@ jobs:
             echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> env
             echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> env
             echo NODE_ENV=${{ secrets.NODE_ENV }} >> env
+            echo WS_BACKEND_URL
             cat env
             docker pull devpulse/atlp-pulse-bn:latest
             existing_container=$(docker ps | grep 4000)
