@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MONGO_PROD_DB: ${{ secrets.MONGO_PROD_DB}}
+      REGISTER_FRONTEND_URL: "https://beta.devpulse.org/register"
       REGISTER_ORG_FRONTEND_URL: "https://beta.devpulse.org/signup/org"
       FRONTEND_LINK: "https://beta.devpulse.org"
       NODE_ENV: "production"
@@ -40,7 +41,7 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_KEY }}
           port: ${{ secrets.DO_PORT }}
-          envs: MONGO_PROD_DB, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, SOUL, NAr, WS_BACKEND_URL;
+          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, SOUL, NAr, WS_BACKEND_URL;
           script: |
             cat env
             echo "env content"
@@ -55,7 +56,7 @@ jobs:
             echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> env
             echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> env
             echo NODE_ENV=${{ secrets.NODE_ENV }} >> env
-            echo WS_BACKEND_URL
+            echo WS_BACKEND_URL = "web " >> env
             cat env
             docker pull devpulse/atlp-pulse-bn:latest
             existing_container=$(docker ps | grep 4000)
