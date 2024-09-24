@@ -43,21 +43,18 @@ jobs:
           port: ${{ secrets.DO_PORT }}
           envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, SOUL, NAr, WS_BACKEND_URL;
           script: |
-            cat env
-            echo "env content"
-            rm -f env
-            echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} >> env
-            echo ADMIN_PASS=${{ secrets.ADMIN_PASS }} >> env
-            echo COORDINATOR_EMAIL=${{ secrets.COORDINATOR_EMAIL }} >> env
-            echo COORDINATOR_PASS=${{ secrets.COORDINATOR_PASS }} >> env
-            echo FRONTEND_LINK=${{ secrets.FRONTEND_LINK }} >> env
-            echo REGISTER_FRONTEND_URL=${{ secrets.REGISTER_FRONTEND_URL }} >> env
-            echo REGISTER_ORG_FRONTEND_URL=${{ secrets.REGISTER_ORG_FRONTEND_URL }} >> env
-            echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> env
-            echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> env
-            echo NODE_ENV=${{ secrets.NODE_ENV }} >> env
-            echo WS_BACKEND_URL = "web " >> env
-            cat env
+            echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} > .env
+            echo ADMIN_PASS=${{ secrets.ADMIN_PASS }} >> .env
+            echo COORDINATOR_EMAIL=${{ secrets.COORDINATOR_EMAIL }} >> .env
+            echo COORDINATOR_PASS=${{ secrets.COORDINATOR_PASS }} >> .env
+            echo FRONTEND_LINK=${{ secrets.FRONTEND_LINK }} >> .env
+            echo REGISTER_FRONTEND_URL=${{ secrets.REGISTER_FRONTEND_URL }} >> .env
+            echo REGISTER_ORG_FRONTEND_URL=${{ secrets.REGISTER_ORG_FRONTEND_URL }} >> .env
+            echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> .env
+            echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> .env
+            echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+            echo WS_BACKEND_URL = "web " >> .env
+            cat .env
             docker pull devpulse/atlp-pulse-bn:latest
             existing_container=$(docker ps | grep 4000)
             if [ $? -eq 0 ]; then
