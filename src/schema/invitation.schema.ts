@@ -57,7 +57,7 @@ const invitationSchema = gql`
   }
 
     type Query {
-    filterInvitations(limit: Int, offset: Int, role: String, status: String): PaginatedInvitations!
+    filterInvitations(limit: Int, offset: Int, role: String, status: String, orgToken: String!): PaginatedInvitations!
   }
 
   type InvitationResult {

@@ -107,3 +107,4 @@ dist
 ci-pipeline.yml
 
 .DS_Store
+yarn.lock
