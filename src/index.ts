@@ -97,7 +97,7 @@ async function startApolloServer(
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
 
-  const graphqlPath = '/'
+  const graphqlPath = process.env.NODE_ENV === 'development'? '/': '/ws'
 
   const wsServer = new WebSocketServer({
     server: httpServer,
