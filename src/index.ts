@@ -108,8 +108,8 @@ async function startApolloServer(
     const ip = req.socket.remoteAddress
     const xHeader = req.headers['x-forwarded-for']
     const ip_ = (xHeader as string)?.split(',')[0].trim()
-    logger.info(`WebSocket connection. remote address ${ip}`)
-    logger.info(`WebSocket connection. x header ${ip_}`)
+    console.info(`WebSocket connection. remote address ${ip}`)
+    console.info(`WebSocket connection. x header ${ip_}`)
     ws.on('error', (err) => {
       logger.error(`WebSocket error: ${err.message}`)
     })
