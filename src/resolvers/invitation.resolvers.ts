@@ -362,54 +362,6 @@ const invitationResolvers: IResolvers = {
       return { message: 'Invitation deleted successfully ' }
     },
   },
-  Query: {
-    getInvitationStatistics: async (_: any, __: any, context: any) => {
-      const { userId } = (await checkUserLoggedIn(context))(['admin'])
-      if (!userId) {
-        throw new GraphQLError('User is not logged in', {
-          extensions: {
-            code: 'UNAUTHENTICATED',
-          },
-        })
-      }
-
-      const invitations = await Invitation.find({
-        inviterId: userId.toString(),
-      })
-
-      const totalInvitations = invitations.length
-      const acceptedInvitationsCount = invitations.filter(
-        (invitation) => invitation.status === 'accepted'
-      ).length
-      const pendingInvitationsCount = invitations.filter(
-        (invitation) => invitation.status === 'pending'
-      ).length
-
-      const cancelledInvitationsCount = invitations.filter(
-        (invitation) => invitation.status === 'cancelled'
-      ).length
-
-      const getAcceptedInvitationsPercentsCount = totalInvitations
-        ? Math.round((acceptedInvitationsCount / totalInvitations) * 100)
-        : 0
-      const getPendingInvitationsPercentsCount = totalInvitations
-        ? Math.round((pendingInvitationsCount / totalInvitations) * 100)
-        : 0
-      const getCancelledInvitationsPercentsCount = totalInvitations
-        ? Math.round((cancelledInvitationsCount / totalInvitations) * 100)
-        : 0
-
-      return {
-        totalInvitations,
-        acceptedInvitationsCount,
-        pendingInvitationsCount,
-        cancelledInvitationsCount,
-        getAcceptedInvitationsPercentsCount,
-        getPendingInvitationsPercentsCount,
-        getCancelledInvitationsPercentsCount,
-      }
-    },
-  },
 }
 
 export default invitationResolvers

@@ -23,20 +23,26 @@ const StatisticsResolvers = {
     getInvitationStatistics: async (
       _: any,
       args: QueryArguments,
-      context:any
+      context: any
     ): Promise<InvitationStatistics> => {
       const { orgToken, startDate, endDate, daysRange } = args
 
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin']);
+        const { userId } = (await checkUserLoggedIn(context))(['admin'])
         const query: any = {
-          $and: [
-            { 'invitees.orgToken': orgToken },
-            { inviterId: userId }
-          ]
-        };
+          $and: [{ 'invitees.orgToken': orgToken }, { inviterId: userId }],
+        }
 
-        if (daysRange) {
+        if (startDate || endDate) {
+          query.createdAt = {}
+
+          if (startDate) query.createdAt.$gte = new Date(startDate)
+          if (endDate) {
+            const endOfDay = new Date(endDate)
+            endOfDay.setHours(23, 59, 59, 999)
+            query.createdAt.$lte = endOfDay
+          }
+        } else if (daysRange) {
           const today = new Date()
           const rangeStartDate = new Date(today)
           rangeStartDate.setDate(today.getDate() - daysRange)
@@ -45,12 +51,6 @@ const StatisticsResolvers = {
             $gte: rangeStartDate,
             $lte: today,
           }
-        }
-
-        if (startDate || endDate) {
-          query.createdAt = query.createdAt || {}
-          if (startDate) query.createdAt.$gte = new Date(startDate)
-          if (endDate) query.createdAt.$lte = new Date(endDate)
         }
 
         const invitations = await Invitation.find(query)
