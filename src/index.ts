@@ -97,13 +97,23 @@ async function startApolloServer(
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
 
-  const graphqlPath = process.env.NODE_ENV === 'development'? '/': '/ws'
+  const graphqlPath = '/'
 
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: graphqlPath,
   })
 
+  wsServer.on('connection', (ws, req) => {
+    const ip = req.socket.remoteAddress
+    const xHeader = req.headers['x-forwarded-for']
+    const ip_ = (xHeader as string)?.split(',')[0].trim()
+    logger.info(`WebSocket connection. remote address ${ip}`)
+    logger.info(`WebSocket connection. x header ${ip_}`)
+    ws.on('error', (err) => {
+      logger.error(`WebSocket error: ${err.message}`)
+    })
+  })
   const wsServerCleanup = useServer({ schema }, wsServer)
 
   app.use(
