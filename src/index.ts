@@ -105,11 +105,11 @@ async function startApolloServer(
   })
 
   wsServer.on('connection', (ws, req) => {
-  const ip = req.socket.remoteAddress
-  console.info(`WebSocket connection. remote address ${ip}`)
-  ws.on('error', (err) => {
-    logger.error(`WebSocket error: ${err.message}`)
-  })
+    const ip = req.socket.remoteAddress
+    console.info(`WebSocket connection. remote address ${ip}`)
+    ws.on('error', (err) => {
+      logger.error(`WebSocket error: ${err.message}`)
+    })
   })
 
   const wsServerCleanup = useServer({ schema }, wsServer)
