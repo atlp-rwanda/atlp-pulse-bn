@@ -28,6 +28,7 @@ const invitationSchema = gql`
     inviterId: String!
     status: String!
     invitees: [Invitee!]!
+    orgName: String!
     orgToken: String!
     createdAt: String!
   }
@@ -44,6 +45,7 @@ const invitationSchema = gql`
 
   type Query {
     getInvitations(
+      orgToken: String,
       query: String!
       limit: Int
       offset: Int
@@ -51,7 +53,7 @@ const invitationSchema = gql`
   }
 
   type Query {
-    getAllInvitations(limit: Int, offset: Int): PaginatedInvitations!
+    getAllInvitations(orgToken: String!,limit: Int, offset: Int): PaginatedInvitations!
   }
 
     type Query {
@@ -76,9 +78,9 @@ const invitationSchema = gql`
   }
 
   type Mutation {
-    sendInvitation(invitees: [InviteeInput!]!, orgToken: String!): Invitation!
+    sendInvitation(invitees: [InviteeInput!]!,orgName: String!, orgToken: String!): Invitation!
     updateInvitation(invitationId: ID!, orgToken: String!, newEmail: String, newRole: String): Invitation
-    uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
+    uploadInvitationFile(file: Upload!,orgName: String!, orgToken: String!): FileData!
     deleteInvitation(invitationId: ID!): DeleteMessage
     cancelInvitation(orgToken: String!, id: ID!): Invitation!
   }

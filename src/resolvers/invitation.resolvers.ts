@@ -32,7 +32,8 @@ const invitationResolvers: IResolvers = {
       {
         invitees,
         orgToken,
-      }: { invitees: { email: string; role: string }[]; orgToken: string },
+        orgName,
+      }: { invitees: { email: string; role: string }[]; orgName: string; orgToken: string },
       context
     ) => {
       try {
@@ -67,6 +68,7 @@ const invitationResolvers: IResolvers = {
               role: invitee.role,
             })),
             orgToken,
+            orgName,
           })
 
           const { newToken, link } = await generateInvitationTokenAndLink(
@@ -164,7 +166,7 @@ const invitationResolvers: IResolvers = {
 
     async uploadInvitationFile(
       _: any,
-      { file, orgToken }: { file: any; orgToken: string },
+      { file,orgName, orgToken }: { file: any;orgName: string, orgToken: string },
       context: any
     ) {
       const { userId } = (await checkUserLoggedIn(context))(['admin'])
@@ -211,6 +213,7 @@ const invitationResolvers: IResolvers = {
           const newInvitation = new Invitation({
             inviterId: userId.toString(),
             invitees: [{ email, role }],
+            orgName,
             orgToken,
           })
 

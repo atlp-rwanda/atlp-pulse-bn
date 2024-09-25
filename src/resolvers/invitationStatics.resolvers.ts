@@ -1,7 +1,7 @@
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Invitation } from '../models/invitation.model'
 import { GraphQLError } from 'graphql'
-
+import { checkLoggedInOrganization } from '../helpers/organization.helper';
 interface InvitationStatistics {
   totalInvitations: number
   acceptedInvitationsCount: number
@@ -23,26 +23,17 @@ const StatisticsResolvers = {
     getInvitationStatistics: async (
       _: any,
       args: QueryArguments,
-      context: any
+      context:any
     ): Promise<InvitationStatistics> => {
       const { orgToken, startDate, endDate, daysRange } = args
-
+      const org = await checkLoggedInOrganization(orgToken);
+      const organization = org.name.toLocaleLowerCase();
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
         const query: any = {
-          $and: [{ 'invitees.orgToken': orgToken }, { inviterId: userId }],
-        }
+            'orgName': organization ,
+        };
 
-        if (startDate || endDate) {
-          query.createdAt = {}
-
-          if (startDate) query.createdAt.$gte = new Date(startDate)
-          if (endDate) {
-            const endOfDay = new Date(endDate)
-            endOfDay.setHours(23, 59, 59, 999)
-            query.createdAt.$lte = endOfDay
-          }
-        } else if (daysRange) {
+        if (daysRange) {
           const today = new Date()
           const rangeStartDate = new Date(today)
           rangeStartDate.setDate(today.getDate() - daysRange)
@@ -53,8 +44,12 @@ const StatisticsResolvers = {
           }
         }
 
-        const invitations = await Invitation.find(query)
-
+        if (startDate || endDate) {
+          query.createdAt = query.createdAt || {}
+          if (startDate) query.createdAt.$gte = new Date(startDate)
+          if (endDate) query.createdAt.$lte = new Date(endDate)
+        }
+        const invitations = await Invitation.find(query);
         if (!invitations.length) {
           return {
             totalInvitations: 0,
