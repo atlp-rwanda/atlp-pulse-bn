@@ -93,7 +93,7 @@ async function startApolloServer(
   typeDefs: DocumentNode,
   resolvers: IResolvers
 ) {
-  const app = express() as any
+  const app = express()
   const httpServer = http.createServer(app)
   const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -106,10 +106,7 @@ async function startApolloServer(
 
   wsServer.on('connection', (ws, req) => {
     const ip = req.socket.remoteAddress
-    const xHeader = req.headers['x-forwarded-for']
-    const ip_ = (xHeader as string)?.split(',')[0].trim()
     console.info(`WebSocket connection. remote address ${ip}`)
-    console.info(`WebSocket connection. x header ${ip_}`)
     ws.on('error', (err) => {
       logger.error(`WebSocket error: ${err.message}`)
     })
