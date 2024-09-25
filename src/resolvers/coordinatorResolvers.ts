@@ -1,24 +1,22 @@
 import { GraphQLError } from 'graphql'
-import Cohort from '../models/cohort.model'
 import * as jwt from 'jsonwebtoken'
-import { User } from '../models/user'
-import { Attendance } from '../models/attendance.model'
-import { Organization } from '../models/organization.model'
-import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Types } from 'mongoose'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
-import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
-import generalTemplate from '../utils/templates/generalTemplate'
-import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
-import { sendEmail } from '../utils/sendEmail'
-import { Context } from './../context'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Attendance } from '../models/attendance.model'
+import Cohort from '../models/cohort.model'
+import { Organization } from '../models/organization.model'
+import { Profile } from '../models/profile.model'
 import Program from '../models/program.model'
 import Team from '../models/team.model'
-import mongoose, { Types } from 'mongoose'
+import { User } from '../models/user'
 import { pushNotification } from '../utils/notification/pushNotification'
-import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
-import DropTraineeTemplate from '../utils/templates/dropTraineeTemplate'
-import { Profile } from '../models/profile.model'
+import { sendEmail } from '../utils/sendEmail'
+import generalTemplate from '../utils/templates/generalTemplate'
+import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
+import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
+import { Context } from './../context'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -822,7 +820,7 @@ const manageStudentResolvers = {
         const newToken: any = token.replace(/\./g, '*')
         const link =
           type == 'user'
-            ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
+            ? `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
         const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
