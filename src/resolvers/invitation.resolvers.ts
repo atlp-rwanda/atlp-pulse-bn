@@ -32,7 +32,8 @@ const invitationResolvers: IResolvers = {
       {
         invitees,
         orgToken,
-      }: { invitees: { email: string; role: string }[]; orgToken: string },
+        orgName,
+      }: { invitees: { email: string; role: string }[]; orgName: string; orgToken: string },
       context
     ) => {
       try {
@@ -67,6 +68,7 @@ const invitationResolvers: IResolvers = {
               role: invitee.role,
             })),
             orgToken,
+            orgName,
           })
 
           const { newToken, link } = await generateInvitationTokenAndLink(
@@ -164,7 +166,7 @@ const invitationResolvers: IResolvers = {
 
     async uploadInvitationFile(
       _: any,
-      { file, orgToken }: { file: any; orgToken: string },
+      { file,orgName, orgToken }: { file: any;orgName: string, orgToken: string },
       context: any
     ) {
       const { userId } = (await checkUserLoggedIn(context))(['admin'])
@@ -211,6 +213,7 @@ const invitationResolvers: IResolvers = {
           const newInvitation = new Invitation({
             inviterId: userId.toString(),
             invitees: [{ email, role }],
+            orgName,
             orgToken,
           })
 
@@ -360,54 +363,6 @@ const invitationResolvers: IResolvers = {
 
       await Invitation.findByIdAndDelete(invitationId)
       return { message: 'Invitation deleted successfully ' }
-    },
-  },
-  Query: {
-    getInvitationStatistics: async (_: any, __: any, context: any) => {
-      const { userId } = (await checkUserLoggedIn(context))(['admin'])
-      if (!userId) {
-        throw new GraphQLError('User is not logged in', {
-          extensions: {
-            code: 'UNAUTHENTICATED',
-          },
-        })
-      }
-
-      const invitations = await Invitation.find({
-        inviterId: userId.toString(),
-      })
-
-      const totalInvitations = invitations.length
-      const acceptedInvitationsCount = invitations.filter(
-        (invitation) => invitation.status === 'accepted'
-      ).length
-      const pendingInvitationsCount = invitations.filter(
-        (invitation) => invitation.status === 'pending'
-      ).length
-
-      const cancelledInvitationsCount = invitations.filter(
-        (invitation) => invitation.status === 'cancelled'
-      ).length
-
-      const getAcceptedInvitationsPercentsCount = totalInvitations
-        ? Math.round((acceptedInvitationsCount / totalInvitations) * 100)
-        : 0
-      const getPendingInvitationsPercentsCount = totalInvitations
-        ? Math.round((pendingInvitationsCount / totalInvitations) * 100)
-        : 0
-      const getCancelledInvitationsPercentsCount = totalInvitations
-        ? Math.round((cancelledInvitationsCount / totalInvitations) * 100)
-        : 0
-
-      return {
-        totalInvitations,
-        acceptedInvitationsCount,
-        pendingInvitationsCount,
-        cancelledInvitationsCount,
-        getAcceptedInvitationsPercentsCount,
-        getPendingInvitationsPercentsCount,
-        getCancelledInvitationsPercentsCount,
-      }
     },
   },
 }

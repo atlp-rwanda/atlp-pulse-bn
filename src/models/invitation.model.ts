@@ -37,6 +37,10 @@ const InvitationSchema = new Schema({
       },
     },
   ],
+  orgName: {
+    type: String,
+    required: true,
+  },
   orgToken: {
     type: String,
     required: true,

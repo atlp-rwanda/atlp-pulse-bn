@@ -2,24 +2,25 @@
 import { Invitation } from '../models/invitation.model'
 import { ApolloError } from 'apollo-server'
 import { GraphQLError } from 'graphql'
-import { checkUserLoggedIn } from '../helpers/user.helpers';
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
 
 const TableViewInvitationResolver = {
   Query: {
     async getInvitations(
       parent: any,
-      args: { query: string; limit: number; offset: number },context: any
+      args: { query: string; limit: number; offset: number ;orgToken: string}
     ) {
       try {
-        const { query } = args;
+        const { query,orgToken } = args;
         const limit = args.limit ?? 5;
         const offset = args.offset ?? 0;
 
         if (!query) throw new GraphQLError('No query provided')
-          const { userId } = (await checkUserLoggedIn(context))(['admin']);
+        if (!orgToken) throw new GraphQLError('No organization token provided');
+          const org = (await checkLoggedInOrganization(orgToken)).name.toLocaleLowerCase();
           const searchCriteria = {
             $and: [
-              { inviterId: userId }, 
+              { orgName: org }, 
               {
                 $or: [
                   { 'invitees.email': { $regex: query, $options: 'i' } },
@@ -52,10 +53,12 @@ const TableViewInvitationResolver = {
       }
     },
 
-    async getAllInvitations(_: any, args: { limit: number; offset: number }, context: any) {
+    async getAllInvitations(_: any, args: { limit: number; offset: number;orgToken: string  }) {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin']);
-        const invitations = await Invitation.find({inviterId:userId})
+        const { orgToken } = args;
+        if (!orgToken) throw new GraphQLError('No organization token provided'); 
+        const org = (await checkLoggedInOrganization(orgToken)).name.toLocaleLowerCase();
+        const invitations = await Invitation.find({orgName:org});
         const totalInvitations = invitations.length;
 
         return {
@@ -74,12 +77,11 @@ const TableViewInvitationResolver = {
       }
     },
 
-    async filterInvitations(_: any, args: { limit: number; offset: number; role: string; status: string }) {
+    async filterInvitations(_: any, args: { limit: number; offset: number; role: string; status: string}) {
       try {
         const limit = args.limit ?? 5;
         const offset = args.offset ?? 0;
-        const { role, status } = args;
-
+        const { role, status} = args;
         if (!role && !status) throw new GraphQLError('No filter criteria provided');
 
         let invitations: any = [];
