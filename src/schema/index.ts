@@ -6,6 +6,15 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
+  type Phase{
+    name:String
+    description:String
+  }
+  type Program{
+    name:String
+    description:String
+    manager:User
+  }
 
   type Subscription {
     newRating(receiver: String!): Notification!
@@ -49,6 +58,9 @@ const Schema = gql`
     startingPhase: DateTime
     active: Boolean
     organization: Organization
+    phase:Phase
+    manager:User
+    program:Program
   }
   type User {
     id: ID!
@@ -499,7 +511,16 @@ const Schema = gql`
       bodyProfessional: String
     ): Notifications!
     deleteTeam(id: ID!): String!
-    updateTeam(id: ID!, orgToken: String, name: String): Team
+    updateTeam(
+      id: ID!
+      orgToken: String
+      name: String
+      cohort: String
+      TTL: String
+      phase:String
+      program:String
+      manager:String
+    ): Team
     deleteReply: String!
   }
   type Event {
