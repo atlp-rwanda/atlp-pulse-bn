@@ -1,3 +1,4 @@
+import { User } from '../models/user'
 import { sendEmail } from '../utils/sendEmail'
 
 export const checkloginAttepmts = async (Profile: any, user: any) => {
@@ -26,6 +27,13 @@ export const checkloginAttepmts = async (Profile: any, user: any) => {
   }
 
   return 1
+}
+export async function checkUserAccountStatus(userId: string): Promise<boolean> {
+  const user = await User.findById(userId)
+  if (!user) {
+    return false
+  }
+  return true
 }
 
 const emailtemp = (trials: any, date: any, country: any, city: any) => {

@@ -27,6 +27,7 @@ import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
 import { Invitation } from '../models/invitation.model'
 import isAssigned from '../helpers/isAssignedToProgramOrCohort'
+import { pushNotification } from '../utils/notification/pushNotification'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -272,6 +273,7 @@ const resolvers: any = {
 
       return { token, user: newUser }
     },
+
     async createProfile(_: any, args: any, context: { userId: any }) {
       if (!context.userId) throw new Error('Unauthorized')
       if (!mongoose.isValidObjectId(context.userId))
@@ -289,6 +291,7 @@ const resolvers: any = {
 
       return profile.toJSON()
     },
+
     async loginUser(
       _: any,
       { loginInput: { email, password, orgToken, activity } }: any
@@ -491,6 +494,47 @@ const resolvers: any = {
           },
         })
       }
+    },
+
+    async deleteUser(_: any, { input }: any, context: { userId: any }) {
+      const requester = await User.findById(context.userId)
+      if (!requester) {
+        throw new Error('Requester does not exist')
+      }
+      if (requester.role !== 'admin' && requester.role !== 'superAdmin') {
+        throw new Error('You do not have permission to delete users')
+      }
+      const userToDelete = await User.findById(input.id)
+      if (!userToDelete) {
+        throw new Error('User to be deleted does not exist')
+      }
+      if (userToDelete.role === 'coordinator') {
+        const hasCohort = await Cohort.findOne({ coordinator: input.id })
+        if (hasCohort) {
+          await Cohort.findOneAndReplace(
+            { coordinator: input.id },
+            { coordinator: null }
+          )
+          await pushNotification(
+            context.userId,
+            `You have deleted the coordinator of ${hasCohort.name}, Assign the new coordinator`,
+            context.userId
+          )
+        }
+      } else if (userToDelete.role === 'ttl') {
+        const hasTeam = await Team.findOne({ ttl: input.id })
+        if (hasTeam) {
+          await Team.findOneAndReplace({ ttl: input.id }, { ttl: null })
+          await pushNotification(
+            context.userId,
+            `You have deleted the TTL of  ${Team.name}, Assign the new TTL`,
+            context.userId
+          )
+        }
+      }
+      await User.findByIdAndDelete(input.id)
+      await Profile.deleteOne({ user: input.id })
+      return { message: 'User deleted successfully' }
     },
 
     async updateUserRole(_: any, { id, name, orgToken }: any) {
@@ -797,6 +841,7 @@ const resolvers: any = {
 
       return orgExists
     },
+
     async addOrganization(
       _: any,
       { organizationInput: { name, email, description }, action: action }: any,
@@ -982,6 +1027,7 @@ const resolvers: any = {
         )
       return deleteOrg
     },
+
     async forgotPassword(_: any, { email }: any) {
       const userExists: any = await User.findOne({ email })
 
@@ -1007,6 +1053,7 @@ const resolvers: any = {
         throw new Error('Something went wrong!\nCheck your credentials')
       }
     },
+
     async updateEmailNotifications(_: any, { id }: any, context: Context) {
       const user: any = await User.findOne({ _id: id })
       if (!user) {
@@ -1019,6 +1066,7 @@ const resolvers: any = {
       )
       return 'updated successful'
     },
+
     async updatePushNotifications(_: any, { id }: any, context: Context) {
       const user: any = await User.findOne({ _id: id })
       if (!user) {
@@ -1029,6 +1077,7 @@ const resolvers: any = {
       const updatedPushNotifications = user.pushNotifications
       return 'updated successful'
     },
+
     async resetUserPassword(
       _: any,
       { password, confirmPassword, token }: any,
