@@ -3,11 +3,13 @@ import Ticket from '../models/ticket.model'
 import { Context } from '../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { User } from '../models/user'
-import { Notification } from '../models/notification.model'
 import { PubSub } from 'graphql-subscriptions'
+import { pushNotification } from '../utils/notification/pushNotification'
+
 const pubsub = new PubSub()
 
 export type TicketType = InstanceType<typeof Ticket>
+export type UserType = InstanceType<typeof User>
 
 type Reply = {
   ticketId: string
@@ -15,81 +17,51 @@ type Reply = {
 }
 
 async function createReply(
-  ticket: any,
-  user: any,
+  ticket: TicketType,
+  user: UserType,
   context: Context,
-  replyMessage: string,
-  pubsub: any
+  replyMessage: string
 ) {
-  // Replyier is SuperAdmin sender: context.userId, receiver: user
-  if (context?.role === 'superAdmin') {
-    const reply = {
+  try {
+    const isSuperAdmin = context?.role === 'superAdmin'
+    const reply: any = {
       sender: context?.userId,
-      receiver: user?.toString(),
+      receiver: isSuperAdmin
+        ? user?._id.toString()
+        : (await User.findOne({ role: 'superAdmin' }))?._id.toString(),
       replyMessage,
     }
 
     ticket.replies.push(reply)
-    ticket.status = 'admin-reply'
+    ticket.status = isSuperAdmin ? 'admin-reply' : 'customer-reply'
 
     await ticket.save({ validateBeforeSave: false })
 
     const ticketReply = ticket.replies[ticket.replies.length - 1]
-    const sender = await User.findById(ticketReply.sender.toString())
+    const sender: any = await User.findById(ticketReply.sender.toString())
       .populate('profile')
       .select('email profile id role organization')
 
-    const notification: any = await Notification.create({
-      receiver: user?.toString(),
-      message: `A reply on ticket has been sent. ${ticket._id}`,
-      sender: context?.userId,
-      read: false,
-      createdAt: new Date(),
-    })
-
-    notification.sender = sender
-
-    pubsub.publish('SEND_NOTIFICATION_ON_TICKETS', {
-      sendNotsOnTickets: notification,
-    })
-
-    ticketReply.sender = sender
-
-    return ticketReply
-  } else {
-    const superAdmin = await User.findOne({ role: 'superAdmin' }).lean()
-    const reply = {
-      sender: context.userId,
-      receiver: superAdmin?._id.toString(),
-      replyMessage,
+    if (!sender) {
+      throw new GraphQLError('Sender not found', {
+        extensions: { code: 'NOT_FOUND' },
+      })
     }
-    ticket.replies.push(reply)
-    ticket.status = 'customer-reply'
-
-    await ticket.save({ validateBeforeSave: false })
-    const ticketReply = ticket.replies[ticket.replies.length - 1]
-
-    const sender = await User.findById(ticketReply.sender.toString())
-      .populate('profile')
-      .select('email profile id role organization')
-
-    const notification: any = await Notification.create({
-      receiver: superAdmin?._id.toString(),
-      message: `A reply on ticket has been sent. ${ticket._id}`,
-      sender: context.userId,
-      read: false,
-      createdAt: new Date(),
-    })
-
-    notification.sender = sender
-
-    pubsub.publish('SEND_NOTIFICATION_ON_TICKETS', {
-      sendNotsOnTickets: notification,
-    })
 
     ticketReply.sender = sender
+    const senderId: any = context.userId
+    // Send notification
+    await pushNotification(
+      reply.receiver,
+      `A reply on ticket has been sent. ${ticket._id}`,
+      senderId
+    )
 
     return ticketReply
+  } catch (error: any) {
+    throw new GraphQLError(error.message, {
+      extensions: { code: '500' },
+    })
   }
 }
 
@@ -98,20 +70,20 @@ const resolvers = {
     ticketCreated: {
       subscribe: () => pubsub.asyncIterator('TICKET_CREATED'),
     },
-
     replyAdded: {
       subscribe: () => pubsub.asyncIterator('REPLY_ADDED'),
     },
-
     sendNotsOnTickets: {
       subscribe: () => pubsub.asyncIterator('SEND_NOTIFICATION_ON_TICKETS'),
     },
   },
 
   Query: {
-    getAllTickets: async (_: any, arg: any, context: Context) => {
+    getAllTickets: async (_: any, __: any, context: Context | any) => {
       try {
-        ;(await checkUserLoggedIn(context))([
+        await (
+          await checkUserLoggedIn(context)
+        )([
           'superAdmin',
           'admin',
           'manager',
@@ -121,221 +93,268 @@ const resolvers = {
           'users',
         ])
 
-        const filterObj: any = {}
+        // Allow admins to fetch all tickets
+        const filterObj: any = (() => {
+          if (['superAdmin', 'admin'].includes(context.role)) {
+            return {} // Admins can see all tickets
+          } else if (context.role === 'trainee') {
+            return { $or: [{ assignee: context.userId }] }
+          } else if (context.role === 'coordinator') {
+            return { $or: [{ user: context.userId }] }
+          }
+          return { user: context.userId } // Regular users see their own tickets
+        })()
 
-        // if (context.role !== 'superAdmin') filterObj.user = context.userId
-        if (context.role === 'superAdmin') {
-          // SuperAdmin can view all tickets
-        } else if (context.role === 'admin') {
-          // Admin can view all tickets
-        } else {
-          // Regular user can only view their own tickets
-          filterObj.user = context.userId
-        }
-
-        const tickets = await Ticket.find(filterObj)
+        const tickets: any[] = await Ticket.find(filterObj)
           .populate({
             path: 'user',
-            populate: {
-              path: 'profile',
-              model: 'Profile',
-            },
+            populate: { path: 'profile', model: 'Profile' },
           })
           .populate({
             path: 'replies',
             populate: {
               path: 'sender',
               model: 'User',
-              populate: {
-                path: 'profile',
-                model: 'Profile',
-              },
+              populate: { path: 'profile', model: 'Profile' },
             },
+          })
+          .populate({
+            path: 'assignee',
+            populate: { path: 'profile', model: 'Profile' },
           })
           .exec()
 
-        return tickets
+        return tickets.map((ticket) => ({
+          ...ticket.toObject(),
+          id: ticket._id.toString(),
+        }))
       } catch (error: any) {
         throw new GraphQLError(error.message, {
-          extensions: {
-            code: '500',
-          },
+          extensions: { code: '500' },
         })
       }
     },
   },
 
   Mutation: {
-    createTicket: async (_: any, args: TicketType, context: Context) => {
+    createTicket: async (_: any, args: any, context: Context) => {
       try {
-        ;(await checkUserLoggedIn(context))([
-          'admin',
-          'coordinator',
-          'manager',
-          'trainee',
-          'user',
-        ])
-        const { subject, message }: TicketType = args
+        await (
+          await checkUserLoggedIn(context)
+        )(['admin', 'superAdmin', 'coordinator', 'ttl'])
+        const { subject, message, assignee }: any = args
+
+        let assigneeUser = null
+        if (assignee) {
+          assigneeUser = await User.findById(assignee)
+          if (!assigneeUser) {
+            throw new GraphQLError('Assignee not found', {
+              extensions: { code: 'NOT_FOUND' },
+            })
+          }
+        }
 
         const ticket = await Ticket.create({
           user: context.userId,
           subject,
           message,
+          assignee: assignee,
         })
 
-        const subPayload: any = ticket.toJSON()
-
-        const user = await User.findById(subPayload.user.toString())
+        const user = await User.findById(context.userId)
           .populate('profile')
           .select('email profile id role organization')
 
-        subPayload.user = user
+        if (!user) {
+          throw new GraphQLError('User not found', {
+            extensions: { code: 'NOT_FOUND' },
+          })
+        }
+
+        await ticket.populate('assignee')
 
         pubsub.publish('TICKET_CREATED', {
-          ticketCreated: {
-            ...subPayload,
-          },
+          ticketCreated: { ...ticket.toJSON(), user },
         })
 
-        const superAdmin = await User.findOne({ role: 'superAdmin' })
+        const receiverId: any =
+          assignee || (await User.findOne({ role: 'superAdmin' }))?._id
+        const senderId: any = context.userId
+        await pushNotification(
+          receiverId,
+          `New ticket assigned to you. Ticket ID: ${ticket._id}`,
+          senderId
+        )
 
-        const notification: any = await Notification.create({
-          receiver: superAdmin?._id,
-          message: `Ticket has been sent to you. ${ticket._id}`,
-          sender: context.userId,
-          read: false,
-          createdAt: new Date(),
-        })
-
-        notification.sender = user
-
-        pubsub.publish('SEND_NOTIFICATION_ON_TICKETS', {
-          sendNotsOnTickets: notification,
-        })
-
-        if (ticket)
-          return {
-            responseMsg:
-              'Your message has been received! We will get back to you shortly.',
-          }
+        return {
+          responseMsg:
+            'Your ticket has been created and assigned. We will get back to you shortly.',
+        }
       } catch (error: any) {
         throw new GraphQLError(error.message, {
-          extensions: {
-            code: '500',
-          },
+          extensions: { code: '500' },
         })
       }
     },
 
-    replyToTicket: async (_: any, args: Reply, context: Context) => {
+    replyToTicket: async (
+      _: any,
+      { ticketId, replyMessage }: Reply,
+      context: Context
+    ) => {
       try {
         if (!context.userId)
-          throw new GraphQLError('Loggin first', {
-            extensions: {
-              code: 'VALIDATION_ERROR',
-            },
+          throw new GraphQLError('Login first', {
+            extensions: { code: 'VALIDATION_ERROR' },
           })
-        const { ticketId, replyMessage } = args
 
         const ticket = await Ticket.findById(ticketId)
         if (!ticket)
-          throw new GraphQLError('Ticket you are replying to does not exist.', {
-            extensions: {
-              code: 'VALIDATION_ERROR',
-            },
+          throw new GraphQLError('Ticket does not exist.', {
+            extensions: { code: 'VALIDATION_ERROR' },
           })
 
-        const { user } = ticket
-        // Allow both superAdmin and admin to reply to the ticket
+        const { user }: any = ticket
         if (
           context.role !== 'superAdmin' &&
           context.role !== 'admin' &&
           user?.toString() !== context.userId
-        )
-          throw new GraphQLError(
-            'Access denied! You can only reply if you are the owner of the ticket, or you are an admin/super admin.',
-            {
-              extensions: {
-                code: 'VALIDATION_ERROR',
-              },
-            }
-          )
-
-        const res = await createReply(
-          ticket,
-          user,
-          context,
-          replyMessage,
-          pubsub
-        )
-
-        const subPayload = {
-          id: res._id.toString(),
-          sender: res.sender,
-          receiver: res.receiver,
-          replyMessage: res.replyMessage,
-          createdAt: res.createdAt,
-          ticket: ticketId,
+        ) {
+          throw new GraphQLError('Access denied!', {
+            extensions: { code: 'VALIDATION_ERROR' },
+          })
         }
 
+        const reply = await createReply(ticket, user, context, replyMessage)
+
         pubsub.publish('REPLY_ADDED', {
-          replyAdded: subPayload,
+          replyAdded: {
+            sender: reply.sender,
+            receiver: reply.receiver,
+            replyMessage: reply.replyMessage,
+            createdAt: reply.createdAt,
+            ticket: ticketId,
+          },
         })
 
-        return res
+        return reply
       } catch (error: any) {
         throw new GraphQLError(error.message, {
-          extensions: {
-            code: '500',
-          },
+          extensions: { code: '500' },
         })
       }
     },
 
-    closeTicket: async (_: any, args: Reply, context: Context) => {
-      const { ticketId } = args
+    closeTicket: async (
+      _: any,
+      { ticketId }: { ticketId: string },
+      context: Context
+    ) => {
       try {
-        ;(await checkUserLoggedIn(context))([
-          'admin',
-          'coordinator',
-          'manager',
-          'trainee',
-          'user',
-        ])
+        await (
+          await checkUserLoggedIn(context)
+        )(['admin', 'coordinator', 'manager', 'trainee'])
 
-        const ticket = await Ticket.findById(ticketId)
-
+        const ticket: any = await Ticket.findById(ticketId)
         if (!ticket)
           throw new GraphQLError('Ticket does not exist.', {
-            extensions: {
-              code: 'VALIDATION_ERROR',
-            },
+            extensions: { code: 'VALIDATION_ERROR' },
           })
 
         if (
-          context.userId !== ticket?.user?.toString() &&
+          context.userId !== ticket.user.toString() &&
           context.role !== 'superAdmin'
-        )
-          throw new GraphQLError(
-            'Access denied! You do not possess permission to close this ticket.',
-            {
-              extensions: {
-                code: 'VALIDATION_ERROR',
-              },
-            }
-          )
+        ) {
+          throw new GraphQLError('Access denied!', {
+            extensions: { code: 'VALIDATION_ERROR' },
+          })
+        }
 
         ticket.status = 'closed'
         await ticket.save({ validateBeforeSave: false })
+        const senderId: any = context.userId
+        // Send notification
+        await pushNotification(
+          ticket.user,
+          `Your ticket ${ticketId} has been closed.`,
+          senderId
+        )
 
-        return {
-          responseMsg: 'Ticket was successfully closed!',
-        }
+        return { responseMsg: 'Ticket was successfully closed!' }
       } catch (error: any) {
         throw new GraphQLError(error.message, {
-          extensions: {
-            code: '500',
-          },
+          extensions: { code: '500' },
+        })
+      }
+    },
+
+    updateTicket: async (
+      _: any,
+      { updateTicketId, input }: { updateTicketId: string; input: any },
+      context: Context
+    ) => {
+      try {
+        await (
+          await checkUserLoggedIn(context)
+        )(['admin', 'coordinator', 'superAdmin', 'ttl'])
+
+        const ticket = await Ticket.findById(updateTicketId)
+        if (!ticket)
+          throw new GraphQLError('Ticket not found', {
+            extensions: { code: 'NOT_FOUND' },
+          })
+
+        // Allow admins to update any ticket
+        if (
+          context.role !== 'superAdmin' &&
+          context.role !== 'admin' &&
+          context.userId !== ticket.user.toString()
+        ) {
+          throw new GraphQLError('Access denied!', {
+            extensions: { code: 'VALIDATION_ERROR' },
+          })
+        }
+
+        Object.assign(ticket, input)
+        await ticket.save({ validateBeforeSave: false })
+
+        return { responseMsg: 'Ticket was updated successfully!' }
+      } catch (error: any) {
+        throw new GraphQLError(error.message, {
+          extensions: { code: '500' },
+        })
+      }
+    },
+
+    deleteTicket: async (_: any, { id }: { id: string }, context: Context) => {
+      try {
+        await (
+          await checkUserLoggedIn(context)
+        )(['admin', 'coordinator', 'superAdmin', 'ttl'])
+
+        const ticket = await Ticket.findById(id)
+        if (!ticket)
+          throw new GraphQLError('Ticket not found', {
+            extensions: { code: 'NOT_FOUND' },
+          })
+
+        // Allow admins to delete any ticket
+        if (
+          context.role !== 'superAdmin' &&
+          context.role !== 'admin' &&
+          context.userId !== ticket.user.toString()
+        ) {
+          throw new GraphQLError('Access denied!', {
+            extensions: { code: 'VALIDATION_ERROR' },
+          })
+        }
+
+        await ticket.remove()
+
+        return { responseMsg: 'Ticket was successfully deleted!' }
+      } catch (error: any) {
+        throw new GraphQLError(error.message, {
+          extensions: { code: '500' },
         })
       }
     },
