@@ -822,13 +822,13 @@ const resolvers: any = {
       // }
       const password: any = generateRandomPassword()
       let newAdmin: any = undefined
-      // if (!admin) {
-      //   newAdmin = await User.create({
-      //     email,
-      //     password,
-      //     role: 'admin',
-      //   })
-      // }
+      if (!admin) {
+        newAdmin = await User.create({
+          email,
+          password,
+          role: 'admin',
+        })
+      }
 
       let org: any = await Organization.findOne({ admin: admin?._id })
 
@@ -837,6 +837,7 @@ const resolvers: any = {
         org = await Organization.create({
           admin: admin ? admin._id : newAdmin?._id,
           name,
+          email,
           description,
           status: 'active',
         })
