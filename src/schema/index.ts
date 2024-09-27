@@ -536,28 +536,7 @@ const Schema = gql`
     ): Team
     deleteReply: String!
   }
-  type Event {
-    title: String!
-    hostName: String!
-    start: String!
-    end: String!
-    timeToStart: String!
-    timeToEnd: String!
-  }
-  type Mutation {
-    createEvent(
-      title: String!
-      hostName: String!
-      start: String!
-      end: String!
-      timeToStart: String!
-      timeToEnd: String!
-      authToken: String
-    ): Event!
-  }
-  type Query {
-    getEvents(authToken: String): [Event]
-  }
+
   type Doc {
     title: String!
     description: String!

@@ -49,6 +49,7 @@ import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
 import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
 import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
+import eventSchema from './schema/event.schema'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -63,6 +64,7 @@ export const typeDefs = mergeTypeDefs([
   invitationSchema,
   notificationSchema,
   statisticsSchema,
+  eventSchema,
 ])
 
 export const resolvers = mergeResolvers([
