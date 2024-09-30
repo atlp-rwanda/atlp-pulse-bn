@@ -33,7 +33,11 @@ const invitationResolvers: IResolvers = {
         invitees,
         orgToken,
         orgName,
-      }: { invitees: { email: string; role: string }[]; orgName: string; orgToken: string },
+      }: {
+        invitees: { email: string; role: string }[]
+        orgName: string
+        orgToken: string
+      },
       context
     ) => {
       try {
@@ -71,13 +75,15 @@ const invitationResolvers: IResolvers = {
             orgName,
           })
 
-          const { newToken, link } = await generateInvitationTokenAndLink(
-            email,
-            role,
-            org.name
-          )
+          const { newToken, webLink, mobileLink } =
+            await generateInvitationTokenAndLink(email, role, org.name)
           newInvitation.invitationToken = newToken
-          const result = await sendInvitationEmail(email, org.name, link)
+          const result = await sendInvitationEmail(
+            email,
+            org.name,
+            webLink,
+            mobileLink
+          )
 
           if (result.success) {
             await newInvitation.save()
@@ -166,7 +172,11 @@ const invitationResolvers: IResolvers = {
 
     async uploadInvitationFile(
       _: any,
-      { file,orgName, orgToken }: { file: any;orgName: string, orgToken: string },
+      {
+        file,
+        orgName,
+        orgToken,
+      }: { file: any; orgName: string; orgToken: string },
       context: any
     ) {
       const { userId } = (await checkUserLoggedIn(context))(['admin'])
@@ -217,13 +227,15 @@ const invitationResolvers: IResolvers = {
             orgToken,
           })
 
-          const { newToken, link } = await generateInvitationTokenAndLink(
-            email,
-            role,
-            org.name
-          )
+          const { newToken, webLink, mobileLink } =
+            await generateInvitationTokenAndLink(email, role, org.name)
           newInvitation.invitationToken = newToken
-          const result = await sendInvitationEmail(email, org.name, link)
+          const result = await sendInvitationEmail(
+            email,
+            org.name,
+            webLink,
+            mobileLink
+          )
 
           if (result.success) {
             await newInvitation.save()
@@ -306,13 +318,10 @@ const invitationResolvers: IResolvers = {
         invitation.invitees[0] = { email, role }
 
         if (email) {
-          const { newToken, link } = await generateInvitationTokenAndLink(
-            email,
-            role,
-            org.name
-          )
+          const { newToken, webLink, mobileLink } =
+            await generateInvitationTokenAndLink(email, role, org.name)
           invitation.invitationToken = newToken
-          await sendInvitationEmail(email, org.name, link, true)
+          await sendInvitationEmail(email, org.name, webLink, mobileLink, true)
         }
 
         await invitation.save()

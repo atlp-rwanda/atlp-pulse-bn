@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken'
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 
@@ -6,8 +6,8 @@ export default async function generateInvitationTokenAndLink(
   email: string,
   role: string,
   orgName: string
-): Promise<{ newToken: string; link: string }> {
-
+): Promise<{ newToken: string; webLink: string; mobileLink: string }> {
+  // Generate the JWT token
   const token = jwt.sign(
     {
       name: orgName,
@@ -16,12 +16,16 @@ export default async function generateInvitationTokenAndLink(
     },
     SECRET,
     { expiresIn: '2d' }
-  );
+  )
 
-  const newToken = token.replace(/\./g, '*');
+  const newToken = token.replace(/\./g, '*')
 
-  // Generate the invitation link
-  const link = `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`;
+  // Generate the web invitation link
+  const mobileLink = `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
 
-  return { newToken, link };
+  // Generate the mobile invitation link
+  const webLink = `${process.env.REGISTER_FRONTEND_URL}/register/${newToken}`
+
+  // Return both links and the token
+  return { newToken, webLink, mobileLink }
 }

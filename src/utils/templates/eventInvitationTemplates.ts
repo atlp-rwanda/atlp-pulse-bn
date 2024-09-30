@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { format } from 'date-fns'
 
 export function eventInvitationTemplate(
   eventId: string,
@@ -7,8 +7,8 @@ export function eventInvitationTemplate(
   eventStart: string,
   eventEnd: string,
   eventTimeToStart: string,
-  eventTimeToEnd: string,
-):string {
+  eventTimeToEnd: string
+): string {
   return `
       <table style="font-size: 16px; font-family: 'Rubik', sans-serif; text-align: left; width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
         <tbody>
@@ -17,17 +17,28 @@ export function eventInvitationTemplate(
               <p style="margin-bottom: 20px;">Hello,</p>
   
               <p style="margin-bottom: 15px;">
-                You have been invited to an event <strong>${eventTitle}</strong> hosted by <strong>${hostName}</strong> that will occur from <strong>${format(new Date(eventStart),"yyyy-MM-dd")}</strong> to <strong>${format(new Date(eventEnd),"yyyy-MM-dd")}</strong>.
+                You have been invited to an event <strong>${eventTitle}</strong> hosted by <strong>${hostName}</strong> that will occur from <strong>${format(
+    new Date(eventStart),
+    'yyyy-MM-dd'
+  )}</strong> to <strong>${format(new Date(eventEnd), 'yyyy-MM-dd')}</strong>.
                 This event will take place daily from <strong>${eventTimeToStart}</strong> to <strong>${eventTimeToEnd}</strong>. We look forward to your participation.
               </p>
 
               <p style="margin-bottom: 15px;">
                 Please confirm your availability.
               </p>
-                <a href="${process.env.NODE_ENV === "dev"? "http": "https"}://${process.env.FRONTEND_LINK}/calendar/confirm?eventId=${eventId}&response=accepted" target="_blank" style="display: inline-block; font-size: 14px; background-color: #8667F2; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
+                <a href="${
+                  process.env.NODE_ENV === 'dev' ? 'http' : 'https'
+                }://${
+    process.env.FRONTEND_LINK
+  }/calendar/confirm?eventId=${eventId}&response=accepted" target="_blank" style="display: inline-block; font-size: 14px; background-color: #8667F2; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
                     Accept
                 </a>
-                <a href="${process.env.NODE_ENV === "dev"? "http": "https"}://${process.env.FRONTEND_LINK}/calendar/confirm?eventId=${eventId}&response=declined" target="_blank" style="display: inline-block; font-size: 14px; background-color: #9fa2a6; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
+                <a href="${
+                  process.env.NODE_ENV === 'dev' ? 'http' : 'https'
+                }://${
+    process.env.FRONTEND_LINK
+  }/calendar/confirm?eventId=${eventId}&response=declined" target="_blank" style="display: inline-block; font-size: 14px; background-color: #9fa2a6; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
                     Decline
                 </a>
               <p style="margin: 15px 0px;">
@@ -42,9 +53,7 @@ export function eventInvitationTemplate(
       </table>`
 }
 
-export function eventCancellationTemplate(
-  eventTitle: string,
-):string {
+export function eventCancellationTemplate(eventTitle: string): string {
   return `
       <table style="font-size: 16px; font-family: 'Rubik', sans-serif; text-align: left; width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
         <tbody>
@@ -62,9 +71,7 @@ export function eventCancellationTemplate(
       </table>`
 }
 
-export function invitationCancellationTemplate(
-  eventTitle: string,
-):string {
+export function invitationCancellationTemplate(eventTitle: string): string {
   return `
       <table style="font-size: 16px; font-family: 'Rubik', sans-serif; text-align: left; width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
         <tbody>

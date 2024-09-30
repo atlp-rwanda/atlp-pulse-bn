@@ -17,6 +17,7 @@ import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
 import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 import { Context } from './../context'
+import generateInvitationTokenAndLink from '../helpers/generateInvitationToken.helper'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -817,7 +818,7 @@ const manageStudentResolvers = {
     },
 
     async inviteUser(_: any, { email, orgToken, type }: any, context: any) {
-      const { userId, role } = (await checkUserLoggedIn(context))([
+      const { userId, role }: any = (await checkUserLoggedIn(context))([
         'admin',
         'manager',
       ])
@@ -834,12 +835,16 @@ const manageStudentResolvers = {
         const token: any = jwt.sign({ name: org.name, email: email }, SECRET, {
           expiresIn: '2d',
         })
-        const newToken: any = token.replace(/\./g, '*')
+        // const newToken: any = token.replace(/\./g, '*')
+
+        const { newToken, webLink, mobileLink } =
+          await generateInvitationTokenAndLink(email, role, org.name)
         const link =
           type == 'user'
             ? `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
-        const content = inviteUserTemplate(org?.name || '', link)
+
+        const content = inviteUserTemplate(org?.name || '', webLink, mobileLink)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
         await sendEmail(

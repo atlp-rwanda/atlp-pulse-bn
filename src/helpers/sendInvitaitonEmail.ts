@@ -1,8 +1,8 @@
-import { sendEmail } from '../utils/sendEmail';
-import inviteUserTemplate from '../utils/templates/inviteUserTemplate';
-import updateInvitationTemplate from '../utils/templates/updateInvitationTemplate';
-import { Role } from '../resolvers/invitation.resolvers';
-import  jwt  from 'jsonwebtoken';
+import { sendEmail } from '../utils/sendEmail'
+import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
+import updateInvitationTemplate from '../utils/templates/updateInvitationTemplate'
+import { Role } from '../resolvers/invitation.resolvers'
+import jwt from 'jsonwebtoken'
 
 interface Payload {
   role: Role
@@ -14,12 +14,15 @@ const SECRET: string = process.env.SECRET ?? 'test_secret'
 export default async function sendInvitationEmail(
   email: string,
   orgName: string,
-  link: string,
+  webLink: string,
+  mobileLink: string,
   updateInvitation = false
 ) {
   try {
-    const content = updateInvitation ? updateInvitationTemplate(orgName || '', link) : inviteUserTemplate(orgName || '', link);
-  
+    const content = updateInvitation
+      ? updateInvitationTemplate(orgName || '', webLink, mobileLink)
+      : inviteUserTemplate(orgName || '', webLink, mobileLink)
+
     // Send invitation email
     await sendEmail(
       email,

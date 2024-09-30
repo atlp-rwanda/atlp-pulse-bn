@@ -1,6 +1,7 @@
 export default function updateInvitationTemplate(
   orgName: string,
-  link: string
+  webLink: string,
+  mobileLink: string
 ) {
   return `
     <table style="border: 1px solid #ddd; padding: 16px; border-radius: 8px; background-color: #f9f9f9; max-width: 600px; margin: 0 auto; font-family: 'Rubik', sans-serif;">
@@ -22,22 +23,32 @@ export default function updateInvitationTemplate(
               <td style="padding: 16px; color: black; text-align: left;">
                   <p>Hello,</p>
                   <p>Your invitation to join <strong>${orgName}</strong> has been updated.</p>
-                  <p>We invite you to review the updated invitation and accept it by clicking the button below:</p>
-                  <!-- Button -->
+                  <p>We invite you to review the updated invitation and accept it by clicking the appropriate button below:</p>
+                  <!-- Buttons for Web and Mobile -->
                   <table style="width: 100%; text-align: center; margin-top: 20px;">
                       <tr>
                           <td>
-                              <a href="${link}" style="text-decoration: none;">
+                              <a href="${webLink}" style="text-decoration: none;">
                                   <button style="font-size: 16px; background-color: #8667F2; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; cursor: pointer; color: #fff;">
-                                      Accept Invitation
+                                      Accept Invitation (Web)
+                                  </button>
+                              </a>
+                          </td>
+                      </tr>
+                      <tr>
+                          <td>
+                              <a href="${mobileLink}" style="text-decoration: none;">
+                                  <button style="font-size: 16px; background-color: #4CAF50; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; cursor: pointer; color: #fff; margin-top: 10px;">
+                                      Accept Invitation (Mobile)
                                   </button>
                               </a>
                           </td>
                       </tr>
                   </table>
-                  <p>If the button doesn't work, copy this link into your browser:</p>
-                  <!-- Link -->
-                  <a href="${link}" style="text-decoration: none; cursor: pointer;">${link}</a>
+                  <p>If the buttons don't work, copy the appropriate link into your browser:</p>
+                  <!-- Links for Web and Mobile -->
+                  <p>Web: <a href="${webLink}" style="text-decoration: none; cursor: pointer;">${webLink}</a></p>
+                  <p>Mobile: <a href="${mobileLink}" style="text-decoration: none; cursor: pointer;">${mobileLink}</a></p>
               </td>
           </tr>
       </table>
