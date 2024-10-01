@@ -1001,8 +1001,9 @@ const resolvers: any = {
           expiresIn: '2d',
         })
         const newToken: any = token.replaceAll('.', '*')
+        const deepLink = `${process.env.FRONTEND_LINK}/redirect/?path=/auth/reset-password&token=${newToken}`
         const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
-        const content = forgotPasswordTemplate(link)
+        const content = forgotPasswordTemplate(link, deepLink)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
