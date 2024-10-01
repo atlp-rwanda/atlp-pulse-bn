@@ -6,6 +6,15 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
+  type Phase{
+    name:String
+    description:String
+  }
+  type Program{
+    name:String
+    description:String
+    manager:User
+  }
 
   type Subscription {
     newRating(receiver: String!): Notification!
@@ -49,6 +58,9 @@ const Schema = gql`
     startingPhase: DateTime
     active: Boolean
     organization: Organization
+    phase:Phase
+    manager:User
+    program:Program
   }
   type User {
     id: ID!
@@ -90,6 +102,19 @@ const Schema = gql`
   input OrgInput {
     name: String
   }
+
+  input DeleteUserInput {
+    id: ID!
+  }
+
+  type DeleteUserPayload {
+    message: String!
+  }
+
+  type Mutation {
+    deleteUser(input: DeleteUserInput!): DeleteUserPayload!
+  }
+
   type Profile {
     id: ID!
     user: User!
@@ -499,31 +524,19 @@ const Schema = gql`
       bodyProfessional: String
     ): Notifications!
     deleteTeam(id: ID!): String!
-    updateTeam(id: ID!, orgToken: String, name: String): Team
+    updateTeam(
+      id: ID!
+      orgToken: String
+      name: String
+      cohort: String
+      TTL: String
+      phase:String
+      program:String
+      manager:String
+    ): Team
     deleteReply: String!
   }
-  type Event {
-    title: String!
-    hostName: String!
-    start: String!
-    end: String!
-    timeToStart: String!
-    timeToEnd: String!
-  }
-  type Mutation {
-    createEvent(
-      title: String!
-      hostName: String!
-      start: String!
-      end: String!
-      timeToStart: String!
-      timeToEnd: String!
-      authToken: String
-    ): Event!
-  }
-  type Query {
-    getEvents(authToken: String): [Event]
-  }
+
   type Doc {
     title: String!
     description: String!

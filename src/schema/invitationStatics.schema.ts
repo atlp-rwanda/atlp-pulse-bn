@@ -5,11 +5,18 @@ const statisticsSchema = gql`
     totalInvitations: Int!
     acceptedInvitationsCount: Int!
     pendingInvitationsCount: Int!
-    getAcceptedInvitationsPercentsCount: Int!
-    getPendingInvitationsPercentsCount: Int!
+    getAcceptedInvitationsPercentsCount: Float!
+    getPendingInvitationsPercentsCount: Float!
+    cancelledInvitationsCount: Int!
+    getCancelledInvitationsPercentsCount: Float!
   }
   type Query {
-    getInvitationStatistics(orgToken: String!): Statistics!
+    getInvitationStatistics(
+      orgToken: String!
+      startDate: String
+      endDate: String
+      daysRange: Int
+    ): Statistics!
   }
 `
 

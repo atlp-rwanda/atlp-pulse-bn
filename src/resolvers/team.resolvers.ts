@@ -69,23 +69,39 @@ const resolvers = {
 
         return (
           (
-            await Team.find({ organization: org }).populate({
-              path: 'cohort',
-              match: role === 'manager' && managerMatch,
-              model: Cohort,
-              strictPopulate: false,
-              populate: {
-                path: 'organization',
-                match: role === 'admin' && adminMatch,
-                model: Organization,
+            await Team.find({ organization: org })
+              .populate({
+                path: 'cohort',
+                match: role === 'manager' && managerMatch,
+                model: Cohort,
                 strictPopulate: false,
                 populate: {
-                  path: 'members',
-                  model: User,
+                  path: 'organization',
+                  match: role === 'admin' && adminMatch,
+                  model: Organization,
                   strictPopulate: false,
+                  populate: {
+                    path: 'members',
+                    model: User,
+                    strictPopulate: false,
+                  },
                 },
-              },
-            })
+              })
+              .populate({
+                path: 'phase',
+                model: Phase,
+                strictPopulate: false,
+              })
+              .populate({
+                path: 'program',
+                model: Program,
+                strictPopulate: false,
+              })
+              .populate({
+                path: 'manager',
+                model: User,
+                strictPopulate: false,
+              })
           )
             // .populate({ path: 'members', model: User, strictPopulate: false })
             .filter((item: any) => {
@@ -221,7 +237,6 @@ const resolvers = {
             )
           }
           if (role === 'ttl') {
-
             return (
               user.team?.name === team &&
               // user?.organizations?.includes(org?.name)
@@ -299,6 +314,9 @@ const resolvers = {
           organization: organ?.id,
           startingPhase,
           ttl: ttlExist?.id,
+          phase: null,
+          manager: null,
+          Program: null,
         })
         cohort.teams = cohort.teams + 1
         cohort.save()
@@ -345,6 +363,7 @@ const resolvers = {
       cohort?.save()
       cohort &&
         console.log('done-----------------', cohort.coordinator.toString())
+
       const senderId = new Types.ObjectId(context.userId)
       cohort &&
         pushNotification(
@@ -356,15 +375,9 @@ const resolvers = {
     },
     updateTeam: async (
       _: any,
-      args: {
-        id: any
-        orgToken: string
-        name: string
-      },
+      { id, orgToken, name, cohort, TTL, phase, manager, program }: any,
       context: Context
     ) => {
-      const { id, name, orgToken } = args
-
       const { userId, role }: any = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
@@ -372,18 +385,34 @@ const resolvers = {
         'coordinator',
       ])
 
-      const team: any = await Team.findById(id).populate({
-        path: 'cohort',
-        strictPopulate: false,
-        populate: {
-          path: 'program',
+      const team: any = await Team.findById(id)
+        .populate({
+          path: 'cohort',
           strictPopulate: false,
           populate: {
-            path: 'organization',
+            path: 'program',
             strictPopulate: false,
+            populate: {
+              path: 'organization',
+              strictPopulate: false,
+            },
           },
-        },
-      })
+        })
+        .populate({
+          path: 'phase',
+          model: Phase,
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'program',
+          model: Program,
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'manager',
+          model: User,
+          strictPopulate: false,
+        })
       if (!team) {
         throw new GraphQLError(`team with id "${id}" doesn't exist`, {
           extensions: {
@@ -465,10 +494,63 @@ const resolvers = {
           })
         }
       }
+      const getcohort: any = await Cohort.findOne({ name: cohort })
+      const getTtl: any = await User.findOne({ email: TTL })
 
+      if (!getcohort) {
+        throw new GraphQLError('this cohot does not exist!', {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
+      }
+
+      if (!getTtl) {
+        throw new GraphQLError('Ttl does not exist!', {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+        })
+      }
+
+      if (manager) {
+        const newManager = await User.findOne({ email: manager })
+        if (!newManager) {
+          throw new GraphQLError('Manager does not exist!', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
+        }
+        team.manager = newManager.id
+      }
+      const { ObjectId } = Types
+
+      if (ObjectId.isValid(phase)) {
+        const newPhase = await Phase.findOne({ _id: phase })
+        if (!newPhase) {
+          throw new GraphQLError('Phase does not exist!', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
+        }
+        team.phase = newPhase.id
+      }
+      if (program) {
+        const newProgram = await Program.findOne({ name: program })
+        if (!newProgram) {
+          throw new GraphQLError('Program does not exist!', {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
+        }
+        team.program = newProgram.id
+      }
       name && (team.name = name)
-
-      await team.save()
+      getcohort && (team.cohort = getcohort.id)
+      getTtl && (team.ttl = getTtl.id)
 
       const senderId = new Types.ObjectId(context.userId)
       if (teamCohort.coordinator && prevTeamName !== name) {
@@ -478,8 +560,37 @@ const resolvers = {
           senderId
         )
       }
+      await team.save()
+      const updatedteam: any = await Team.findById(id)
+        .populate({
+          path: 'cohort',
+          strictPopulate: false,
+          populate: {
+            path: 'program',
+            strictPopulate: false,
+            populate: {
+              path: 'organization',
+              strictPopulate: false,
+            },
+          },
+        })
+        .populate({
+          path: 'phase',
+          model: Phase,
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'program',
+          model: Program,
+          strictPopulate: false,
+        })
+        .populate({
+          path: 'manager',
+          model: User,
+          strictPopulate: false,
+        })
 
-      return team
+      return updatedteam
     },
   },
 }

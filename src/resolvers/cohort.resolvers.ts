@@ -11,7 +11,7 @@ import { Context } from './../context'
 import { ProgramType } from './program.resolvers'
 import { OrganizationType } from './userResolver'
 import { pushNotification } from '../utils/notification/pushNotification'
-import {  Types } from 'mongoose'
+import { Types } from 'mongoose'
 
 export type CohortType = InstanceType<typeof Cohort>
 
@@ -74,6 +74,7 @@ const resolvers = {
       }
     },
   },
+
   Mutation: {
     addCohort: async (
       _: any,
@@ -142,7 +143,7 @@ const resolvers = {
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
         ) {
-          throw new GraphQLError('End Date can\'t be before Start Date', {
+          throw new GraphQLError("End Date can't be before Start Date", {
             extensions: {
               code: 'VALIDATION_ERROR',
             },
@@ -286,7 +287,7 @@ const resolvers = {
             new Date(endDate)
           ))
       ) {
-        throw new GraphQLError('End Date can\'t be before Start Date', {
+        throw new GraphQLError("End Date can't be before Start Date", {
           extensions: {
             code: 'VALIDATION_ERROR',
           },
@@ -473,8 +474,13 @@ const resolvers = {
         }
       }
 
-      const senderId = new Types.ObjectId(context.userId);
-      cohort.coordinator && pushNotification(new Types.ObjectId(cohort.coordinator.toString()), `Your cohort "${cohort.name}" has been deactivated`, senderId);
+      const senderId = new Types.ObjectId(context.userId)
+      cohort.coordinator &&
+        pushNotification(
+          new Types.ObjectId(cohort.coordinator.toString()),
+          `Your cohort "${cohort.name}" has been deactivated`,
+          senderId
+        )
 
       return Cohort.disactivate(cohort?.id)
     },

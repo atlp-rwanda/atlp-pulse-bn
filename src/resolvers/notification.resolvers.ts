@@ -7,13 +7,11 @@ import { Query } from 'mongoose'
 import { Profile } from '../models/profile.model'
 
 const pubSub = new PubSub()
-
 export const pubSubPublish = (payload: any) => {
   pubSub.publish('SEND_NOTIFICATION', {
     pushNotification: payload,
   })
 }
-
 const notificationResolver = {
   Subscription: {
     pushNotification: {
@@ -33,26 +31,28 @@ const notificationResolver = {
       arg: any,
       context: { role: string; userId: string }
     ) {
-      
-      
       try {
         const loggedId = context.userId
 
-        const findNotification = await Notification.find({ receiver: loggedId })
-          .sort({ createdAt: -1 })
+        const findNotification = await Notification.find({
+          receiver: loggedId,
+        }).sort({ createdAt: -1 })
 
-        const notifications = [];
+        const notifications = []
         for (let i = 0; i < findNotification.length; i++) {
-          const profile = await Profile.findOne({user: findNotification[i].sender})
-          notifications.push( {
-            ...findNotification[i].toObject(), id: findNotification[i].id, sender: {profile: profile?.toObject()}
+          const profile = await Profile.findOne({
+            user: findNotification[i].sender,
+          })
+          notifications.push({
+            ...findNotification[i].toObject(),
+            id: findNotification[i].id,
+            sender: { profile: profile?.toObject() },
           })
         }
-  
+
         return notifications
       } catch (error) {
-        console.log(error);
-        
+        console.log(error)
       }
     },
   },
@@ -67,7 +67,6 @@ const notificationResolver = {
       })
       return 'successfully deleted notification'
     },
-
     markAsRead: async (parent: any, args: any, context: Context) => {
       ;(await checkUserLoggedIn(context))([
         'coordinator',
@@ -78,7 +77,6 @@ const notificationResolver = {
         'user',
         'admin',
       ])
-
       const findNotification = await Notification.findById(args.id)
       if (!findNotification)
         throw new Error('The notification you want to update does not exist')
@@ -90,7 +88,6 @@ const notificationResolver = {
       )
       return 'successfully updated notification'
     },
-
     markAllAsRead: async (parent: any, args: any, context: Context) => {
       ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
       const { userId } = context

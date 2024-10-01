@@ -34,6 +34,18 @@ const teamSchema = new Schema(
       ref: 'Organization',
       required: true,
     },
+    manager: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+    },
+    phase: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Phase',
+    },
+    program: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Program',
+    },
   },
   {
     statics: {

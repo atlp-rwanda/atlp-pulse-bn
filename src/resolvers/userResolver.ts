@@ -26,6 +26,8 @@ import { Octokit } from '@octokit/rest'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
 import { Invitation } from '../models/invitation.model'
+import isAssigned from '../helpers/isAssignedToProgramOrCohort'
+import { pushNotification } from '../utils/notification/pushNotification'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -63,12 +65,18 @@ const resolvers: any = {
       const { userId, role } = (await checkUserLoggedIn(context))([
         'superAdmin',
         'admin',
+        'trainee',
       ])
 
-      const where = role === 'superAdmin' ? {} : { admin: userId, name }
+      const organization = await Organization.findOne({ name })
 
-      const organization = await Organization.find(where)
-      return organization[0]
+      if (!organization) {
+        throw new Error('Organization not found')
+      }
+
+      const org = organization.toObject()
+      const orgAdmin = await User.findById(org.admin)
+      return { ...org, admin: orgAdmin }
     },
 
     async getSignupOrganization(_: any, { orgToken }: any) {
@@ -231,8 +239,9 @@ const resolvers: any = {
       if (invitation) {
         invitee = invitation.invitees.find((invitee) => invitee.email === email)
       }
+
       const user = await User.create({
-        role: role || 'user',
+        role: role || invitee?.role || 'user',
         email: email,
         password,
         organizations: org.name,
@@ -240,6 +249,11 @@ const resolvers: any = {
       const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
         expiresIn: '2h',
       })
+
+      if (user && invitation) {
+        invitation.status = 'accepted'
+        await invitation.save()
+      }
 
       const newProfile = await Profile.create({
         user,
@@ -259,6 +273,7 @@ const resolvers: any = {
 
       return { token, user: newUser }
     },
+
     async createProfile(_: any, args: any, context: { userId: any }) {
       if (!context.userId) throw new Error('Unauthorized')
       if (!mongoose.isValidObjectId(context.userId))
@@ -276,6 +291,7 @@ const resolvers: any = {
 
       return profile.toJSON()
     },
+
     async loginUser(
       _: any,
       { loginInput: { email, password, orgToken, activity } }: any
@@ -320,33 +336,42 @@ const resolvers: any = {
           user?.role === 'trainee' &&
           user?.organizations?.includes(org?.name)
         ) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
+          if (await isAssigned(org?.name, user._id)) {
+            const token = jwt.sign(
+              { userId: user._id, role: user._doc?.role || 'user' },
+              SECRET,
+              { expiresIn: '2h' }
+            )
+            const data = {
+              token: token,
+              user: user.toJSON(),
             }
-          )
-          const data = {
-            token: token,
-            user: user.toJSON(),
+            return data
+          } else {
+            throw new Error(
+              'You are not assigned to any valid program or cohort in this organization.'
+            )
           }
-          return data
-        }
-
-        if (user?.role === 'ttl' && user?.organizations?.includes(org?.name)) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
+        } else if (
+          user?.role === 'ttl' &&
+          user?.organizations?.includes(org?.name)
+        ) {
+          if (user.cohort && user.team) {
+            const token = jwt.sign(
+              { userId: user._id, role: user._doc?.role || 'user' },
+              SECRET,
+              {
+                expiresIn: '2h',
+              }
+            )
+            const data = {
+              token: token,
+              user: user.toJSON(),
             }
-          )
-          const data = {
-            token: token,
-            user: user.toJSON(),
+            return data
+          } else {
+            throw new Error('You are not assigned to any cohort ot team yet.')
           }
-          return data
         }
         const organization: any = await Organization.findOne({
           name: org?.name,
@@ -469,6 +494,47 @@ const resolvers: any = {
           },
         })
       }
+    },
+
+    async deleteUser(_: any, { input }: any, context: { userId: any }) {
+      const requester = await User.findById(context.userId)
+      if (!requester) {
+        throw new Error('Requester does not exist')
+      }
+      if (requester.role !== 'admin' && requester.role !== 'superAdmin') {
+        throw new Error('You do not have permission to delete users')
+      }
+      const userToDelete = await User.findById(input.id)
+      if (!userToDelete) {
+        throw new Error('User to be deleted does not exist')
+      }
+      if (userToDelete.role === 'coordinator') {
+        const hasCohort = await Cohort.findOne({ coordinator: input.id })
+        if (hasCohort) {
+          await Cohort.findOneAndReplace(
+            { coordinator: input.id },
+            { coordinator: null }
+          )
+          await pushNotification(
+            context.userId,
+            `You have deleted the coordinator of ${hasCohort.name}, Assign the new coordinator`,
+            context.userId
+          )
+        }
+      } else if (userToDelete.role === 'ttl') {
+        const hasTeam = await Team.findOne({ ttl: input.id })
+        if (hasTeam) {
+          await Team.findOneAndReplace({ ttl: input.id }, { ttl: null })
+          await pushNotification(
+            context.userId,
+            `You have deleted the TTL of  ${Team.name}, Assign the new TTL`,
+            context.userId
+          )
+        }
+      }
+      await User.findByIdAndDelete(input.id)
+      await Profile.deleteOne({ user: input.id })
+      return { message: 'User deleted successfully' }
     },
 
     async updateUserRole(_: any, { id, name, orgToken }: any) {
@@ -713,10 +779,18 @@ const resolvers: any = {
     ) {
       // check if requester is super admin
       ;(await checkUserLoggedIn(context))(['superAdmin'])
-      const orgExists = await Organization.findOne({ name: name, email: email })
+      const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
           throw new GraphQLError('Organization Not found ', {
+            extensions: {
+              code: 'UserInputError',
+            },
+          })
+        }
+        const adminUser = await User.findOne({ _id: orgExists.admin[0] })
+        if (!adminUser || adminUser.email !== email) {
+          throw new GraphQLError('Admin email does not match', {
             extensions: {
               code: 'UserInputError',
             },
@@ -767,6 +841,7 @@ const resolvers: any = {
 
       return orgExists
     },
+
     async addOrganization(
       _: any,
       { organizationInput: { name, email, description }, action: action }: any,
@@ -792,13 +867,13 @@ const resolvers: any = {
       // }
       const password: any = generateRandomPassword()
       let newAdmin: any = undefined
-      // if (!admin) {
-      //   newAdmin = await User.create({
-      //     email,
-      //     password,
-      //     role: 'admin',
-      //   })
-      // }
+      if (!admin) {
+        newAdmin = await User.create({
+          email,
+          password,
+          role: 'admin',
+        })
+      }
 
       let org: any = await Organization.findOne({ admin: admin?._id })
 
@@ -807,6 +882,7 @@ const resolvers: any = {
         org = await Organization.create({
           admin: admin ? admin._id : newAdmin?._id,
           name,
+          email,
           description,
           status: 'active',
         })
@@ -861,8 +937,6 @@ const resolvers: any = {
     },
 
     async addActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
-
       const checkOrg = await Organization.findOne({ name: name })
       if (!checkOrg) {
         throw new GraphQLError('Organization Not found', {
@@ -887,6 +961,7 @@ const resolvers: any = {
       return {
         admin: checkOrg.admin,
         name: checkOrg.name,
+        activeRepos: checkOrg.activeRepos,
         description: checkOrg.description,
         status: checkOrg.status,
       }
@@ -952,6 +1027,7 @@ const resolvers: any = {
         )
       return deleteOrg
     },
+
     async forgotPassword(_: any, { email }: any) {
       const userExists: any = await User.findOne({ email })
 
@@ -977,6 +1053,7 @@ const resolvers: any = {
         throw new Error('Something went wrong!\nCheck your credentials')
       }
     },
+
     async updateEmailNotifications(_: any, { id }: any, context: Context) {
       const user: any = await User.findOne({ _id: id })
       if (!user) {
@@ -989,6 +1066,7 @@ const resolvers: any = {
       )
       return 'updated successful'
     },
+
     async updatePushNotifications(_: any, { id }: any, context: Context) {
       const user: any = await User.findOne({ _id: id })
       if (!user) {
@@ -999,6 +1077,7 @@ const resolvers: any = {
       const updatedPushNotifications = user.pushNotifications
       return 'updated successful'
     },
+
     async resetUserPassword(
       _: any,
       { password, confirmPassword, token }: any,

@@ -1,25 +1,22 @@
 import { GraphQLError } from 'graphql'
-import Cohort from '../models/cohort.model'
 import * as jwt from 'jsonwebtoken'
-import { User } from '../models/user'
-import { Attendance } from '../models/attendance.model'
-import { Organization } from '../models/organization.model'
-import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Types } from 'mongoose'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
-import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
-import generalTemplate from '../utils/templates/generalTemplate'
-import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
-import { sendEmail } from '../utils/sendEmail'
-import { Context } from './../context'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { Attendance } from '../models/attendance.model'
+import Cohort from '../models/cohort.model'
+import { Organization } from '../models/organization.model'
+import { Profile } from '../models/profile.model'
 import Program from '../models/program.model'
 import Team from '../models/team.model'
-import mongoose from 'mongoose'
-import { ObjectId } from 'mongoose' // Import ObjectId from your mongoose library
+import { User } from '../models/user'
 import { pushNotification } from '../utils/notification/pushNotification'
-import { Types } from 'mongoose'
-import DropTraineeTemplate from '../utils/templates/dropTraineeTemplate'
-import { Profile } from '../models/profile.model'
+import { sendEmail } from '../utils/sendEmail'
+import generalTemplate from '../utils/templates/generalTemplate'
+import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
+import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
+import { Context } from './../context'
 
 const SECRET: string = process.env.SECRET || 'test_secret'
 
@@ -67,9 +64,13 @@ const manageStudentResolvers = {
     getUsers: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // coordinator validation
-        ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
+        ;(await checkUserLoggedIn(context))([
+          'superAdmin',
+          'admin',
+          'manager',
+          'coordinator',
+        ])
 
-        // get the organization if someone logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
 
@@ -90,41 +91,59 @@ const manageStudentResolvers = {
         })
       }
     },
+
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        // coordinator validation
         const { userId, role }: any = (await checkUserLoggedIn(context))([
+          'superAdmin',
           'admin',
           'manager',
           'coordinator',
+          'ttl',
         ])
 
-        // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
-        // console.log("User info:",User);
 
-        return (
-          await User.find({
-            role: 'trainee',
-            organizations: org.name,
-          }).populate({
-            path: 'team',
+        const query: any = {
+          role: 'trainee',
+          organizations: org.name,
+        }
+
+        let teamId: Types.ObjectId | undefined
+
+        if (role === 'ttl') {
+          const userTeam = await Team.findOne({
+            members: new Types.ObjectId(userId),
+          })
+          if (!userTeam) {
+            return []
+          }
+
+          teamId = userTeam._id
+          query['team'] = teamId
+        }
+        const trainees = await User.find(query).populate({
+          path: 'team',
+          strictPopulate: false,
+          populate: {
+            path: 'cohort',
             strictPopulate: false,
             populate: {
-              path: 'cohort',
+              path: 'program',
               strictPopulate: false,
               populate: {
-                path: 'program',
+                path: 'organization',
                 strictPopulate: false,
-                populate: {
-                  path: 'organization',
-                  strictPopulate: false,
-                },
               },
             },
-          })
-        ).filter((user: any) => {
+          },
+        })
+        if (role === 'ttl') {
+          return trainees
+        }
+
+        return trainees.filter((user: any) => {
           if (role === 'admin') {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
@@ -149,6 +168,7 @@ const manageStudentResolvers = {
               ) == userId
             )
           }
+          return false
         })
       } catch (error) {
         const { message } = error as { message: any }
@@ -171,6 +191,7 @@ const manageStudentResolvers = {
           'admin',
           'manager',
           'coordinator',
+          'ttl',
         ])
 
         // get the organization if someone  logs in
@@ -186,14 +207,14 @@ const manageStudentResolvers = {
               path: 'cohort',
 
               strictPopulate: false,
-              //
+
               populate: {
                 path: 'program',
                 strictPopulate: false,
-                //
+
                 populate: {
                   path: 'organization',
-                  //
+
                   strictPopulate: false,
                 },
               },
@@ -363,7 +384,7 @@ const manageStudentResolvers = {
         if (team && user) {
           if (team.cohort.program.organization.name !== org?.name) {
             throw new Error(
-              ' You logged into an organization that doesn\'t have such a team'
+              " You logged into an organization that doesn't have such a team"
             )
           }
           const programId = team.cohort.program.id
@@ -539,10 +560,10 @@ const manageStudentResolvers = {
 
         // traineeId: String!, reason: String!, date: DateTime!, these are the arges am getting from the resolver
 
-        const logedInUserOrg = await User.findById(context.userId).select(
+        const loggedInUserOrg = await User.findById(context.userId).select(
           'organizations'
         )
-        const orgName = logedInUserOrg?.organizations[0]
+        const orgName = loggedInUserOrg?.organizations[0]
         const organization = await Organization.findOne({ name: orgName })
 
         const trainee = await User.findOneAndUpdate(
@@ -554,46 +575,16 @@ const manageStudentResolvers = {
               date: args.date,
             },
           },
-          {
-            new: true,
-          }
+          { new: true }
         )
 
-        if (!trainee)
-          return new GraphQLError('Trainee not found', {
-            extensions: {
-              code: 'VALIDATION_ERROR',
-            },
-          })
-
-        //Send In app notification
-        const user = await User.findOne({ _id: userId })
-        pushNotification(
-          args.traineeId,
-          `You have been dropped from ${orgName} due to ${args.reason}`,
-          user?.id
-        )
-
-        // Send Email
-        const userProfile = await Profile.findOne({ user: trainee.id })
-        const name = `${userProfile?.firstName} ${userProfile?.lastName}`
-        try {
-          const content = DropTraineeTemplate(
-            orgName,
-            name,
-            args.reason,
-            args.date
-          )
-          await sendEmailOnMembershipActions(
-            role,
-            organization,
-            userId,
-            trainee,
-            content
-          )
-        } catch (error: any) {
-          throw new Error(
-            'Tranee added but there was an error sending email to him. Find other way to notify him/her.'
+        // Send a notification to the admin
+        const admin = await User.findOne({ role: 'admin' }) // Assuming there's a single admin
+        if (admin && trainee) {
+          await pushNotification(
+            admin._id,
+            `Trainee ${trainee.email} was dropped from the program.`,
+            new Types.ObjectId(context.userId) // sender is the ID of the one who removed the trainee
           )
         }
 
@@ -846,7 +837,7 @@ const manageStudentResolvers = {
         const newToken: any = token.replace(/\./g, '*')
         const link =
           type == 'user'
-            ? `${process.env.REGISTER_FRONTEND_URL}/${newToken}`
+            ? `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
         const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
@@ -881,7 +872,7 @@ async function sendEmailOnMembershipActions(
       _id: org.id,
     })
     if (!organization) {
-      throw new Error('You don\'t have an organization yet')
+      throw new Error("You don't have an organization yet")
     }
     if (organization.admin.includes(userId) && organization.name == org.name) {
       const link: any = process.env.FRONTEND_LINK + '/login/org'
@@ -901,7 +892,7 @@ async function sendEmailOnMembershipActions(
   if (role === 'manager') {
     const program: any = await Program.findOne({ manager: userId })
     if (!program) {
-      throw new Error('You dont\'t have a program yet')
+      throw new Error("You dont't have a program yet")
     }
     if (program.organization._id.toString() == org?.id.toString()) {
       const content = getOrganizationTemplate(
@@ -925,7 +916,7 @@ async function sendEmailOnMembershipActions(
   if (role === 'coordinator') {
     const cohort: any = await Cohort.findOne({ coordinator: userId })
     if (!cohort) {
-      throw new Error('You don\'t have a coordinator yet')
+      throw new Error("You don't have a coordinator yet")
     }
     const program: any = await Program.findOne({
       _id: cohort.program,

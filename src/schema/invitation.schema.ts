@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import gql from 'graphql-tag'
 
 const invitationSchema = gql`
   scalar Upload
@@ -7,6 +7,7 @@ const invitationSchema = gql`
     pending
     accepted
     denied
+    cancelled
   }
 
   enum Role {
@@ -27,6 +28,7 @@ const invitationSchema = gql`
     inviterId: String!
     status: String!
     invitees: [Invitee!]!
+    orgName: String!
     orgToken: String!
     createdAt: String!
   }
@@ -43,6 +45,7 @@ const invitationSchema = gql`
 
   type Query {
     getInvitations(
+      orgToken: String,
       query: String!
       limit: Int
       offset: Int
@@ -50,7 +53,11 @@ const invitationSchema = gql`
   }
 
   type Query {
-    getAllInvitations(limit: Int, offset: Int): PaginatedInvitations!
+    getAllInvitations(orgToken: String!,limit: Int, offset: Int): PaginatedInvitations!
+  }
+
+    type Query {
+    filterInvitations(limit: Int, offset: Int, role: String, status: String): PaginatedInvitations!
   }
 
   type InvitationResult {
@@ -71,11 +78,12 @@ const invitationSchema = gql`
   }
 
   type Mutation {
-    sendInvitation(invitees: [InviteeInput!]!, orgToken: String!): Invitation!
-
-    uploadInvitationFile(file: Upload!, orgToken: String!): FileData!
+    sendInvitation(invitees: [InviteeInput!]!,orgName: String!, orgToken: String!): Invitation!
+    updateInvitation(invitationId: ID!, orgToken: String!, newEmail: String, newRole: String): Invitation
+    uploadInvitationFile(file: Upload!,orgName: String!, orgToken: String!): FileData!
     deleteInvitation(invitationId: ID!): DeleteMessage
+    cancelInvitation(orgToken: String!, id: ID!): Invitation!
   }
 `;
 
-export default invitationSchema;
+export default invitationSchema

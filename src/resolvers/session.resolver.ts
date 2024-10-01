@@ -1,4 +1,7 @@
 import Session from '../models/session.model'
+import { Notification } from '../models/notification.model'
+import { pubSubPublish } from './notification.resolvers'
+import { ApolloError } from 'apollo-server'
 
 const Sessionresolvers = {
   Query: {
@@ -32,6 +35,20 @@ const Sessionresolvers = {
 
       try {
         const res = await createdSession.save()
+
+        // Create a notification for the session creation
+        const notification = new Notification({
+          receiver: organizer, // Assuming organizer is the user who needs the notification
+          message: `New session created: ${Sessionname}`,
+          sender: organizer, // Assuming the sender is also the organizer
+          type: 'session', // Assuming 'session' is a valid type, modify as necessary
+        })
+
+        await notification.save()
+
+        // Publish the notification
+        pubSubPublish(notification)
+
         return {
           id: res._id.toString(),
           Sessionname: res.Sessionname,
