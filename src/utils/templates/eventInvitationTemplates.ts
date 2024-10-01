@@ -1,14 +1,17 @@
 import { format } from "date-fns"
 
 export function eventInvitationTemplate(
-  eventId: string,
   eventTitle: string,
   hostName: string,
   eventStart: string,
   eventEnd: string,
   eventTimeToStart: string,
   eventTimeToEnd: string,
+  acceptedEventToken: string,
+  declinedEventToken: string
 ):string {
+  const acceptedResponseLink = `${process.env.FRONTEND_LINK}/calendar/confirm?eventToken=${acceptedEventToken}`
+  const declinedResponseLink = `${process.env.FRONTEND_LINK}/calendar/confirm?eventToken=${declinedEventToken}`
   return `
       <table style="font-size: 16px; font-family: 'Rubik', sans-serif; text-align: left; width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse;">
         <tbody>
@@ -24,10 +27,10 @@ export function eventInvitationTemplate(
               <p style="margin-bottom: 15px;">
                 Please confirm your availability.
               </p>
-                <a href="${process.env.NODE_ENV === "dev"? "http": "https"}://${process.env.FRONTEND_LINK}/calendar/confirm?eventId=${eventId}&response=accepted" target="_blank" style="display: inline-block; font-size: 14px; background-color: #8667F2; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
+                <a href="${acceptedResponseLink}" target="_blank" style="display: inline-block; font-size: 14px; background-color: #8667F2; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
                     Accept
                 </a>
-                <a href="${process.env.NODE_ENV === "dev"? "http": "https"}://${process.env.FRONTEND_LINK}/calendar/confirm?eventId=${eventId}&response=declined" target="_blank" style="display: inline-block; font-size: 14px; background-color: #9fa2a6; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
+                <a href="${declinedResponseLink}" target="_blank" style="display: inline-block; font-size: 14px; background-color: #9fa2a6; font-family: 'Rubik', sans-serif; text-align: center; border: none; border-radius: 3px; padding: 10px 20px; margin-right:20px; color: #fff; text-decoration: none;">
                     Decline
                 </a>
               <p style="margin: 15px 0px;">
