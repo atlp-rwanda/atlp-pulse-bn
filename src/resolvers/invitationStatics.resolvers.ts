@@ -1,7 +1,7 @@
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Invitation } from '../models/invitation.model'
 import { GraphQLError } from 'graphql'
-import { checkLoggedInOrganization } from '../helpers/organization.helper';
+import { checkLoggedInOrganization } from '../helpers/organization.helper'
 interface InvitationStatistics {
   totalInvitations: number
   acceptedInvitationsCount: number
@@ -23,15 +23,15 @@ const StatisticsResolvers = {
     getInvitationStatistics: async (
       _: any,
       args: QueryArguments,
-      context:any
+      context: any
     ): Promise<InvitationStatistics> => {
       const { orgToken, startDate, endDate, daysRange } = args
-      const org = await checkLoggedInOrganization(orgToken);
-      const organization = org.name.toLocaleLowerCase();
+      const org = await checkLoggedInOrganization(orgToken)
+      const organization = org.name.toLocaleLowerCase()
       try {
         const query: any = {
-          'orgName': organization ,
-        };
+          orgName: organization,
+        }
 
         if (daysRange) {
           const today = new Date()
@@ -63,7 +63,7 @@ const StatisticsResolvers = {
             $lte: today,
           }
         }
-        const invitations = await Invitation.find(query);
+        const invitations = await Invitation.find(query)
         if (!invitations.length) {
           return {
             totalInvitations: 0,

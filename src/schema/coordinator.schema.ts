@@ -24,6 +24,7 @@ const Schema = gql`
       orgToken: String!
     ): String
     dropTrainee(traineeId: String!, reason: String!, date: DateTime!): String
+    undropTrainee(traineeId: String!): String!
     editMember(
       removedFromTeamName: String!
       addedToTeamName: String!

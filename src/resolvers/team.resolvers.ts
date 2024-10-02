@@ -156,9 +156,11 @@ const resolvers = {
             },
           })
         ).filter((item: any) => {
+          console.log(item)
+
           const org = (item.program as InstanceType<typeof Program>)
             ?.organization
-          const itemCohort = item.cohort.name === cohort
+          const itemCohort = item?.cohort?.name === cohort
           return item.program !== null && org !== null && itemCohort
         })
       } catch (error) {
@@ -187,7 +189,6 @@ const resolvers = {
         // get the organization if someone  logs in
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
-
         return (
           await User.find({ role: 'trainee' }).populate({
             path: 'team',

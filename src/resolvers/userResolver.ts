@@ -313,6 +313,23 @@ const resolvers: any = {
           },
         },
       })
+
+      if (!user) {
+        throw new GraphQLError('invalid credential', {
+          extensions: {
+            code: 'AccountNotFound',
+          },
+        })
+      } else if (user?.status?.status !== 'active') {
+        throw new GraphQLError(
+          'Your account have been disactivated please contact your organization admin for assistance',
+          {
+            extensions: {
+              code: 'AccountInactive',
+            },
+          }
+        )
+      }
       let attempts = await checkloginAttepmts(Profile, user)
 
       if (await user?.checkPass(password)) {
@@ -483,11 +500,18 @@ const resolvers: any = {
       if (requester.role !== RoleOfUser.ADMIN && requester.role !== RoleOfUser.SUPER_ADMIN) {
         throw new Error('You do not have permission to delete users')
       }
-      const userToDelete = await User.findById(input.id)
-      if (!userToDelete) {
-        throw new Error('User to be deleted does not exist')
+
+      const userToSuspend = await User.findById(input.id)
+      if (!userToSuspend) {
+        throw new Error('User to be suspended does not exist')
       }
-      if (userToDelete.role === RoleOfUser.COORDINATOR) {
+
+      if (userToSuspend?.status?.status == 'suspended') {
+        throw new Error('User is already suspended')
+      }
+
+      // Handle coordinator suspension
+      if (userToSuspend.role === RoleOfUser.COORDINATOR) {
         const hasCohort = await Cohort.findOne({ coordinator: input.id })
         if (hasCohort) {
           await Cohort.findOneAndReplace(
@@ -496,24 +520,42 @@ const resolvers: any = {
           )
           await pushNotification(
             context.userId,
-            `You have deleted the coordinator of ${hasCohort.name}, Assign the new coordinator`,
+            `The coordinator of ${hasCohort.name} has been suspended. Please assign a new coordinator.`,
             context.userId
           )
         }
-      } else if (userToDelete.role === 'ttl') {
+      }
+      // Handle TTL suspension
+      else if (userToSuspend.role === 'ttl') {
         const hasTeam = await Team.findOne({ ttl: input.id })
         if (hasTeam) {
           await Team.findOneAndReplace({ ttl: input.id }, { ttl: null })
           await pushNotification(
             context.userId,
-            `You have deleted the TTL of  ${Team.name}, Assign the new TTL`,
+            `The TTL of ${hasTeam.name} has been suspended. Please assign a new TTL.`,
             context.userId
           )
         }
       }
-      await User.findByIdAndDelete(input.id)
-      await Profile.deleteOne({ user: input.id })
-      return { message: 'User deleted successfully' }
+
+      // Suspend user by updating their status
+      await User.findByIdAndUpdate(input.id, { status: 'suspended' })
+
+      // Send suspension notification to the user
+      await pushNotification(
+        input.id,
+        'Your account has been suspended and  will no longer be able to access the system.',
+        input.id
+      )
+
+      // Send confirmation notification to the requester/admin
+      await pushNotification(
+        context.userId,
+        `You have successfully suspended the user with ID: ${input.id}.`,
+        context.userId
+      )
+
+      return { message: 'User suspended successfully' }
     },
 
     async updateUserRole(_: any, { id, name, orgToken }: any) {
