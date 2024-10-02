@@ -15,7 +15,7 @@ const TableViewInvitationResolver = {
     ) {
       try {
         const { query,orgToken } = args;
-        const limit = args.limit ?? 5;
+        const limit = args.limit ?? 3;
         const offset = args.offset ?? 0;
 
         if (!query) throw new GraphQLError('No query provided')
@@ -34,11 +34,11 @@ const TableViewInvitationResolver = {
             ],
           };
 
+        const totalInvitations = await Invitation.countDocuments(searchCriteria);
+
         const invitations = await Invitation.find(searchCriteria)
           .skip(offset)
           .limit(limit)
-
-        const totalInvitations = invitations.length
 
         return {
           invitations,
@@ -58,11 +58,13 @@ const TableViewInvitationResolver = {
 
     async getAllInvitations(_: any, args: { limit: number; offset: number;orgToken: string  }) {
       try {
-        const { orgToken } = args;
+        const { limit = 3, offset = 0, orgToken } = args;
         if (!orgToken) throw new GraphQLError('No organization token provided'); 
         const org = (await checkLoggedInOrganization(orgToken)).name.toLocaleLowerCase();
-        const invitations = await Invitation.find({orgName:org});
-        const totalInvitations = invitations.length;
+        const invitations = await Invitation.find({ orgName: org })
+          .skip(offset)
+          .limit(limit);
+        const totalInvitations = await Invitation.countDocuments({ orgName: org });
 
         return {
           invitations,
@@ -87,7 +89,7 @@ const TableViewInvitationResolver = {
     ) {
       try {
         const { userId } = (await checkUserLoggedIn(context))(['admin']);
-        const { orgToken, role, status, limit = 5, offset = 0 } = args;
+        const { orgToken, role, status, limit = 3, offset = 0 } = args;
     
         if (!userId) {
           throw new GraphQLError('User id not provided');
@@ -122,6 +124,8 @@ const TableViewInvitationResolver = {
         };
     
         let invitations: any = [];
+
+        const totalInvitations = await Invitation.countDocuments(criteria);
     
         // OUR TRUE LOGIC
         if (role && status) {
@@ -149,7 +153,6 @@ const TableViewInvitationResolver = {
          .limit(limit);
       }
 
-      const totalInvitations = invitations.length;
       return {
         invitations,
         totalInvitations,
