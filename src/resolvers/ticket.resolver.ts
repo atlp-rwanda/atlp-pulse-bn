@@ -2,9 +2,10 @@ import { GraphQLError } from 'graphql'
 import Ticket from '../models/ticket.model'
 import { Context } from '../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { RoleOfUser, User } from '../models/user'
+import { User } from '../models/user'
 import { PubSub } from 'graphql-subscriptions'
 import { pushNotification } from '../utils/notification/pushNotification'
+import { sendEmail } from '../utils/sendEmail'
 
 const pubsub = new PubSub()
 
@@ -23,12 +24,12 @@ async function createReply(
   replyMessage: string
 ) {
   try {
-    const isSuperAdmin = context?.role === RoleOfUser.SUPER_ADMIN
+    const isSuperAdmin = context?.role === 'superAdmin'
     const reply: any = {
       sender: context?.userId,
       receiver: isSuperAdmin
         ? user?._id.toString()
-        : (await User.findOne({ role: RoleOfUser.SUPER_ADMIN }))?._id.toString(),
+        : (await User.findOne({ role: 'superAdmin' }))?._id.toString(),
       replyMessage,
     }
 
@@ -79,36 +80,101 @@ const resolvers = {
   },
 
   Query: {
+    // getAllTickets: async (_: any, __: any, context: Context | any) => {
+    //   try {
+    //     await (
+    //       await checkUserLoggedIn(context)
+    //     )([
+    //       'superAdmin',
+    //       'admin',
+    //       'manager',
+    //       'coordinator',
+    //       'trainee',
+    //       'ttl',
+    //       'users',
+    //     ])
+
+    //     const filterObj: any = (() => {
+    //       if (['superAdmin', 'admin'].includes(context.role)) {
+    //         return {}
+    //       } else if (context.role === 'trainee') {
+    //         return { $or: [{ assignee: context.userId }] }
+    //       } else if (context.role === 'coordinator') {
+    //         return { $or: [{ user: context.userId }] }
+    //       }
+    //       return { user: context.userId }
+    //     })()
+
+    //     const tickets: any[] = await Ticket.find(filterObj)
+    //       .populate({
+    //         path: 'user',
+    //         populate: { path: 'profile', model: 'Profile' },
+    //       })
+    //       .populate({
+    //         path: 'replies',
+    //         populate: {
+    //           path: 'sender',
+    //           model: 'User',
+    //           populate: { path: 'profile', model: 'Profile' },
+    //         },
+    //       })
+    //       .populate({
+    //         path: 'assignee',
+    //         populate: { path: 'profile', model: 'Profile' },
+    //       })
+    //       .exec()
+
+    //     return tickets.map((ticket) => ({
+    //       ...ticket.toObject(),
+    //       id: ticket._id.toString(),
+    //     }))
+    //   } catch (error: any) {
+    //     throw new GraphQLError(error.message, {
+    //       extensions: { code: '500' },
+    //     })
+    //   }
+    // },
     getAllTickets: async (_: any, __: any, context: Context | any) => {
       try {
         await (
           await checkUserLoggedIn(context)
         )([
-          RoleOfUser.SUPER_ADMIN,
-          RoleOfUser.ADMIN,
-          RoleOfUser.MANAGER,
-          RoleOfUser.COORDINATOR,
-          RoleOfUser.TRAINEE,
-          RoleOfUser.TTL,
+          'superAdmin',
+          'admin',
+          'manager',
+          'coordinator',
+          'trainee',
+          'ttl',
           'users',
         ])
 
-        // Allow admins to fetch all tickets
         const filterObj: any = (() => {
-          if ([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN].includes(context.role)) {
-            return {} // Admins can see all tickets
+          if (['superAdmin', 'admin'].includes(context.role)) {
+            return {}
           } else if (context.role === 'trainee') {
             return { $or: [{ assignee: context.userId }] }
-          } else if (context.role === RoleOfUser.COORDINATOR) {
+          } else if (context.role === 'coordinator') {
             return { $or: [{ user: context.userId }] }
           }
-          return { user: context.userId } // Regular users see their own tickets
+          return { user: context.userId }
         })()
 
         const tickets: any[] = await Ticket.find(filterObj)
           .populate({
             path: 'user',
-            populate: { path: 'profile', model: 'Profile' },
+            populate: [
+              { path: 'profile', model: 'Profile' },
+              { path: 'team', model: 'Team' },
+              { path: 'cohort', model: 'Cohort' },
+            ],
+          })
+          .populate({
+            path: 'assignee',
+            populate: [
+              { path: 'profile', model: 'Profile' },
+              { path: 'team', model: 'Team' },
+              { path: 'cohort', model: 'Cohort' },
+            ],
           })
           .populate({
             path: 'replies',
@@ -118,15 +184,47 @@ const resolvers = {
               populate: { path: 'profile', model: 'Profile' },
             },
           })
-          .populate({
-            path: 'assignee',
-            populate: { path: 'profile', model: 'Profile' },
-          })
           .exec()
 
         return tickets.map((ticket) => ({
           ...ticket.toObject(),
           id: ticket._id.toString(),
+          user: ticket.user
+            ? {
+                ...ticket.user.toObject(),
+                id: ticket.user._id.toString(),
+                team: ticket.user.team
+                  ? {
+                      id: ticket.user.team._id.toString(),
+                      name: ticket.user.team.name,
+                    }
+                  : null,
+                cohort: ticket.user.cohort
+                  ? {
+                      id: ticket.user.cohort._id.toString(),
+                      name: ticket.user.cohort.name,
+                    }
+                  : null,
+              }
+            : null,
+          assignee: ticket.assignee
+            ? {
+                ...ticket.assignee.toObject(),
+                id: ticket.assignee._id.toString(),
+                team: ticket.assignee.team
+                  ? {
+                      id: ticket.assignee.team._id.toString(),
+                      name: ticket.assignee.team.name,
+                    }
+                  : null,
+                cohort: ticket.assignee.cohort
+                  ? {
+                      id: ticket.assignee.cohort._id.toString(),
+                      name: ticket.assignee.cohort.name,
+                    }
+                  : null,
+              }
+            : null,
         }))
       } catch (error: any) {
         throw new GraphQLError(error.message, {
@@ -141,7 +239,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+        )(['admin', 'superAdmin', 'coordinator', 'ttl'])
         const { subject, message, assignee }: any = args
 
         let assigneeUser = null
@@ -178,14 +276,23 @@ const resolvers = {
         })
 
         const receiverId: any =
-          assignee || (await User.findOne({ role: RoleOfUser.SUPER_ADMIN }))?._id
+          assignee || (await User.findOne({ role: 'superAdmin' }))?._id
         const senderId: any = context.userId
         await pushNotification(
           receiverId,
           `New ticket assigned to you. Ticket ID: ${ticket._id}`,
           senderId
         )
-
+        if (assigneeUser) {
+          await sendEmail(
+            assigneeUser.email,
+            'New Ticket Assigned',
+            `A new ticket  with ID: ${ticket._id} and subject: ${ticket.subject} has been assigned to you`,
+            `${process.env.FRONTEND_LINK}/tickets/${ticket._id}`,
+            process.env.SENDER_EMAIL,
+            process.env.SENDER_PASSWORD
+          )
+        }
         return {
           responseMsg:
             'Your ticket has been created and assigned. We will get back to you shortly.',
@@ -216,8 +323,8 @@ const resolvers = {
 
         const { user }: any = ticket
         if (
-          context.role !== RoleOfUser.SUPER_ADMIN &&
-          context.role !== RoleOfUser.ADMIN &&
+          context.role !== 'superAdmin' &&
+          context.role !== 'admin' &&
           user?.toString() !== context.userId
         ) {
           throw new GraphQLError('Access denied!', {
@@ -253,7 +360,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.MANAGER, RoleOfUser.TRAINEE])
+        )(['admin', 'coordinator', 'manager', 'trainee'])
 
         const ticket: any = await Ticket.findById(ticketId)
         if (!ticket)
@@ -263,7 +370,7 @@ const resolvers = {
 
         if (
           context.userId !== ticket.user.toString() &&
-          context.role !== RoleOfUser.SUPER_ADMIN
+          context.role !== 'superAdmin'
         ) {
           throw new GraphQLError('Access denied!', {
             extensions: { code: 'VALIDATION_ERROR' },
@@ -288,6 +395,77 @@ const resolvers = {
       }
     },
 
+    // updateTicket: async (
+    //   _: any,
+    //   { updateTicketId, input }: { updateTicketId: string; input: any },
+    //   context: Context
+    // ) => {
+    //   try {
+    //     await (
+    //       await checkUserLoggedIn(context)
+    //     )(['admin', 'coordinator', 'superAdmin', 'ttl'])
+
+    //     const ticket = await Ticket.findById(updateTicketId)
+    //     if (!ticket)
+    //       throw new GraphQLError('Ticket not found', {
+    //         extensions: { code: 'NOT_FOUND' },
+    //       })
+
+    //     if (
+    //       context.role !== 'superAdmin' &&
+    //       context.role !== 'admin' &&
+    //       context.userId !== ticket.user.toString()
+    //     ) {
+    //       throw new GraphQLError('Access denied!', {
+    //         extensions: { code: 'VALIDATION_ERROR' },
+    //       })
+    //     }
+
+    //     const oldAssignee = ticket.assignee ? ticket.assignee.toString() : null
+
+    //     if (input.subject) ticket.subject = input.subject
+    //     if (input.message) ticket.message = input.message
+    //     if (input.assignee) ticket.assignee = input.assignee
+    //     if (input.status) ticket.status = input.status
+
+    //     await ticket.save()
+
+    //     if (input.assignee && input.assignee !== oldAssignee) {
+    //       // Notify new assignee
+    //       const newAssignee = await User.findById(input.assignee)
+    //       if (newAssignee) {
+    //         await sendEmail(
+    //           newAssignee.email,
+    //           'Ticket Assigned',
+    //           `A ticket with ID: ${updateTicketId} and subject: ${ticket.subject} has been assigned to you.`,
+    //           `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
+    //           process.env.SENDER_EMAIL,
+    //           process.env.SENDER_PASSWORD
+    //         )
+    //       }
+
+    //       if (oldAssignee) {
+    //         const previousAssignee = await User.findById(oldAssignee)
+    //         if (previousAssignee) {
+    //           await sendEmail(
+    //             previousAssignee.email,
+    //             'Ticket Reassigned',
+    //             `The ticket  with ID: ${updateTicketId} and subject: ${ticket.subject} previously assigned to you has been reassigned. Subject: `,
+    //             `${process.env.FRONTEND_LINK}/tickets`,
+    //             process.env.SENDER_EMAIL,
+    //             process.env.SENDER_PASSWORD
+    //           )
+    //         }
+    //       }
+    //     }
+
+    //     return { responseMsg: 'Ticket was updated successfully!' }
+    //   } catch (error: any) {
+    //     throw new GraphQLError(error.message, {
+    //       extensions: { code: '500' },
+    //     })
+    //   }
+    // },
     updateTicket: async (
       _: any,
       { updateTicketId, input }: { updateTicketId: string; input: any },
@@ -296,7 +474,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.SUPER_ADMIN, RoleOfUser.TTL])
+        )(['admin', 'coordinator', 'superAdmin', 'ttl'])
 
         const ticket = await Ticket.findById(updateTicketId)
         if (!ticket)
@@ -304,10 +482,9 @@ const resolvers = {
             extensions: { code: 'NOT_FOUND' },
           })
 
-        // Allow admins to update any ticket
         if (
-          context.role !== RoleOfUser.SUPER_ADMIN &&
-          context.role !== RoleOfUser.ADMIN &&
+          context.role !== 'superAdmin' &&
+          context.role !== 'admin' &&
           context.userId !== ticket.user.toString()
         ) {
           throw new GraphQLError('Access denied!', {
@@ -315,8 +492,72 @@ const resolvers = {
           })
         }
 
-        Object.assign(ticket, input)
-        await ticket.save({ validateBeforeSave: false })
+        const oldAssignee = ticket.assignee ? ticket.assignee.toString() : null
+        const oldStatus = ticket.status
+
+        if (input.subject) ticket.subject = input.subject
+        if (input.message) ticket.message = input.message
+        if (input.assignee) ticket.assignee = input.assignee
+        if (input.status) ticket.status = input.status
+
+        await ticket.save()
+
+        // Handle status change notification
+        if (input.status && input.status !== oldStatus) {
+          const ticketOwner = await User.findById(ticket.user)
+          if (ticketOwner) {
+            await sendEmail(
+              ticketOwner.email,
+              'Ticket Status Updated',
+              `Your ticket (ID: ${updateTicketId}) status has been updated to: ${input.status}`,
+              `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
+              process.env.SENDER_EMAIL,
+              process.env.SENDER_PASSWORD
+            )
+          }
+
+          if (input.status === 'closed') {
+            const assignee = await User.findById(ticket.assignee)
+            if (assignee) {
+              await sendEmail(
+                assignee.email,
+                'Ticket Closed',
+                `The ticket (ID: ${updateTicketId}) assigned to you has been closed.`,
+                `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
+                process.env.SENDER_EMAIL,
+                process.env.SENDER_PASSWORD
+              )
+            }
+          }
+        }
+
+        if (input.assignee && input.assignee !== oldAssignee) {
+          const newAssignee = await User.findById(input.assignee)
+          if (newAssignee) {
+            await sendEmail(
+              newAssignee.email,
+              'Ticket Assigned',
+              `A ticket with ID: ${updateTicketId} and subject: ${ticket.subject} has been assigned to you.`,
+              `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
+              process.env.SENDER_EMAIL,
+              process.env.SENDER_PASSWORD
+            )
+          }
+
+          if (oldAssignee) {
+            const previousAssignee = await User.findById(oldAssignee)
+            if (previousAssignee) {
+              await sendEmail(
+                previousAssignee.email,
+                'Ticket Reassigned',
+                `The ticket with ID: ${updateTicketId} and subject: ${ticket.subject} previously assigned to you has been reassigned.`,
+                `${process.env.FRONTEND_LINK}/tickets`,
+                process.env.SENDER_EMAIL,
+                process.env.SENDER_PASSWORD
+              )
+            }
+          }
+        }
 
         return { responseMsg: 'Ticket was updated successfully!' }
       } catch (error: any) {
@@ -325,12 +566,11 @@ const resolvers = {
         })
       }
     },
-
     deleteTicket: async (_: any, { id }: { id: string }, context: Context) => {
       try {
         await (
           await checkUserLoggedIn(context)
-        )([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.SUPER_ADMIN, RoleOfUser.TTL])
+        )(['admin', 'coordinator', 'superAdmin', 'ttl'])
 
         const ticket = await Ticket.findById(id)
         if (!ticket)
@@ -338,15 +578,28 @@ const resolvers = {
             extensions: { code: 'NOT_FOUND' },
           })
 
-        // Allow admins to delete any ticket
         if (
-          context.role !== RoleOfUser.SUPER_ADMIN &&
-          context.role !== RoleOfUser.ADMIN &&
+          context.role !== 'superAdmin' &&
+          context.role !== 'admin' &&
           context.userId !== ticket.user.toString()
         ) {
           throw new GraphQLError('Access denied!', {
             extensions: { code: 'VALIDATION_ERROR' },
           })
+        }
+
+        if (ticket.assignee) {
+          const assignee = await User.findById(ticket.assignee)
+          if (assignee) {
+            await sendEmail(
+              assignee.email,
+              'Ticket Deleted',
+              `The ticket  with ID: ${id} and subject: ${ticket.subject} previously assigned to you has been deleted.`,
+              `${process.env.FRONTEND_LINK}/tickets`,
+              process.env.SENDER_EMAIL,
+              process.env.SENDER_PASSWORD
+            )
+          }
         }
 
         await ticket.remove()
