@@ -30,7 +30,7 @@ const StatisticsResolvers = {
       const organization = org.name.toLocaleLowerCase();
       try {
         const query: any = {
-            'orgName': organization ,
+          'orgName': organization ,
         };
 
         if (daysRange) {
@@ -45,9 +45,23 @@ const StatisticsResolvers = {
         }
 
         if (startDate || endDate) {
-          query.createdAt = query.createdAt || {}
-          if (startDate) query.createdAt.$gte = new Date(startDate)
-          if (endDate) query.createdAt.$lte = new Date(endDate)
+          query.createdAt = {};
+
+          if (startDate) query.createdAt.$gte = new Date(startDate);
+          if (endDate) {
+            const endOfDay = new Date(endDate);
+            endOfDay.setHours(23, 59, 59, 999); 
+            query.createdAt.$lte = endOfDay;
+          }
+        } if (daysRange) {
+          const today = new Date()
+          const rangeStartDate = new Date(today)
+          rangeStartDate.setDate(today.getDate() - daysRange)
+
+          query.createdAt = {
+            $gte: rangeStartDate,
+            $lte: today,
+          }
         }
         const invitations = await Invitation.find(query);
         if (!invitations.length) {

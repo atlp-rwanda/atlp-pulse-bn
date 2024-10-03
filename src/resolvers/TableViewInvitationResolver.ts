@@ -2,6 +2,9 @@
 import { Invitation } from '../models/invitation.model'
 import { ApolloError } from 'apollo-server'
 import { GraphQLError } from 'graphql'
+import { checkUserLoggedIn } from '../helpers/user.helpers'
+import logger from '../utils/logger.utils'
+import { User } from '../models/user'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 
 const TableViewInvitationResolver = {
@@ -35,7 +38,7 @@ const TableViewInvitationResolver = {
           .skip(offset)
           .limit(limit)
 
-        const totalInvitations = invitations.length;
+        const totalInvitations = invitations.length
 
         return {
           invitations,
@@ -77,55 +80,96 @@ const TableViewInvitationResolver = {
       }
     },
 
-    async filterInvitations(_: any, args: { limit: number; offset: number; role: string; status: string}) {
+    async filterInvitations(
+      _: any,
+      args: { limit: number; offset: number; role: string; status: string; orgToken: string },
+      context: any 
+    ) {
       try {
-        const limit = args.limit ?? 5;
-        const offset = args.offset ?? 0;
-        const { role, status} = args;
+        const { userId } = (await checkUserLoggedIn(context))(['admin']);
+        const { orgToken, role, status, limit = 5, offset = 0 } = args;
+    
+        if (!userId) {
+          throw new GraphQLError('User id not provided');
+        }
+    
+        const user = await User.findById(userId);
+        if (!user) {
+          throw new GraphQLError('User not found');
+        }
+    
+        if (!orgToken) {
+          throw new GraphQLError('Organization token not provided');
+        }
+        const org = await checkLoggedInOrganization(orgToken);
+        if (!org) {
+          throw new GraphQLError('Organization not found');
+        }
+    
         if (!role && !status) throw new GraphQLError('No filter criteria provided');
-
+    
+        // Original criteria
+        const criteria = {
+          $and: [
+            { orgName: { $regex: org.name, $options: 'i' } },
+            {
+              $and: [
+                { 'invitees.role': { $regex: role, $options: 'i' } },
+                { status: { $regex: status, $options: 'i' } },
+              ],
+            },
+          ],
+        };
+    
         let invitations: any = [];
-        let totalInvitations = 0
+    
+        // OUR TRUE LOGIC
+        if (role && status) {
+        invitations = await Invitation.find(criteria)
+          .skip(offset)
+          .limit(limit);
+    
+      } else if (role) {
+        invitations = await Invitation.find({           
+          $and: [
+          { orgName: { $regex: org.name, $options: 'i' } },
+          {'invitees.role': { $regex: role, $options: 'i' } }
+          ]})
+         .skip(offset)
+         .limit(limit);
 
-        if (role && status) { 
-          invitations = await Invitation.find({
-            $and: [
-              { 'invitees.role': { $regex: role, $options: 'i' } },
-              { status: { $regex: status, $options: 'i' } }
-            ]
-          });
-        } else if (status) {
+      } else if (status) {
         invitations = await Invitation.find({
-          status: { $regex: status, $options: 'i' },
-        })          
-        .skip(offset)
-        .limit(limit)
-        } else if (role) {
-        invitations = await Invitation.find({
-          'invitees.role': { $regex: role, $options: 'i' },
+          $and: [
+            { orgName: { $regex: org.name, $options: 'i' }  },
+            { status: { $regex: status, $options: 'i' } },
+          ],
         })
-        .skip(offset)
-        .limit(limit)
-        }
+         .skip(offset)
+         .limit(limit);
+      }
 
-        totalInvitations = invitations.length;
-      
-        return {
-          invitations,
-          totalInvitations,
-        }
+      const totalInvitations = invitations.length;
+      return {
+        invitations,
+        totalInvitations,
+      };
       } catch (error) {
-        const { message } = error as { message: any }
+        const { message } = error as { message: any };
+    
+        if (error instanceof GraphQLError) {
+          throw error;
+        }
+    
         throw new ApolloError(
           'An error occurred while fetching invitations.',
           'INTERNAL_SERVER_ERROR',
           {
             detailedMessage: message.toString(),
           }
-        )
-
+        );
       }
-    },
+    }            
   },
   Mutation: {},
 }
