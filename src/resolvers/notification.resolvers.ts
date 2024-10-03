@@ -1,7 +1,7 @@
 import { Notification } from '../models/notification.model'
 import { Context } from './../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { PubSub, withFilter } from 'graphql-subscriptions'
 import { Query } from 'mongoose'
 import { Profile } from '../models/profile.model'
@@ -58,7 +58,7 @@ const notificationResolver = {
   },
   Mutation: {
     deleteNotifications: async (parent: any, args: any, context: Context) => {
-      ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, RoleOfUser.TRAINEE])
       const findNotification = await Notification.findById(args.id)
       if (!findNotification)
         throw new Error('The notification you want to delete does not exist')
@@ -69,13 +69,13 @@ const notificationResolver = {
     },
     markAsRead: async (parent: any, args: any, context: Context) => {
       ;(await checkUserLoggedIn(context))([
-        'coordinator',
-        'trainee',
-        'superAdmin',
-        'manager',
-        'ttl',
+        RoleOfUser.COORDINATOR,
+        RoleOfUser.TRAINEE,
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.TTL,
         'user',
-        'admin',
+        RoleOfUser.ADMIN,
       ])
       const findNotification = await Notification.findById(args.id)
       if (!findNotification)
@@ -89,7 +89,7 @@ const notificationResolver = {
       return 'successfully updated notification'
     },
     markAllAsRead: async (parent: any, args: any, context: Context) => {
-      ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, RoleOfUser.TRAINEE])
       const { userId } = context
       const findNotification = await Notification.find({ receiver: userId })
       if (!findNotification)

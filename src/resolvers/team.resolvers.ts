@@ -5,7 +5,7 @@ import Team from '../models/team.model'
 import Program from '../models/program.model'
 import Phase from '../models/phase.model'
 import Cohort from '../models/cohort.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { Context } from '../context'
 import { ProgramType } from './program.resolvers'
@@ -52,15 +52,15 @@ const resolvers = {
       try {
         // some validations
         const { userId, role } = (await checkUserLoggedIn(context))([
-          'superAdmin',
-          'admin',
-          'manager',
-          'coordinator',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
         ])
 
         // get the organization if a superAdmin logs in
         let org
-        if (role !== 'superAdmin') {
+        if (role !== RoleOfUser.SUPER_ADMIN) {
           org = await checkLoggedInOrganization(orgToken)
         }
 
@@ -72,12 +72,12 @@ const resolvers = {
             await Team.find({ organization: org })
               .populate({
                 path: 'cohort',
-                match: role === 'manager' && managerMatch,
+                match: role === RoleOfUser.MANAGER && managerMatch,
                 model: Cohort,
                 strictPopulate: false,
                 populate: {
                   path: 'organization',
-                  match: role === 'admin' && adminMatch,
+                  match: role === RoleOfUser.ADMIN && adminMatch,
                   model: Organization,
                   strictPopulate: false,
                   populate: {
@@ -98,7 +98,7 @@ const resolvers = {
                 strictPopulate: false,
               })
               .populate({
-                path: 'manager',
+                path: RoleOfUser.MANAGER,
                 model: User,
                 strictPopulate: false,
               })
@@ -127,15 +127,15 @@ const resolvers = {
       try {
         // some validations
         const { userId, role } = (await checkUserLoggedIn(context))([
-          'superAdmin',
-          'admin',
-          'coordinator',
-          'manager',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.COORDINATOR,
+          RoleOfUser.MANAGER,
         ])
 
         // get the organization if a superAdmin logs in
         let org
-        if (role !== 'superAdmin') {
+        if (role !== RoleOfUser.SUPER_ADMIN) {
           org = await checkLoggedInOrganization(orgToken)
         }
 
@@ -145,12 +145,12 @@ const resolvers = {
         return (
           await Team.find({ organization: org }).populate({
             path: 'cohort',
-            match: role === 'manager' && managerMatch,
+            match: role === RoleOfUser.MANAGER && managerMatch,
             model: Cohort,
             strictPopulate: false,
             populate: {
               path: 'organization',
-              match: role === 'admin' && adminMatch,
+              match: role === RoleOfUser.ADMIN && adminMatch,
               model: Organization,
               strictPopulate: false,
             },
@@ -178,10 +178,10 @@ const resolvers = {
       try {
         // coordinator validation
         const { userId, role }: any = (await checkUserLoggedIn(context))([
-          'admin',
-          'manager',
-          'coordinator',
-          'ttl',
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
+          RoleOfUser.TTL,
         ])
 
         // get the organization if someone  logs in
@@ -209,14 +209,14 @@ const resolvers = {
             ],
           })
         ).filter((user: any) => {
-          if (role === 'admin') {
+          if (role === RoleOfUser.ADMIN) {
             return (
               user.team?.name == team &&
               user.team?.cohort?.program?.organization.name == org?.name &&
               user.team?.cohort?.program?.organization.admin.includes(userId)
             )
           }
-          if (role === 'manager') {
+          if (role === RoleOfUser.MANAGER) {
             return (
               user.team.name == team &&
               user.team?.cohort?.program?.organization.name == org?.name &&
@@ -226,7 +226,7 @@ const resolvers = {
               ) == userId
             )
           }
-          if (role === 'coordinator') {
+          if (role === RoleOfUser.COORDINATOR) {
             return (
               user.team.name == team &&
               user.team?.cohort?.program?.organization.name == org?.name &&
@@ -271,7 +271,7 @@ const resolvers = {
         const { name, cohortName, orgToken, startingPhase, ttlEmail } = args
 
         // some validations
-        ;(await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager'])
+        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN, RoleOfUser.MANAGER])
         const cohort = await Cohort.findOne({ name: cohortName })
 
         const organ = await checkLoggedInOrganization(orgToken)
@@ -345,7 +345,7 @@ const resolvers = {
       }
     },
     deleteTeam: async (parent: any, args: any, context: Context) => {
-      ;(await checkUserLoggedIn(context))(['admin', 'manager'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.MANAGER])
       const findTeam = await Team.findById(args.id)
       if (!findTeam)
         throw new Error('The Team you want to delete does not exist')
@@ -379,10 +379,10 @@ const resolvers = {
       context: Context
     ) => {
       const { userId, role }: any = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'manager',
-        'coordinator',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.COORDINATOR,
       ])
 
       const team: any = await Team.findById(id)
@@ -409,7 +409,7 @@ const resolvers = {
           strictPopulate: false,
         })
         .populate({
-          path: 'manager',
+          path: RoleOfUser.MANAGER,
           model: User,
           strictPopulate: false,
         })
@@ -447,7 +447,7 @@ const resolvers = {
         })
       }
 
-      if (role !== 'superAdmin') {
+      if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (cohortOrg.id.toString() !== org.id.toString()) {
@@ -460,7 +460,7 @@ const resolvers = {
             }
           )
         }
-        if (role === 'admin' && !cohortOrg.admin.includes(userId)) {
+        if (role === RoleOfUser.ADMIN && !cohortOrg.admin.includes(userId)) {
           throw new GraphQLError(
             `Team with id "${id}" doesn't exist in your organization`,
             {
@@ -471,7 +471,7 @@ const resolvers = {
           )
         }
         if (
-          role === 'manager' &&
+          role === RoleOfUser.MANAGER &&
           cohortProgram?.manager?.toString() !== userId?.toString()
         ) {
           throw new GraphQLError(
@@ -484,7 +484,7 @@ const resolvers = {
           )
         }
         if (
-          role === 'coordinator' &&
+          role === RoleOfUser.COORDINATOR &&
           team?.cohort?.coordinator.toString() !== userId?.toString()
         ) {
           throw new GraphQLError('You are not assigned to this Team!', {
@@ -585,7 +585,7 @@ const resolvers = {
           strictPopulate: false,
         })
         .populate({
-          path: 'manager',
+          path: RoleOfUser.MANAGER,
           model: User,
           strictPopulate: false,
         })

@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql'
 import Ticket from '../models/ticket.model'
 import { Context } from '../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { PubSub } from 'graphql-subscriptions'
 import { pushNotification } from '../utils/notification/pushNotification'
 
@@ -23,12 +23,12 @@ async function createReply(
   replyMessage: string
 ) {
   try {
-    const isSuperAdmin = context?.role === 'superAdmin'
+    const isSuperAdmin = context?.role === RoleOfUser.SUPER_ADMIN
     const reply: any = {
       sender: context?.userId,
       receiver: isSuperAdmin
         ? user?._id.toString()
-        : (await User.findOne({ role: 'superAdmin' }))?._id.toString(),
+        : (await User.findOne({ role: RoleOfUser.SUPER_ADMIN }))?._id.toString(),
       replyMessage,
     }
 
@@ -84,22 +84,22 @@ const resolvers = {
         await (
           await checkUserLoggedIn(context)
         )([
-          'superAdmin',
-          'admin',
-          'manager',
-          'coordinator',
-          'trainee',
-          'ttl',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
+          RoleOfUser.TRAINEE,
+          RoleOfUser.TTL,
           'users',
         ])
 
         // Allow admins to fetch all tickets
         const filterObj: any = (() => {
-          if (['superAdmin', 'admin'].includes(context.role)) {
+          if ([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN].includes(context.role)) {
             return {} // Admins can see all tickets
           } else if (context.role === 'trainee') {
             return { $or: [{ assignee: context.userId }] }
-          } else if (context.role === 'coordinator') {
+          } else if (context.role === RoleOfUser.COORDINATOR) {
             return { $or: [{ user: context.userId }] }
           }
           return { user: context.userId } // Regular users see their own tickets
@@ -141,7 +141,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )(['admin', 'superAdmin', 'coordinator', 'ttl'])
+        )([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.TTL])
         const { subject, message, assignee }: any = args
 
         let assigneeUser = null
@@ -178,7 +178,7 @@ const resolvers = {
         })
 
         const receiverId: any =
-          assignee || (await User.findOne({ role: 'superAdmin' }))?._id
+          assignee || (await User.findOne({ role: RoleOfUser.SUPER_ADMIN }))?._id
         const senderId: any = context.userId
         await pushNotification(
           receiverId,
@@ -216,8 +216,8 @@ const resolvers = {
 
         const { user }: any = ticket
         if (
-          context.role !== 'superAdmin' &&
-          context.role !== 'admin' &&
+          context.role !== RoleOfUser.SUPER_ADMIN &&
+          context.role !== RoleOfUser.ADMIN &&
           user?.toString() !== context.userId
         ) {
           throw new GraphQLError('Access denied!', {
@@ -253,7 +253,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )(['admin', 'coordinator', 'manager', 'trainee'])
+        )([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.MANAGER, RoleOfUser.TRAINEE])
 
         const ticket: any = await Ticket.findById(ticketId)
         if (!ticket)
@@ -263,7 +263,7 @@ const resolvers = {
 
         if (
           context.userId !== ticket.user.toString() &&
-          context.role !== 'superAdmin'
+          context.role !== RoleOfUser.SUPER_ADMIN
         ) {
           throw new GraphQLError('Access denied!', {
             extensions: { code: 'VALIDATION_ERROR' },
@@ -296,7 +296,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )(['admin', 'coordinator', 'superAdmin', 'ttl'])
+        )([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.SUPER_ADMIN, RoleOfUser.TTL])
 
         const ticket = await Ticket.findById(updateTicketId)
         if (!ticket)
@@ -306,8 +306,8 @@ const resolvers = {
 
         // Allow admins to update any ticket
         if (
-          context.role !== 'superAdmin' &&
-          context.role !== 'admin' &&
+          context.role !== RoleOfUser.SUPER_ADMIN &&
+          context.role !== RoleOfUser.ADMIN &&
           context.userId !== ticket.user.toString()
         ) {
           throw new GraphQLError('Access denied!', {
@@ -330,7 +330,7 @@ const resolvers = {
       try {
         await (
           await checkUserLoggedIn(context)
-        )(['admin', 'coordinator', 'superAdmin', 'ttl'])
+        )([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.SUPER_ADMIN, RoleOfUser.TTL])
 
         const ticket = await Ticket.findById(id)
         if (!ticket)
@@ -340,8 +340,8 @@ const resolvers = {
 
         // Allow admins to delete any ticket
         if (
-          context.role !== 'superAdmin' &&
-          context.role !== 'admin' &&
+          context.role !== RoleOfUser.SUPER_ADMIN &&
+          context.role !== RoleOfUser.ADMIN &&
           context.userId !== ticket.user.toString()
         ) {
           throw new GraphQLError('Access denied!', {

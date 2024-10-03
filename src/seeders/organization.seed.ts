@@ -1,15 +1,15 @@
 /* eslint-disable */
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 
 const seedOrganizations = async () => {
   const andelaAdmins = await User.find({
-    role: 'admin',
+    role: RoleOfUser.ADMIN,
     organizations: { $in: ['Andela'] },
   })
 
   const IremboAdmins = await User.find({
-    role: 'admin',
+    role: RoleOfUser.ADMIN,
     organizations: { $in: ['Irembo'] },
   })
 

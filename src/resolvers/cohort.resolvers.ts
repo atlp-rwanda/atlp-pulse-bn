@@ -5,7 +5,7 @@ import { checkUserLoggedIn } from '../helpers/user.helpers'
 import Cohort from '../models/cohort.model'
 import Program from '../models/program.model'
 import Phase from '../models/phase.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { Context } from './../context'
 import { ProgramType } from './program.resolvers'
@@ -32,14 +32,14 @@ const resolvers = {
       try {
         // some validations
         const { userId, role }: any = (await checkUserLoggedIn(context))([
-          'superAdmin',
-          'admin',
-          'manager',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
         ])
 
         // get the organization if a superAdmin logs in
         let org
-        if (role !== 'superAdmin') {
+        if (role !== RoleOfUser.SUPER_ADMIN) {
           org = await checkLoggedInOrganization(orgToken)
         }
 
@@ -49,12 +49,12 @@ const resolvers = {
         return (
           await Cohort.find().populate({
             path: 'program',
-            match: role === 'manager' && managerMatch,
+            match: role === RoleOfUser.MANAGER && managerMatch,
             model: Program,
             strictPopulate: false,
             populate: {
               path: 'organization',
-              match: role === 'admin' && adminMatch,
+              match: role === RoleOfUser.ADMIN && adminMatch,
               model: Organization,
               strictPopulate: false,
             },
@@ -101,7 +101,7 @@ const resolvers = {
         } = args
 
         // some validations
-        ;(await checkUserLoggedIn(context))(['superAdmin', 'admin', 'manager'])
+        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN, RoleOfUser.MANAGER])
         const coordinator = await User.findOne({
           email: coordinatorEmail,
         })
@@ -213,10 +213,10 @@ const resolvers = {
       } = args
 
       const { userId, role }: any = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'manager',
-        'coordinator',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.COORDINATOR,
       ])
       const coordinator = await User.findOne({
         email: coordinatorEmail,
@@ -294,7 +294,7 @@ const resolvers = {
         })
       }
 
-      if (role !== 'superAdmin') {
+      if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (cohortOrg.id.toString() !== org.id.toString()) {
@@ -307,7 +307,7 @@ const resolvers = {
             }
           )
         }
-        if (role === 'admin' && !cohortOrg?.admin?.includes(userId)) {
+        if (role === RoleOfUser.ADMIN && !cohortOrg?.admin?.includes(userId)) {
           throw new GraphQLError(
             `Cohort with id "${id}" doesn't exist in your organization`,
             {
@@ -318,7 +318,7 @@ const resolvers = {
           )
         }
         if (
-          role === 'manager' &&
+          role === RoleOfUser.MANAGER &&
           cohortProgram?.manager?.toString() !== userId?.toString()
         ) {
           throw new GraphQLError(
@@ -331,7 +331,7 @@ const resolvers = {
           )
         }
         if (
-          role === 'coordinator' &&
+          role === RoleOfUser.COORDINATOR &&
           cohort?.coordinator?.toString() !== userId?.toString()
         ) {
           throw new GraphQLError('You are not assigned this cohort!', {
@@ -410,9 +410,9 @@ const resolvers = {
     },
     deleteCohort: async (_: any, { id, orgToken }: any, context: Context) => {
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'manager',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
       ])
 
       const cohort = await Cohort.findById(id).populate({
@@ -433,7 +433,7 @@ const resolvers = {
       const cohortProgram = cohort.program as ProgramType
       const cohortOrg = cohortProgram.organization as OrganizationType
 
-      if (role !== 'superAdmin') {
+      if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (cohortOrg.id.toString() !== org.id.toString()) {
@@ -447,7 +447,7 @@ const resolvers = {
           )
         }
         if (
-          role === 'admin' &&
+          role === RoleOfUser.ADMIN &&
           cohortOrg.admin.toString() !== userId?.toString()
         ) {
           throw new GraphQLError(
@@ -460,7 +460,7 @@ const resolvers = {
           )
         }
         if (
-          role === 'manager' &&
+          role === RoleOfUser.MANAGER &&
           cohortProgram?.manager?.toString() !== userId?.toString()
         ) {
           throw new GraphQLError(

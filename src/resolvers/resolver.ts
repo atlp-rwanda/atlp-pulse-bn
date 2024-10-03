@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { User } from '../models/user';
 import { Profile } from '../models/profile.model';
+import { emailExpression, generateToken } from '../helpers/user.helpers';
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -40,8 +41,6 @@ const resolvers = {
     ) {
       const userExists = await User.findOne({ email: email })
       if (userExists) throw new Error('Email is taken')
-      const emailExpression =
-        /^(([^<>()\\[\]\\.,;:\s@“]+(\.[^<>()\\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       const isValidEmail = emailExpression.test(String(email).toLowerCase())
       if (!isValidEmail) throw new Error('invalid email format')
       if (password.length < 6)
@@ -52,13 +51,7 @@ const resolvers = {
         email: email,
         password: hashedPassword,
       })
-      const token = jwt.sign(
-        { userId: newUser._id, role: newUser?.role },
-        SECRET,
-        {
-          expiresIn: '2h',
-        }
-      )
+      const token = generateToken(newUser._id.toString(), newUser?.role)
 
       return { token, user: newUser }
     },

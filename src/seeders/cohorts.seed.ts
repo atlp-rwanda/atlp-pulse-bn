@@ -1,7 +1,7 @@
 import Cohort from '../models/cohort.model'
 import Phase from '../models/phase.model'
 import Program from '../models/program.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 
 const seedCohorts = async () => {
@@ -25,11 +25,11 @@ const seedCohorts = async () => {
 
   // Coordinators
   const andelCoord = await User.find({
-    role: 'coordinator',
+    role: RoleOfUser.COORDINATOR,
     organizations: { $in: ['Andela'] },
   })
   const iremboCoord = await User.find({
-    role: 'coordinator',
+    role: RoleOfUser.COORDINATOR,
     organizations: { $in: ['Irembo'] },
   })
 
