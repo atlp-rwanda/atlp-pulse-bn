@@ -76,6 +76,10 @@ const invitationSchema = gql`
   type DeleteMessage {
     message: String!
   }
+    type InvitationResendResponse{
+    success:Boolean!
+    message:String!
+    }
 
   type Mutation {
     sendInvitation(invitees: [InviteeInput!]!,orgName: String!, orgToken: String!): Invitation!
@@ -83,6 +87,7 @@ const invitationSchema = gql`
     uploadInvitationFile(file: Upload!,orgName: String!, orgToken: String!): FileData!
     deleteInvitation(invitationId: ID!): DeleteMessage
     cancelInvitation(orgToken: String!, id: ID!): Invitation!
+    resendInvitation(orgToken:String!,invitationId:ID!):InvitationResendResponse!
   }
 `;
 
