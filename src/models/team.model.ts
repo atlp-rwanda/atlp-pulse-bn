@@ -1,5 +1,16 @@
 import mongoose, { Schema } from 'mongoose'
 import { User } from './user'
+import { CohortInterface } from './cohort.model';
+
+export interface TeamInterface {
+  name: string;
+  cohort?: CohortInterface;
+  ttl?: mongoose.Types.ObjectId;
+  members: mongoose.Types.ObjectId[];
+  startingPhase: Date;
+  active: boolean;
+  organization: mongoose.Types.ObjectId;
+}
 
 const teamSchema = new Schema(
   {

@@ -2,6 +2,26 @@ import bcrypt from 'bcryptjs'
 import mongoose, { model, Schema } from 'mongoose'
 import { Profile } from './profile.model'
 
+export interface UserStatus {
+  status: 'active' | 'drop';
+  reason?: string;
+  date?: Date;
+}
+
+export interface UserInterface {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  password: string;
+  role: string;
+  team?: mongoose.Types.ObjectId;
+  status: UserStatus;
+  cohort?: mongoose.Types.ObjectId;
+  program?: mongoose.Types.ObjectId;
+  organizations: string[];
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+}
+
 mongoose.set('toJSON', {
   virtuals: true,
   versionKey: false,

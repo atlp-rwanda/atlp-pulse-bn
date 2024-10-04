@@ -1,5 +1,20 @@
 import mongoose, { Schema } from 'mongoose'
 import { User } from './user'
+import { PhaseInterface } from './phase.model';
+
+export interface CohortInterface {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  phase: PhaseInterface;
+  coordinator: mongoose.Types.ObjectId;
+  members: mongoose.Types.ObjectId[];
+  program: mongoose.Types.ObjectId;
+  teams: number;
+  active: boolean;
+  startDate: Date;
+  endDate?: Date; // Optional
+  organization: mongoose.Types.ObjectId;
+}
 
 const cohortSchema = new Schema(
   {

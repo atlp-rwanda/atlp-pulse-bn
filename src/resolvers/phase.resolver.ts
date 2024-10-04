@@ -11,7 +11,7 @@ const phaseResolver = {
     getAllPhases: async (_: any, { orgToken }: any, context: Context) => {
       const org = await checkLoggedInOrganization(orgToken)
 
-      ;(await checkUserLoggedIn(context))(['admin'])
+      ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
 
       const allphases = await Phase.find({ organization: org })
 

@@ -19,9 +19,11 @@ import logGraphQLRequests from './utils/logGraphQLRequests'
 import logger from './utils/logger.utils'
 
 import userResolvers from './resolvers/userResolver'
+
 import profileResolvers from './resolvers/profileResolver'
 import programResolvers from './resolvers/program.resolvers'
 import cohortResolvers from './resolvers/cohort.resolvers'
+//import manageStudentResolvers from './resolvers/coordinatorResolvers'
 import manageStudentResolvers from './resolvers/coordinatorResolvers'
 import createRatingSystemresolver from './resolvers/createRatingSystemresolver'
 import ratingResolvers from './resolvers/ratingsResolvers'
