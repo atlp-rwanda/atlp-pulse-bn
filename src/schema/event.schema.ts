@@ -55,8 +55,7 @@ const eventSchema = gql`
     ): Event!
 
     respondToEventInvitation(
-      eventId: String!
-      inviteeResponse: String!
+      eventToken: String!
       authToken: String!
     ): Event!
 

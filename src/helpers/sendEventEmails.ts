@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken"
 import { sendEmail } from "../utils/sendEmail"
 import { eventCancellationTemplate, eventInvitationTemplate, invitationCancellationTemplate } from "../utils/templates/eventInvitationTemplates";
 
@@ -12,7 +13,18 @@ export async function sendEventInvitations(
     eventTimeToEnd: string,
 ){
     try{
-        const content: string = eventInvitationTemplate(eventId,eventTitle,hostName,eventStart,eventEnd,eventTimeToStart,eventTimeToEnd)
+        const secret = process.env.SECRET!
+        const acceptedEventToken = jwt.sign({
+          email,
+          eventId,
+          response: "accepted",
+        },secret)
+        const declinedEventToken = jwt.sign({
+          email,
+          eventId,
+          response: "declined",
+        },secret)
+        const content: string = eventInvitationTemplate(eventTitle,hostName,eventStart,eventEnd,eventTimeToStart,eventTimeToEnd, acceptedEventToken, declinedEventToken)
         await sendEmail(
             email,
             'Event Invitation',

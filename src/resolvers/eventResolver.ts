@@ -1,6 +1,7 @@
 /* eslint-disable quotes */
 
 import { GraphQLError } from 'graphql';
+import jwt from "jsonwebtoken";
 import { decodeAuthHeader } from '../context';
 import { Event } from '../models/event.model';
 import { User } from '../models/user';
@@ -11,6 +12,12 @@ enum INVITEE_STATUS {
   PENDING = "pending",
   ACCEPTED = "accepted",
   DECLINED = "declined",
+}
+
+type EventResponse = {
+  email: string,
+  eventId: string,
+  response: "accepted" | "declined"
 }
 
 const validateDates = (start: string, end: string): string | null=>{
@@ -41,6 +48,17 @@ const validateTime = (timeToStart: string, timeToEnd: string): string | null=>{
   return null
 }
 
+const decodeEventResponseToken = (token: string)=>{
+  try{
+    return jwt.verify(token, process.env.SECRET!) as EventResponse
+  }catch(err: any){
+    throw new GraphQLError("Invalid Token",{
+      extensions:{
+        code: "INVALID_EVENT_TOKEN"
+      }
+    })
+  }
+}
 
 
 const eventResolvers: any = {
@@ -361,20 +379,21 @@ const eventResolvers: any = {
 
     async respondToEventInvitation(
       _: any,
-      { eventId, inviteeResponse, authToken }: { eventId: string, inviteeResponse: string, authToken: string }) {
-      if (inviteeResponse !== "accepted" && inviteeResponse !== "declined") {
-        throw new GraphQLError("Invalid response", {
-          extensions: {
-            code: "INVALID_RESPONSE"
-          }
-        })
-      }
+      { eventToken, authToken }: { eventToken: string, authToken: string }) {
       const { userId } = decodeAuthHeader(authToken)
+      const { email, eventId, response } = decodeEventResponseToken(eventToken)
       const user = await User.findById(userId)
       if (!user) {
         throw new GraphQLError("No such user found", {
           extensions: {
             code: "USER_NOT_FOUND"
+          }
+        })
+      }
+      if(user.email!==email){
+        throw new GraphQLError("Invalid Token", {
+          extensions: {
+            code: "INVALID_EVENT_TOKEN"
           }
         })
       }
@@ -394,7 +413,7 @@ const eventResolvers: any = {
           }
         })
       }
-      existingInvitee.status = inviteeResponse
+      existingInvitee.status = response
       await event.save()
       return event
     }
