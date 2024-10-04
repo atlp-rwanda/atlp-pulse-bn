@@ -74,7 +74,7 @@
     "graphql-subscriptions": "^2.0.0",
     "graphql-tag": "^2.12.6",
     "graphql-upload-ts": "^2.1.2",
-    "graphql-ws": "^5.11.2",
+    "graphql-ws": "^5.16.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^4.17.1",
     "mongoose": "^6.6.1",

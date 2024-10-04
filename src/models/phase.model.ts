@@ -1,5 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
 
+export interface PhaseInterface {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  description: string;
+  organization: mongoose.Types.ObjectId;
+}
+
 const phaseSchema = new Schema({
   name: {
     type: String,
