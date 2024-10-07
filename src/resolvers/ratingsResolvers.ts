@@ -206,9 +206,9 @@ const ratingResolvers: any = {
           if (!userExists) throw new Error('User does not exist!')
 
           if (userExists.status?.status === 'drop') {
-          throw new Error('The trainee is dropped');
-        }
-          
+            throw new Error('The trainee is dropped')
+          }
+
           const Kohort = await Cohort.findOne({ _id: cohort })
           const Phase = await Cohort.findOne({ _id: cohort }).populate(
             'phase',
