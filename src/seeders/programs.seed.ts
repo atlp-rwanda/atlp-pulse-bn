@@ -1,15 +1,15 @@
 import Program from '../models/program.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 
 const seedPrograms = async () => {
   const andelaManagers = await User.find({
-    role: 'manager',
+    role: RoleOfUser.MANAGER,
     organizations: { $in: ['Andela'] },
   })
 
   const IremboManagers = await User.find({
-    role: 'manager',
+    role: RoleOfUser.MANAGER,
     organizations: { $in: ['Irembo'] },
   })
 

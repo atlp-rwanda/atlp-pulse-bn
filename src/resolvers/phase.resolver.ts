@@ -5,13 +5,14 @@ import { Context } from './../context'
 import { OrganizationType } from './userResolver'
 import Phase from '../models/phase.model'
 import Cohort from '../models/cohort.model'
+import { RoleOfUser } from '../models/user'
 
 const phaseResolver = {
   Query: {
     getAllPhases: async (_: any, { orgToken }: any, context: Context) => {
       const org = await checkLoggedInOrganization(orgToken)
 
-      ;(await checkUserLoggedIn(context))(['admin', 'coordinator'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR])
 
       const allphases = await Phase.find({ organization: org })
 
@@ -30,7 +31,7 @@ const phaseResolver = {
       context: Context
     ) => {
       try {
-        ;(await checkUserLoggedIn(context))(['superAdmin', 'admin'])
+        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN])
 
         const { name, description, orgToken } = args
         const org = await checkLoggedInOrganization(orgToken)
@@ -64,9 +65,9 @@ const phaseResolver = {
       context: Context
     ) => {
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'manager',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
       ])
 
       // get the phase and its organization from the id and checks if it exists
@@ -90,7 +91,7 @@ const phaseResolver = {
       }
 
       // check if a given user have priviledges to update this phase
-      if (role !== 'superAdmin') {
+      if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (phaseOrg.id.toString() !== org.id.toString()) {
@@ -103,7 +104,7 @@ const phaseResolver = {
             }
           )
         }
-        if (role === 'admin' && phaseOrg.admin.toString() !== userId) {
+        if (role === RoleOfUser.ADMIN && phaseOrg.admin.toString() !== userId) {
           throw new GraphQLError(
             `Phase with id "${phase?.id}" doesn't exist in your organization`,
             {
@@ -124,7 +125,7 @@ const phaseResolver = {
     },
 
     async deletePhase(parent: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['superAdmin', 'admin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN])
 
       const findPhase = await Phase.findById(args.id)
       const findPhaseInCohort = await Cohort.findOne({ phase: args.id })

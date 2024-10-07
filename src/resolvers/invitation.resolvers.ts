@@ -5,7 +5,7 @@ import { IResolvers } from '@graphql-tools/utils'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { sendEmail } from '../utils/sendEmail'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import sendInvitationEmail from '../helpers/sendInvitaitonEmail'
 import sendCancelInvitationEmail from '../helpers/cancelInvitationEmail'
 import jwt from 'jsonwebtoken'
@@ -16,10 +16,10 @@ import generateInvitationTokenAndLink from '../helpers/generateInvitationToken.h
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 
 const ROLE = {
-  TRAINEE: 'trainee',
-  ADMIN: 'admin',
-  TTL: 'ttl',
-  COORDINATOR: 'coordinator',
+  TRAINEE: RoleOfUser.TRAINEE,
+  ADMIN: RoleOfUser.ADMIN,
+  TTL: RoleOfUser.TTL,
+  COORDINATOR: RoleOfUser.COORDINATOR,
 } as const
 export type Role = typeof ROLE[keyof typeof ROLE]
 
@@ -41,7 +41,7 @@ const invitationResolvers: IResolvers = {
       context
     ) => {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
         if (!userId) {
           throw new GraphQLError('User is not logged in', {
             extensions: {
@@ -102,7 +102,7 @@ const invitationResolvers: IResolvers = {
       context
     ) => {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
         if (!userId) {
           throw new GraphQLError('User is not logged in', {
             extensions: {
@@ -177,7 +177,7 @@ const invitationResolvers: IResolvers = {
       }: { file: any; orgName: string; orgToken: string },
       context: any
     ) {
-      const { userId } = (await checkUserLoggedIn(context))(['admin'])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
       if (!userId) {
         throw new GraphQLError('User is not logged in', {
           extensions: {
@@ -266,7 +266,7 @@ const invitationResolvers: IResolvers = {
       context: any
     ) {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
         if (!userId) {
           throw new GraphQLError('User is not logged in', {
             extensions: {
@@ -339,7 +339,7 @@ const invitationResolvers: IResolvers = {
       { invitationId }: { invitationId: string },
       context: any
     ) {
-      const { userId } = (await checkUserLoggedIn(context))(['admin'])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
       if (!userId) {
         throw new GraphQLError('User is not logged in', {
           extensions: {

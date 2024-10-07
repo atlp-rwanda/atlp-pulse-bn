@@ -6,7 +6,7 @@ import mongoose, { Error, Types } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { pushNotification } from '../utils/notification/pushNotification'
 import Phase from '../models/phase.model'
-import { User, UserInterface } from '../models/user'
+import { RoleOfUser, User, UserInterface } from '../models/user'
 import Team from '../models/team.model'
 import { CohortInterface } from '../models/cohort.model'
 import { GraphQLError } from 'graphql'
@@ -111,7 +111,7 @@ const attendanceResolver = {
       { traineeEmail }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))(['trainee'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.TRAINEE])
       const attendance = await Attendance.find()
 
       const weeklyAttendance = attendance.map((week: any) => {
@@ -130,8 +130,8 @@ const attendanceResolver = {
       { team }: { team: string },
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))(['coordinator'])
-      const { userId } = (await checkUserLoggedIn(context))(['coordinator'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
 
       const teamData = await Team.findById(team)
 
@@ -143,8 +143,8 @@ const attendanceResolver = {
     },
 
     async getAttendanceStats(_: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['coordinator'])
-      const { userId } = (await checkUserLoggedIn(context))(['coordinator'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
       const attendances: any = await Attendance.find({ coordinatorId: userId })
 
       //calculate statistic

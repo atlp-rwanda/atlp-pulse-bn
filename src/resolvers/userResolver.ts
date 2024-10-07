@@ -1,14 +1,14 @@
 /* eslint-disable prefer-const */
 import { GraphQLError } from 'graphql'
-import * as jwt from 'jsonwebtoken'
+// import * as jwt from 'jsonwebtoken'
 import { JwtPayload, verify } from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
 import generateRandomPassword from '../helpers/generateRandomPassword'
-import { checkUserLoggedIn } from '../helpers/user.helpers'
+import { checkUserLoggedIn, emailExpression, generateToken, generateTokenOrganization, generateTokenUserExists } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import Cohort from '../models/cohort.model'
 import Program from '../models/program.model'
-import { User, UserRole } from '../models/user'
+import { RoleOfUser, User, UserRole } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
@@ -43,7 +43,7 @@ enum Status {
 const resolvers: any = {
   Query: {
     async getOrganizations(_: any, __: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['superAdmin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
 
       return Organization.find()
     },
@@ -63,8 +63,8 @@ const resolvers: any = {
     },
     async getOrganization(_: any, { name }: any, context: Context) {
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
         'trainee',
       ])
 
@@ -98,10 +98,10 @@ const resolvers: any = {
       context: Context
     ) {
       ;(await checkUserLoggedIn(context))([
-        'admin',
-        'coordinator',
+        RoleOfUser.ADMIN,
+        RoleOfUser.COORDINATOR,
         'trainee',
-        'manager',
+        RoleOfUser.MANAGER,
         'ttl',
       ])
 
@@ -216,8 +216,6 @@ const resolvers: any = {
           },
         })
 
-      const emailExpression =
-        /^(([^<>()\[\]\\.,;:\s@“]+(\.[^<>()\[\]\\.,;:\s@“]+)*)|(“.+“))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       const isValidEmail = emailExpression.test(String(email).toLowerCase())
       if (!isValidEmail)
         throw new GraphQLError('invalid email format', {
@@ -246,9 +244,7 @@ const resolvers: any = {
         password,
         organizations: org.name,
       })
-      const token = jwt.sign({ userId: user._id, role: user?.role }, SECRET, {
-        expiresIn: '2h',
-      })
+      const token = generateToken(user._id.toString(), user?.role)
 
       if (user && invitation) {
         invitation.status = 'accepted'
@@ -333,7 +329,7 @@ const resolvers: any = {
           { $push: { activity: { $each: [newActivity] } } }
         )
         if (
-          user?.role === 'trainee' &&
+          user?.role === RoleOfUser.TRAINEE &&
           user?.organizations?.includes(org?.name)
         ) {
           if (
@@ -345,11 +341,7 @@ const resolvers: any = {
             throw new Error('Please wait to be added to a program or cohort')
           }
           if (await isAssigned(org?.name, user._id)) {
-            const token = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
-              SECRET,
-              { expiresIn: '2h' }
-            )
+            const token = generateToken(user._id, user._doc?.role || 'user')
             const data = {
               token: token,
               user: user.toJSON(),
@@ -361,19 +353,13 @@ const resolvers: any = {
             )
           }
         } else if (
-          user?.role === 'ttl' &&
+          user?.role === RoleOfUser.TTL &&
           user?.organizations?.includes(org?.name)
         ) {
           if (user.cohort && user.team) {
-            const token = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
-              SECRET,
-              {
-                expiresIn: '2h',
-              }
-            )
+            const token = generateToken(user._id, user._doc?.role || 'user')
             const data = {
-              token: token,
+              token: token, 
               user: user.toJSON(),
             }
             return data
@@ -386,20 +372,14 @@ const resolvers: any = {
           admin: user.id,
         })
 
-        if (user?.role === 'admin' && organization) {
-          const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
-          )
+        if (user?.role === RoleOfUser.ADMIN && organization) {
+          const token = generateToken(user._id, user._doc?.role || 'user')
           const data = {
             token: token,
             user: user.toJSON(),
           }
           return data
-        } else if (user?.role === 'manager') {
+        } else if (user?.role === RoleOfUser.MANAGER) {
           const program: any = await Program.find({
             manager: user.id,
           }).populate({
@@ -415,12 +395,9 @@ const resolvers: any = {
             }
           }
           if (checkProgramOrganization) {
-            const managerToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
-              SECRET,
-              {
-                expiresIn: '2h',
-              }
+            const managerToken = generateToken(
+              user._id,
+              user._doc?.role || 'user'
             )
             const managerData = {
               token: managerToken,
@@ -430,7 +407,7 @@ const resolvers: any = {
           } else {
             throw new Error('You are not assigned to any program yet.')
           }
-        } else if (user?.role === 'coordinator') {
+        } else if (user?.role === RoleOfUser.COORDINATOR) {
           const cohort: any = await Cohort.find({
             coordinator: user.id,
           }).populate({
@@ -452,12 +429,9 @@ const resolvers: any = {
           }
 
           if (checkCohortOrganization) {
-            const coordinatorToken = jwt.sign(
-              { userId: user._id, role: user._doc?.role || 'user' },
-              SECRET,
-              {
-                expiresIn: '2h',
-              }
+            const coordinatorToken = generateToken(
+              user._id,
+              user._doc?.role || 'user'
             )
             const coordinatorData = {
               token: coordinatorToken,
@@ -467,13 +441,10 @@ const resolvers: any = {
           } else {
             throw new Error('You are not assigned to any cohort yet.')
           }
-        } else if (user?.role === 'superAdmin') {
-          const superAdminToken = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
-            SECRET,
-            {
-              expiresIn: '2h',
-            }
+        } else if (user?.role === RoleOfUser.SUPER_ADMIN) {
+          const superAdminToken = generateToken(
+            user._id,
+            user._doc?.role || 'user'
           )
           const superAdminData = {
             token: superAdminToken,
@@ -509,14 +480,14 @@ const resolvers: any = {
       if (!requester) {
         throw new Error('Requester does not exist')
       }
-      if (requester.role !== 'admin' && requester.role !== 'superAdmin') {
+      if (requester.role !== RoleOfUser.ADMIN && requester.role !== RoleOfUser.SUPER_ADMIN) {
         throw new Error('You do not have permission to delete users')
       }
       const userToDelete = await User.findById(input.id)
       if (!userToDelete) {
         throw new Error('User to be deleted does not exist')
       }
-      if (userToDelete.role === 'coordinator') {
+      if (userToDelete.role === RoleOfUser.COORDINATOR) {
         const hasCohort = await Cohort.findOne({ coordinator: input.id })
         if (hasCohort) {
           await Cohort.findOneAndReplace(
@@ -547,12 +518,12 @@ const resolvers: any = {
 
     async updateUserRole(_: any, { id, name, orgToken }: any) {
       const allRoles = [
-        'trainee',
-        'coordinator',
-        'manager',
-        'admin',
-        'superAdmin',
-        'ttl',
+        RoleOfUser.TRAINEE,
+        RoleOfUser.COORDINATOR,
+        RoleOfUser.MANAGER,
+        RoleOfUser.ADMIN,
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.TTL,
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
@@ -561,7 +532,7 @@ const resolvers: any = {
       if (!userExists) throw new Error("User doesn't exist")
 
       const getAllUsers = await User.find({
-        role: 'admin',
+        role:RoleOfUser.ADMIN,
       })
 
       let checkUserOrganization = 0
@@ -572,11 +543,11 @@ const resolvers: any = {
         }
       })
 
-      if (checkUserOrganization == 1 && userExists.role == 'admin') {
+      if (checkUserOrganization == 1 && userExists.role == RoleOfUser.ADMIN) {
         throw new Error('There must be at least one admin in the organization')
       }
 
-      if (userExists.role == 'coordinator') {
+      if (userExists.role == RoleOfUser.COORDINATOR) {
         const userCohort: any = await Cohort.find({
           coordinator: userExists?.id,
         })
@@ -590,7 +561,7 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'manager') {
+      } else if (userExists.role == RoleOfUser.MANAGER) {
         const userProgram: any = await Program.find({ manager: userExists?.id })
         if (userProgram) {
           await Program.updateMany(
@@ -614,7 +585,7 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'admin') {
+      } else if (userExists.role == RoleOfUser.ADMIN) {
         const userOrg: any = await Organization.find({ admin: userExists?.id })
         if (userOrg) {
           await Organization.findByIdAndUpdate(userOrg.id, {
@@ -624,7 +595,7 @@ const resolvers: any = {
           })
         }
       }
-      if (name == 'admin') {
+      if (name == RoleOfUser.ADMIN) {
         org?.admin?.push(id)
         org.save()
       }
@@ -667,9 +638,7 @@ const resolvers: any = {
       }
 
       if (organization) {
-        const token = jwt.sign({ name: organization.name }, SECRET, {
-          expiresIn: '336h',
-        })
+        const token = generateTokenOrganization(organization.name)
         const data = {
           token: token,
           organization: organization.toJSON(),
@@ -717,9 +686,9 @@ const resolvers: any = {
 
         const existingUser = await User.findOne({
           email,
-          role: { $ne: 'admin' },
+          role: { $ne: RoleOfUser.ADMIN },
         })
-        const admin = await User.findOne({ email, role: 'admin' })
+        const admin = await User.findOne({ email, role: RoleOfUser.ADMIN })
         if (existingUser) {
           throw new GraphQLError(
             `User with email '${email}' exists and is not an admin. Please use another email.`,
@@ -746,7 +715,7 @@ const resolvers: any = {
           newAdmin = await User.create({
             email: email,
             password: password,
-            role: 'admin',
+            role: RoleOfUser.ADMIN,
             organizations: name,
           })
 
@@ -758,7 +727,7 @@ const resolvers: any = {
             status: 'pending',
           })
 
-          const superAdmin = await User.find({ role: 'superAdmin' })
+          const superAdmin = await User.find({ role: RoleOfUser.SUPER_ADMIN })
           // Get the email content
           const content = registrationRequest(email, name, description)
           const link = process.env.FRONTEND_LINK
@@ -786,7 +755,7 @@ const resolvers: any = {
       context: Context
     ) {
       // check if requester is super admin
-      ;(await checkUserLoggedIn(context))(['superAdmin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
@@ -856,7 +825,7 @@ const resolvers: any = {
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))(['superAdmin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
@@ -869,7 +838,7 @@ const resolvers: any = {
       }
 
       // check if the requester is already an admin, if not create him
-      const admin = await User.findOne({ email, role: 'admin' })
+      const admin = await User.findOne({ email, role: RoleOfUser.ADMIN })
       // if (!admin) {
       //   console.log('admin exist')
       // }
@@ -879,7 +848,7 @@ const resolvers: any = {
         newAdmin = await User.create({
           email,
           password,
-          role: 'admin',
+          role: RoleOfUser.ADMIN,
         })
       }
 
@@ -921,7 +890,7 @@ const resolvers: any = {
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
@@ -976,7 +945,7 @@ const resolvers: any = {
     },
 
     async deleteActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))(['admin','superAdmin']);
+      // const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN,RoleOfUser.SUPER_ADMIN]);
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
@@ -1011,7 +980,7 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
 
       const organizationExists = await Organization.findOne({ _id: id })
 
@@ -1022,7 +991,7 @@ const resolvers: any = {
       await Phase.deleteMany({ organization: id })
       await User.deleteMany({
         organizations: organizationExists.name,
-        role: { $ne: 'superAdmin' },
+        role: { $ne: RoleOfUser.SUPER_ADMIN },
       })
       await User.deleteOne({ _id: organizationExists.admin[0] })
       const deleteOrg = await Organization.findOneAndDelete({
@@ -1040,9 +1009,7 @@ const resolvers: any = {
       const userExists: any = await User.findOne({ email })
 
       if (userExists) {
-        const token: any = jwt.sign({ email }, SECRET, {
-          expiresIn: '2d',
-        })
+        const token: any = generateTokenUserExists(email)
         const newToken: any = token.replaceAll('.', '*')
         const deepLink = `${process.env.FRONTEND_LINK}/redirect/?path=/auth/reset-password&token=${newToken}`
         const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`

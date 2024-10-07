@@ -22,6 +22,14 @@ export interface UserInterface {
   emailNotifications: boolean;
 }
 
+export enum RoleOfUser {
+  TRAINEE = 'trainee',
+  COORDINATOR = 'coordinator',
+  MANAGER = 'manager',
+  ADMIN = 'admin',
+  SUPER_ADMIN = 'superAdmin',
+  TTL = 'ttl',
+}
 mongoose.set('toJSON', {
   virtuals: true,
   versionKey: false,

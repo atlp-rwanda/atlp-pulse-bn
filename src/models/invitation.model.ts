@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
+import { RoleOfUser } from './user'
 
 const STATUS = {
   PENDING: 'pending',
@@ -8,10 +9,10 @@ const STATUS = {
 }
 
 const ROLE = {
-  TRAINEE: 'trainee',
-  ADMIN: 'admin',
-  TTL: 'ttl',
-  COORDINATOR: 'coordinator',
+  TRAINEE: RoleOfUser.TRAINEE,
+  ADMIN: RoleOfUser.ADMIN,
+  TTL: RoleOfUser.TTL,
+  COORDINATOR: RoleOfUser.COORDINATOR,
 }
 const InvitationSchema = new Schema({
   inviterId: {

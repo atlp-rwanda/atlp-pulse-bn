@@ -1,7 +1,7 @@
 import { Context } from '../context'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { User, UserRole } from '../models/user'
+import { RoleOfUser, User, UserRole } from '../models/user'
 import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
 
@@ -23,10 +23,10 @@ const profileResolvers: any = {
       context: Context
     ) => {
       ;(await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'trainee',
-        'coordinator',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.TRAINEE,
+        RoleOfUser.COORDINATOR,
       ])
       const org = await checkLoggedInOrganization(args.orgToken)
       const users = await User.find({
@@ -34,12 +34,12 @@ const profileResolvers: any = {
         role: {
           $in: [
             'user',
-            'coordinator',
-            'manager',
-            'admin',
-            'trainee',
+            RoleOfUser.COORDINATOR,
+            RoleOfUser.MANAGER,
+            RoleOfUser.ADMIN,
+            RoleOfUser.TRAINEE,
             'user',
-            'ttl',
+            RoleOfUser.TTL,
           ],
         },
       }).populate({
@@ -72,17 +72,17 @@ const profileResolvers: any = {
       context: Context
     ) => {
       ;(await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'trainee',
-        'coordinator',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.TRAINEE,
+        RoleOfUser.COORDINATOR,
       ])
 
       const org = await checkLoggedInOrganization(args.orgToken)
 
       const users = await User.find({
         organizations: org?.name,
-        role: 'ttl', // Filter users with role "TTL"
+        role: RoleOfUser.TTL, // Filter users with role "TTL"
       })
         .populate({
           path: 'team',
@@ -112,7 +112,7 @@ const profileResolvers: any = {
       context: Context
     ) => {
       // Ensure the user is logged in and has the 'ttl' role
-      if (context.role !== 'ttl') {
+      if (context.role !== RoleOfUser.TTL) {
         throw new Error('You must be logged in as a TTL to view trainees.')
       }
 
@@ -123,7 +123,7 @@ const profileResolvers: any = {
       const ttlUser = await User.findOne({
         _id: context.userId, // Assuming userId uniquely identifies users
         organizations: org?.name,
-        role: 'ttl',
+        role: RoleOfUser.TTL,
       })
         .populate('team')
         .exec()
@@ -140,7 +140,7 @@ const profileResolvers: any = {
       // Find all trainees in the same team as the TTL
       const traineesInSameTeam = await User.find({
         team: ttlUser.team, // Assuming the team field represents the team of a user
-        role: 'trainee', // Filter users with role "trainee"
+        role: RoleOfUser.TRAINEE, // Filter users with role "trainee"
       })
         .populate({
           path: 'team',
@@ -253,7 +253,7 @@ const profileResolvers: any = {
       { email, reason }: { email: string; reason: string },
       context: Context
     ) => {
-      ;(await checkUserLoggedIn(context))(['admin'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
       const user = await User.findOne({ email, role: 'ttl' }).exec()
       if (!user) {
         throw new Error('TTL user not found')

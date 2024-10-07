@@ -1,6 +1,22 @@
 import { GraphQLError } from 'graphql'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Context } from './../context'
+import * as jwt from 'jsonwebtoken'
+
+
+const SECRET: string = process.env.SECRET ?? 'test_secret'
+
+export const generateToken = (userId: string, role: string) => {
+  return jwt.sign({ userId, role }, SECRET, { expiresIn: '2h' })
+}
+export const generateTokenUserExists = (email: string) => {
+  return jwt.sign({ email }, SECRET, { expiresIn: '2d' })
+}
+export const generateTokenOrganization = (name: string) => {
+  return jwt.sign({ name }, SECRET, { expiresIn: '336h' })
+}
+
+export const emailExpression = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 export async function checkUserLoggedIn(
   context: Context
@@ -24,7 +40,7 @@ export async function checkUserLoggedIn(
     })
   }
 
-  return (inputRoles: Array<string> = ['admin']) => {
+  return (inputRoles: Array<string> = [RoleOfUser.ADMIN]) => {
     if (inputRoles && !inputRoles.includes(role as string)) {
       throw new GraphQLError(
         `Request ${inputRoles.join(' or ')} permission!!`,

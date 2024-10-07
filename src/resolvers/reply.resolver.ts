@@ -1,6 +1,6 @@
 import { Notifications } from '../models/reply.model'
 import { Rating } from '../models/ratings'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { IntegerType, ObjectId } from 'mongodb'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Context } from './../context'
@@ -12,12 +12,12 @@ import { Profile } from '../models/profile.model'
 const replyResolver = {
   Query: {
     async getReplies(_: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, 'trainee'])
       const replies = await Notifications.find({})
       return replies
     },
     async getRepliesByUser(_: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))(['coordinator', 'trainee'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, 'trainee'])
       const SpecificReplies = await Notifications.find({ user: args.userId })
       return SpecificReplies
     },

@@ -2,12 +2,13 @@ import { systemRating } from '../models/ratingSystem'
 import { Context } from './../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { RoleOfUser } from '../models/user'
 
 const createRatingSystemresolver = {
   Query: {
     async getRatingSystems(_: any, { orgToken }: any, context: Context) {
       const org = await checkLoggedInOrganization(orgToken)
-      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin', 'manager'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN, RoleOfUser.MANAGER])
 
       const ratingSystems = await systemRating.find({ organization: org._id })
       return ratingSystems
@@ -31,7 +32,7 @@ const createRatingSystemresolver = {
       { name, grade, description, percentage, orgToken }: any,
       context: { role: string; userId: string }
     ) {
-      ;(await checkUserLoggedIn(context))(['admin', 'superAdmin', 'manager'])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN, RoleOfUser.MANAGER])
 
       const ratingSystemExists = await systemRating.findOne({
         name: name,
