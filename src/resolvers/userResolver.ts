@@ -1,33 +1,33 @@
 /* eslint-disable prefer-const */
+import { Octokit } from '@octokit/rest'
+import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql'
 // import * as jwt from 'jsonwebtoken'
 import { JwtPayload, verify } from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
 import generateRandomPassword from '../helpers/generateRandomPassword'
-import { checkUserLoggedIn, emailExpression, generateToken, generateTokenOrganization, generateTokenUserExists } from '../helpers/user.helpers'
+import isAssigned from '../helpers/isAssignedToProgramOrCohort'
+import { checkloginAttepmts } from '../helpers/logintracker'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { checkUserLoggedIn, emailExpression, generateToken, generateTokenOrganization, generateTokenUserExists } from '../helpers/user.helpers'
 import Cohort from '../models/cohort.model'
-import Program from '../models/program.model'
-import { RoleOfUser, User, UserRole } from '../models/user'
+import { Invitation } from '../models/invitation.model'
 import { Organization } from '../models/organization.model'
+import Phase from '../models/phase.model'
 import { Profile } from '../models/profile.model'
+import Program from '../models/program.model'
+import { Rating } from '../models/ratings'
+import Team from '../models/team.model'
+import { RoleOfUser, User, UserRole } from '../models/user'
+import { pushNotification } from '../utils/notification/pushNotification'
 import { sendEmail } from '../utils/sendEmail'
-import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
+import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
 import organizationApprovedTemplate from '../utils/templates/organizationApprovedTemplate'
+import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
 import organizationRejectedTemplate from '../utils/templates/organizationRejectedTemplate'
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
-import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
-import bcrypt from 'bcryptjs'
-import Team from '../models/team.model'
-import Phase from '../models/phase.model'
-import { Octokit } from '@octokit/rest'
-import { checkloginAttepmts } from '../helpers/logintracker'
-import { Rating } from '../models/ratings'
-import { Invitation } from '../models/invitation.model'
-import isAssigned from '../helpers/isAssignedToProgramOrCohort'
-import { pushNotification } from '../utils/notification/pushNotification'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -1011,9 +1011,9 @@ const resolvers: any = {
       if (userExists) {
         const token: any = generateTokenUserExists(email)
         const newToken: any = token.replaceAll('.', '*')
-        const deepLink = `${process.env.FRONTEND_LINK}/redirect/?path=/auth/reset-password&token=${newToken}`
-        const link = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
-        const content = forgotPasswordTemplate(link, deepLink)
+        const webLink = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
+        const appLink = `${process.env.FRONTEND_LINK}/redirect?dest=app&path=/auth/reset-password&fallback=${webLink}&token=${newToken}` 
+        const content = forgotPasswordTemplate(webLink, appLink)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
           email,
