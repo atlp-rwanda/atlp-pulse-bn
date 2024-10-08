@@ -837,7 +837,7 @@ const manageStudentResolvers = {
         const newToken: any = token.replace(/\./g, '*')
         const link =
           type == 'user'
-            ? `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
+            ? `${process.env.FRONTEND_LINK}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
         const content = inviteUserTemplate(org?.name || '', link)
         const someSpace = process.env.FRONTEND_LINK + '/login/org'

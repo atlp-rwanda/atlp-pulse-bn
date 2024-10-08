@@ -21,7 +21,7 @@ export default async function generateInvitationTokenAndLink(
   const newToken = token.replace(/\./g, '*');
 
   // Generate the invitation link
-  const link = `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`;
+  const link = `${process.env.FRONTEND_LINK}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`;
 
   return { newToken, link };
 }
