@@ -12,7 +12,10 @@ const phaseResolver = {
     getAllPhases: async (_: any, { orgToken }: any, context: Context) => {
       const org = await checkLoggedInOrganization(orgToken)
 
-      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR])
+      ;(await checkUserLoggedIn(context))([
+        RoleOfUser.ADMIN,
+        RoleOfUser.COORDINATOR,
+      ])
 
       const allphases = await Phase.find({ organization: org })
 
@@ -31,7 +34,10 @@ const phaseResolver = {
       context: Context
     ) => {
       try {
-        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN])
+        ;(await checkUserLoggedIn(context))([
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+        ])
 
         const { name, description, orgToken } = args
         const org = await checkLoggedInOrganization(orgToken)
@@ -125,7 +131,10 @@ const phaseResolver = {
     },
 
     async deletePhase(parent: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN])
+      ;(await checkUserLoggedIn(context))([
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+      ])
 
       const findPhase = await Phase.findById(args.id)
       const findPhaseInCohort = await Cohort.findOne({ phase: args.id })
