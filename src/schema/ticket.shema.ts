@@ -16,6 +16,16 @@ const ticketSchema = gql`
     read: String!
   }
 
+  type Team {
+    id: ID!
+    name: String
+  }
+
+  type Cohort {
+    id: ID!
+    name: String
+  }
+
   type Ticket {
     id: ID!
     user: UserType
@@ -38,6 +48,8 @@ const ticketSchema = gql`
     email: String!
     role: String
     profile: Profile
+    team: Team
+    cohort: Cohort
   }
 
   type Reply {
@@ -53,7 +65,6 @@ const ticketSchema = gql`
     responseMsg: String!
   }
 
-  # Updated: Change this to input type
   input UpdateTicketInput {
     subject: String
     message: String
@@ -64,12 +75,15 @@ const ticketSchema = gql`
   type Query {
     getAllTickets: [Ticket!]!
   }
+
   type DeleteTicketResponse {
     responseMsg: String!
   }
+
   type UpdateTicketResponse {
     responseMsg: String!
   }
+
   type Mutation {
     createTicket(
       subject: String!
