@@ -38,20 +38,6 @@ export interface Context {
   role?: string
 }
 
-// export const context = async ({ req }: { req: Request }): Promise<Context> => {
-//   const token =
-//     req && req.headers.authorization
-//       ? decodeAuthHeader(req.headers.authorization)
-//       : null
-
-//   return {
-//     userId: token?.userId,
-//     role: token?.role,
-//   }
-// }
-// /**
-//  *
-//  *
 export const context = async ({ req }: { req: Request }): Promise<Context> => {
   const token =
     req && req.headers.authorization
@@ -70,27 +56,4 @@ export const context = async ({ req }: { req: Request }): Promise<Context> => {
       role: token?.role,
     }
   }
-
-  // console.log(req.body.variables);
-  //   if (!token && !req.body.variables.organisationInput && !req.body.variables.loginInput) {
-  //     throw new GraphQLError('User not authenticated');
-  //   }
-
-  // let validToken = token ? decodeAuthHeader(token) : null;
-
-  // if (!validToken?.userId) {
-  //   throw new GraphQLError('User not authenticated');
-  // }
-  // const accountStatus = await checkUserAccountStatus(validToken?.userId);
-
-  // if (!accountStatus) {
-  //   throw new GraphQLError('User account does not exist or has been deleted');
-  // }
-
-  // return {
-  //   userId: validToken.userId,
-  //   role: validToken.userId,
-  // }
 }
-
-//  */

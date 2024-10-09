@@ -406,8 +406,8 @@ const manageStudentResolvers = {
           })
           const results: any[] = checkTeam.filter((team: any) => {
             return (
-              team.cohort.program?.id === programId &&
-              team.cohort.program?.organization?.name === org?.name
+              team?.cohort?.program?.id === programId &&
+              team?.cohort?.program?.organization?.name === org?.name
             )
           })
 
@@ -456,7 +456,6 @@ const manageStudentResolvers = {
                   traineeEmail: email,
                   status: [],
                 }
-                // console.log("new trainee data:",newTrainee);
 
                 const attendanceLength: any = await Attendance.find({
                   coordinatorId: userId,
@@ -468,7 +467,6 @@ const manageStudentResolvers = {
                     await attendData.save()
                   }
                 } else {
-                  // If no attendance record exists, create a new one
                   const newAttendRecord = new Attendance({
                     week: 1,
                     coordinatorId: [userId],
@@ -542,6 +540,7 @@ const manageStudentResolvers = {
 
         // CATCH ERROR
       } catch (error: any) {
+        console.log(error)
         throw new GraphQLError(error.message, {
           extensions: {
             code: '500',
@@ -589,6 +588,49 @@ const manageStudentResolvers = {
         }
 
         return 'Trainee dropped successfully!'
+      } catch (error: any) {
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
+      }
+    },
+    async undropTrainee(_: any, args: any, context: Context) {
+      try {
+        const { userId, role } = (await checkUserLoggedIn(context))([
+          'admin',
+          'coordinator',
+        ])
+
+        const loggedInUserOrg = await User.findById(context.userId).select(
+          'organizations'
+        )
+        const orgName = loggedInUserOrg?.organizations[0]
+        const organization = await Organization.findOne({ name: orgName })
+
+        const trainee = await User.findOneAndUpdate(
+          { _id: args.traineeId, organizations: orgName },
+          {
+            status: {
+              status: 'active',
+              reason: null,
+              date: null,
+            },
+          },
+          { new: true }
+        )
+
+        const admin = await User.findOne({ role: 'admin' })
+        if (admin && trainee) {
+          await pushNotification(
+            admin._id,
+            `Trainee ${trainee.email} has been restored to the program.`,
+            new Types.ObjectId(context.userId)
+          )
+        }
+
+        return 'Trainee restored successfully!'
       } catch (error: any) {
         throw new GraphQLError(error.message, {
           extensions: {
