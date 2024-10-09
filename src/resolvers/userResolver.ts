@@ -28,7 +28,7 @@ import organizationRejectedTemplate from '../utils/templates/organizationRejecte
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
-const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
+const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 export type OrganizationType = InstanceType<typeof Organization>
