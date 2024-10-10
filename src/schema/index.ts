@@ -258,29 +258,8 @@ const Schema = gql`
     approved: Boolean
   }
 
-  type FetchRatingForAdminUser {
-    id: ID!
-    role: String!
-    email: String!
-    password: String!
-    profile: Profile
-    team: String
-    cohort: String
-    program: String
-    organizations: [String!]!
-    pushNotifications: Boolean!
-    emailNotifications: Boolean!
-    status: StatusType
-  }
-
-  type FetchRatingForAdminCohort {
-    name: String
-    phase: String
-    coordinator: User
-  }
-
   type FetchRatingForAdmin {
-    user: FetchRatingForAdminUser!
+    user: User!
     sprint: Int
     quantity: [String]
     quantityRemark: [String]
@@ -291,7 +270,7 @@ const Schema = gql`
     feedbacks: [RatingMessageTemp]
     oldFeedback: [String]
     approved: Boolean
-    cohort: FetchRatingForAdminCohort!
+    cohort: Cohort
   }
 
   type ApproveRating {

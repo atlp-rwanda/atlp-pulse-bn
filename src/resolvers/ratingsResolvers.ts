@@ -78,7 +78,7 @@ const ratingResolvers: any = {
       const ratingsAdmin = await TempData.find({ organization: org })
         .populate('user')
         .populate('cohort')
-      return ratingsAdmin
+      return ratingsAdmin.filter(rating=>rating.user)
     },
 
     async fetchAllRatings(_: any, { orgToken }: any) {
