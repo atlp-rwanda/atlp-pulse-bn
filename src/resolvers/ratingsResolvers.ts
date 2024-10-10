@@ -76,22 +76,8 @@ const ratingResolvers: any = {
       org = await checkLoggedInOrganization(orgToken)
 
       const ratingsAdmin = await TempData.find({ organization: org })
-        .populate({
-          path: 'user',
-          strictPopulate: false
-        })
-        .populate({
-          path: 'cohort',
-          strictPopulate: false
-        })
-        .populate({
-          path: 'feedbacks',
-          strictPopulate: false,
-          populate: {
-            path: 'sender',
-            strictPopulate: false,
-          }
-        })
+        .populate('user')
+        .populate('cohort')
       return ratingsAdmin
     },
 
