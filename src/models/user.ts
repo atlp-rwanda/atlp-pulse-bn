@@ -3,23 +3,23 @@ import mongoose, { model, Schema } from 'mongoose'
 import { Profile } from './profile.model'
 
 export interface UserStatus {
-  status: 'active' | 'drop';
-  reason?: string;
-  date?: Date;
+  status: 'active' | 'drop' | 'suspended'
+  reason?: string
+  date?: Date
 }
 
 export interface UserInterface {
-  _id: mongoose.Types.ObjectId;
-  email: string;
-  password: string;
-  role: string;
-  team?: mongoose.Types.ObjectId;
-  status: UserStatus;
-  cohort?: mongoose.Types.ObjectId;
-  program?: mongoose.Types.ObjectId;
-  organizations: string[];
-  pushNotifications: boolean;
-  emailNotifications: boolean;
+  _id: mongoose.Types.ObjectId
+  email: string
+  password: string
+  role: string
+  team?: mongoose.Types.ObjectId
+  status: UserStatus
+  cohort?: mongoose.Types.ObjectId
+  program?: mongoose.Types.ObjectId
+  organizations: string[]
+  pushNotifications: boolean
+  emailNotifications: boolean
 }
 
 export enum RoleOfUser {

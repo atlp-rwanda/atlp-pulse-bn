@@ -101,7 +101,11 @@ const resolvers = {
         } = args
 
         // some validations
-        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN, RoleOfUser.MANAGER])
+        ;(await checkUserLoggedIn(context))([
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+        ])
         const coordinator = await User.findOne({
           email: coordinatorEmail,
         })

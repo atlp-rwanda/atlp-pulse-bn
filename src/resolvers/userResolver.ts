@@ -9,7 +9,13 @@ import generateRandomPassword from '../helpers/generateRandomPassword'
 import isAssigned from '../helpers/isAssignedToProgramOrCohort'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
-import { checkUserLoggedIn, emailExpression, generateToken, generateTokenOrganization, generateTokenUserExists } from '../helpers/user.helpers'
+import {
+  checkUserLoggedIn,
+  emailExpression,
+  generateToken,
+  generateTokenOrganization,
+  generateTokenUserExists,
+} from '../helpers/user.helpers'
 import Cohort from '../models/cohort.model'
 import { Invitation } from '../models/invitation.model'
 import { Organization } from '../models/organization.model'
@@ -322,7 +328,9 @@ const resolvers: any = {
         })
       } else if (user?.status?.status !== 'active') {
         throw new GraphQLError(
-          'Your account have been disactivated please contact your organization admin for assistance',
+          `Your account have been ${
+            user?.status?.status ?? user?.status
+          }, please contact your organization admin for assistance`,
           {
             extensions: {
               code: 'AccountInactive',
@@ -376,7 +384,7 @@ const resolvers: any = {
           if (user.cohort && user.team) {
             const token = generateToken(user._id, user._doc?.role || 'user')
             const data = {
-              token: token, 
+              token: token,
               user: user.toJSON(),
             }
             return data
@@ -497,7 +505,10 @@ const resolvers: any = {
       if (!requester) {
         throw new Error('Requester does not exist')
       }
-      if (requester.role !== RoleOfUser.ADMIN && requester.role !== RoleOfUser.SUPER_ADMIN) {
+      if (
+        requester.role !== RoleOfUser.ADMIN &&
+        requester.role !== RoleOfUser.SUPER_ADMIN
+      ) {
         throw new Error('You do not have permission to delete users')
       }
 
@@ -539,7 +550,9 @@ const resolvers: any = {
       }
 
       // Suspend user by updating their status
-      await User.findByIdAndUpdate(input.id, { status: 'suspended' })
+      await User.findByIdAndUpdate(input.id, {
+        status: { status: 'suspended' },
+      })
 
       // Send suspension notification to the user
       await pushNotification(
@@ -574,7 +587,7 @@ const resolvers: any = {
       if (!userExists) throw new Error("User doesn't exist")
 
       const getAllUsers = await User.find({
-        role:RoleOfUser.ADMIN,
+        role: RoleOfUser.ADMIN,
       })
 
       let checkUserOrganization = 0
@@ -932,7 +945,10 @@ const resolvers: any = {
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([
+        RoleOfUser.ADMIN,
+        RoleOfUser.SUPER_ADMIN,
+      ])
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
@@ -1022,7 +1038,10 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([
+        RoleOfUser.ADMIN,
+        RoleOfUser.SUPER_ADMIN,
+      ])
 
       const organizationExists = await Organization.findOne({ _id: id })
 
@@ -1054,7 +1073,7 @@ const resolvers: any = {
         const token: any = generateTokenUserExists(email)
         const newToken: any = token.replaceAll('.', '*')
         const webLink = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
-        const appLink = `${process.env.FRONTEND_LINK}/redirect?dest=app&path=/auth/reset-password&fallback=${webLink}&token=${newToken}` 
+        const appLink = `${process.env.FRONTEND_LINK}/redirect?dest=app&path=/auth/reset-password&fallback=${webLink}&token=${newToken}`
         const content = forgotPasswordTemplate(webLink, appLink)
         const someSpace = process.env.FRONTEND_LINK
         await sendEmail(
