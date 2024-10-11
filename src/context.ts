@@ -48,9 +48,17 @@ export const context = async ({ req }: { req: Request }): Promise<Context> => {
     !req.body.variables.organisationInput &&
     !req.body.variables.loginInput
   ) {
-    // throw new GraphQLError('User account does not exist or has been deleted');
-    return {}
+    throw new GraphQLError('User account does not exist or has been suspended')
   } else {
+    if (token?.userId) {
+      const accountStatus = await checkUserAccountStatus(token?.userId)
+      if (!accountStatus || accountStatus !== 'active') {
+        throw new GraphQLError(
+          'User account does not exist or has been suspended'
+        )
+      }
+    }
+
     return {
       userId: token?.userId,
       role: token?.role,

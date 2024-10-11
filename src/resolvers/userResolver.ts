@@ -328,7 +328,9 @@ const resolvers: any = {
         })
       } else if (user?.status?.status !== 'active') {
         throw new GraphQLError(
-          'Your account have been disactivated please contact your organization admin for assistance',
+          `Your account have been ${
+            user?.status?.status ?? user?.status
+          }, please contact your organization admin for assistance`,
           {
             extensions: {
               code: 'AccountInactive',
@@ -548,7 +550,9 @@ const resolvers: any = {
       }
 
       // Suspend user by updating their status
-      await User.findByIdAndUpdate(input.id, { status: 'suspended' })
+      await User.findByIdAndUpdate(input.id, {
+        status: { status: 'suspended' },
+      })
 
       // Send suspension notification to the user
       await pushNotification(
