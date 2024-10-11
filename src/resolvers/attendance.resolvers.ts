@@ -37,20 +37,20 @@ const validateAttendance = async (
 ) => {
   const org = await checkLoggedInOrganization(orgToken)
   if (!org) {
-    throw new Error('Orgnasation doesn\'t exist')
+    throw new Error("Orgnasation doesn't exist")
   }
   ;(await checkUserLoggedIn(context))(['coordinator'])
   const teamData = await Team.findById(team)
     .populate('cohort')
     .populate('cohort.phase')
   if (!teamData) {
-    throw new Error('Team provided doesn\'t exist')
+    throw new Error("Team provided doesn't exist")
   }
   const phaseData = await Phase.findById(
     (teamData.cohort as CohortInterface).phase._id
   )
   if (!phaseData) {
-    throw new Error('Phase provided doesn\'t exist')
+    throw new Error("Phase provided doesn't exist")
   }
   trainees.forEach((trainee) => {
     if (
@@ -84,7 +84,9 @@ const returnAttendanceData = async (teamData: any) => {
       (teamAttendanceData.team as ObjectId).equals(teamData.id)
     )
 
-    const filteredTrainees = result?.trainees.filter(trainee => (trainee.trainee as UserInterface).status.status !== 'drop' )
+    const filteredTrainees = result?.trainees.filter(
+      (trainee) => (trainee.trainee as UserInterface).status.status !== 'drop'
+    )
 
     result &&
       sanitizedAttendance.push({
@@ -98,7 +100,15 @@ const returnAttendanceData = async (teamData: any) => {
           ...(attendance.phase as mongoose.Document).toObject(),
           id: (attendance.phase as mongoose.Document)._id,
         },
-        teams: [{team: {...(result.team as mongoose.Document).toObject(), id: (result.team as mongoose.Document)._id}, trainees: filteredTrainees}],
+        teams: [
+          {
+            team: {
+              ...(result.team as mongoose.Document).toObject(),
+              id: (result.team as mongoose.Document)._id,
+            },
+            trainees: filteredTrainees,
+          },
+        ],
       })
   })
   return sanitizedAttendance
@@ -131,12 +141,14 @@ const attendanceResolver = {
       context: Context
     ) {
       ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
-      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
+      const { userId } = (await checkUserLoggedIn(context))([
+        RoleOfUser.COORDINATOR,
+      ])
 
       const teamData = await Team.findById(team)
 
       if (!teamData) {
-        throw new Error('Team provided doesn\'t exist')
+        throw new Error("Team provided doesn't exist")
       }
 
       return returnAttendanceData(teamData)
@@ -144,7 +156,9 @@ const attendanceResolver = {
 
     async getAttendanceStats(_: any, args: any, context: Context) {
       ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
-      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
+      const { userId } = (await checkUserLoggedIn(context))([
+        RoleOfUser.COORDINATOR,
+      ])
       const attendances: any = await Attendance.find({ coordinatorId: userId })
 
       //calculate statistic
@@ -246,7 +260,7 @@ const attendanceResolver = {
 
         if (!attendants.length) {
           throw new Error(
-            'Invalid Ids for trainees or trainees doesn\'t belong to the team'
+            "Invalid Ids for trainees or trainees doesn't belong to the team"
           )
         }
 
@@ -390,9 +404,9 @@ const attendanceResolver = {
         context
       )
       const phaseData = await Phase.findById(phase)
-      
+
       if (!phaseData) {
-        throw new Error('Phase provided doesn\'t exist')
+        throw new Error("Phase provided doesn't exist")
       }
       const attendance = await Attendance.findOne({
         phase: phaseData.id,
@@ -411,12 +425,17 @@ const attendanceResolver = {
         })
       }
       const teamAttendanceTrainees = attendance.teams[teamToUpdateIndex!]
-      teamAttendanceTrainees.trainees.forEach((trainee) => {
-        let isDropped = false;
-        const traineeIndex = trainees.findIndex((sentTrainee) =>
-          {
-            isDropped = (trainee.trainee as UserInterface).status.status === 'drop'
-            return (trainee.trainee as UserInterface)._id.equals(sentTrainee.trainee)}
+
+      trainees.forEach((sentTrainee) => {
+        let isDropped = false
+        const traineeIndex = teamAttendanceTrainees.trainees.findIndex(
+          (trainee) => {
+            isDropped =
+              (trainee.trainee as UserInterface).status.status === 'drop'
+            return (trainee.trainee as UserInterface)._id.equals(
+              sentTrainee.trainee
+            )
+          }
         )
         if (traineeIndex === -1 && !isDropped) {
           throw new GraphQLError(
@@ -429,8 +448,12 @@ const attendanceResolver = {
           )
         }
         if (traineeIndex !== -1 && !isDropped) {
-          trainee.status.forEach((status) => {
-            if (status.day === trainees[traineeIndex].status.day.toLowerCase()) {
+          const traineeToUpdateStatus =
+            teamAttendanceTrainees.trainees[traineeIndex].status
+          traineeToUpdateStatus.forEach((status) => {
+            if (
+              status.day === trainees[traineeIndex].status.day.toLowerCase()
+            ) {
               status.score = trainees[traineeIndex].status.score
             }
           })
@@ -452,7 +475,7 @@ const attendanceResolver = {
         .populate('cohort.phase')
 
       if (!teamData) {
-        throw new Error('Team provided doesn\'t exist')
+        throw new Error("Team provided doesn't exist")
       }
 
       const attendance = await Attendance.findOne({
@@ -466,7 +489,7 @@ const attendanceResolver = {
       )
 
       if (!attendance || attendanceTeamIndex === -1) {
-        throw new Error('Can\'t find the Attendance for this day')
+        throw new Error("Can't find the Attendance for this day")
       }
 
       let removedAttendances = 0
@@ -485,7 +508,7 @@ const attendanceResolver = {
         return returnAttendanceData(teamData)
       }
 
-      throw new Error('Can\'t find the Attendance for this day')
+      throw new Error("Can't find the Attendance for this day")
     },
   },
 }
