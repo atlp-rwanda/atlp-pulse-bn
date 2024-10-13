@@ -1,10 +1,13 @@
 import mongoose, { Schema } from 'mongoose'
 import { User } from './user'
 import { CohortInterface } from './cohort.model';
+import { PhaseInterface } from './phase.model';
 
 export interface TeamInterface {
+  _id: mongoose.Types.ObjectId;
   name: string;
   cohort?: CohortInterface;
+  phase?: PhaseInterface;
   ttl?: mongoose.Types.ObjectId;
   members: mongoose.Types.ObjectId[];
   startingPhase: Date;
@@ -56,6 +59,11 @@ const teamSchema = new Schema(
     program: {
       type: mongoose.Types.ObjectId,
       ref: 'Program',
+    },
+    isJobActive: {
+      type: Boolean,
+      default: true,
+      required: true,
     },
   },
   {

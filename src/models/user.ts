@@ -9,17 +9,19 @@ export interface UserStatus {
 }
 
 export interface UserInterface {
-  _id: mongoose.Types.ObjectId
-  email: string
-  password: string
-  role: string
-  team?: mongoose.Types.ObjectId
-  status: UserStatus
-  cohort?: mongoose.Types.ObjectId
-  program?: mongoose.Types.ObjectId
-  organizations: string[]
-  pushNotifications: boolean
-  emailNotifications: boolean
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  password: string;
+  role: string;
+  team?: mongoose.Types.ObjectId;
+  status: UserStatus;
+  cohort?: mongoose.Types.ObjectId;
+  program?: mongoose.Types.ObjectId;
+  organizations: string[];
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  profile?: mongoose.Types.ObjectId;
+  ratings?: mongoose.Types.ObjectId[];
 }
 
 export enum RoleOfUser {
