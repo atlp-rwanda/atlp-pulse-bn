@@ -312,7 +312,8 @@ const Schema = gql`
     fetchRatingByCohort(CohortName: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
     verifyResetPasswordToken(token: String!): String
-    getAllTeams(orgToken: String): [Team!]
+    getTTLTeams(orgToken: String): [Team!]!
+    getAllTeams(orgToken: String): [Team!]!
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
   }
@@ -633,8 +634,47 @@ const Schema = gql`
     attendancePerc: String!
   }
 
+  type AttendanceDatesData {
+    date: String!
+    isValid: Boolean!
+  }
+  type AttendanceDates {
+    mon: AttendanceDatesData!
+    tue: AttendanceDatesData!
+    wed: AttendanceDatesData!
+    thu: AttendanceDatesData!
+    fri: AttendanceDatesData!
+  }
+  type TraineeAttendanceData {
+    trainee: User!
+    score: Int!
+  }
+  type AttendanceDays {
+    mon: [TraineeAttendanceData]!
+    tue: [TraineeAttendanceData]!
+    wed: [TraineeAttendanceData]!
+    thu: [TraineeAttendanceData]!
+    fri: [TraineeAttendanceData]!
+  }
+  type AttendanceWeeks {
+    phase: Phase!
+    weeks: [Int!]
+  }
+  type FilteredAttendance {
+    week: Int!
+    phase: Phase!
+    dates: AttendanceDates!
+    days: AttendanceDays!
+  }
+  type SanitizedAttendance {
+    today: String!
+    yesterday: String!
+    attendanceWeeks: [AttendanceWeeks!]!
+    attendance: [FilteredAttendance!]!
+  }
+
   type Query {
-    getTeamAttendance(orgToken: String, team: String!): [Attendance]
+    getTeamAttendance(orgToken: String, team: String!): SanitizedAttendance
     getTraineeAttendanceByID(traineeEmail: String!): [weeklyAttendance]
     getAttendanceStats(orgToken: String!): [AttendanceStats]
   }
@@ -642,30 +682,31 @@ const Schema = gql`
     recordAttendance(
       week: Int!
       team: String!
-      date: String!
+      today: Boolean!
+      yesterday: Boolean!
       trainees: [TraineeInput!]!
       orgToken: String!
-    ): AttendanceTeam
+    ): SanitizedAttendance
 
     updateAttendance(
       week: Int!
+      day: String!
       team: String!
       phase: String!
       trainees: [TraineeInput!]!
       orgToken: String!
-    ): [Attendance]
+    ): SanitizedAttendance
 
-    deleteAttendance(week: String!, team: String!, day: String!): [Attendance]
-  }
-
-  input StatusInput {
-    day: String!
-    score: String!
+    deleteAttendance(
+      week: Int!,
+      team: String!,
+      day: String!
+      ): SanitizedAttendance
   }
 
   input TraineeInput {
     trainee: ID!
-    status: StatusInput!
+    score: Int!
   }
   type Session {
     id: String
