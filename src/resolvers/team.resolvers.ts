@@ -14,6 +14,7 @@ import { Rating } from '../models/ratings'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { Types } from 'mongoose'
 import { GraphQLError } from 'graphql'
+import { addNewAttendanceWeek } from '../utils/cron-jobs/team-jobs'
 
 const resolvers = {
   Team: {
@@ -48,6 +49,23 @@ const resolvers = {
     },
   },
   Query: {
+    getTTLTeams: async (_: any, { orgToken }: any, context: Context) => {
+      try {
+        const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.TTL])
+        const org = await checkLoggedInOrganization(orgToken)
+
+        const teams = await Team.find({ organization: org, ttl: userId }).populate('phase')
+        return teams;
+
+      } catch (error) {
+        const { message } = error as { message: any }
+        throw new GraphQLError(message.toString(), {
+          extensions: {
+            code: '500',
+          },
+        })
+      }
+    },
     getAllTeams: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // some validations
@@ -156,7 +174,6 @@ const resolvers = {
             },
           })
         ).filter((item: any) => {
-          console.log(item)
 
           const org = (item.program as InstanceType<typeof Program>)
             ?.organization
@@ -271,8 +288,8 @@ const resolvers = {
       try {
         const { name, cohortName, orgToken, startingPhase, ttlEmail } = args
 
-        // some validations
-        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN, RoleOfUser.MANAGER])
+          // some validations
+          ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN, RoleOfUser.MANAGER])
         const cohort = await Cohort.findOne({ name: cohortName })
 
         const organ = await checkLoggedInOrganization(orgToken)
@@ -335,6 +352,7 @@ const resolvers = {
           senderId
         )
 
+        addNewAttendanceWeek();
         return newTeam
       } catch (error: any) {
         const { message } = error as { message: any }
@@ -346,7 +364,7 @@ const resolvers = {
       }
     },
     deleteTeam: async (parent: any, args: any, context: Context) => {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.MANAGER])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.MANAGER])
       const findTeam = await Team.findById(args.id)
       if (!findTeam)
         throw new Error('The Team you want to delete does not exist')
@@ -362,8 +380,6 @@ const resolvers = {
       await Team.findByIdAndDelete({ _id: args.id })
       cohort ? (cohort.teams = cohort.teams - 1) : null
       cohort?.save()
-      cohort &&
-        console.log('done-----------------', cohort.coordinator.toString())
 
       const senderId = new Types.ObjectId(context.userId)
       cohort &&
@@ -591,6 +607,7 @@ const resolvers = {
           strictPopulate: false,
         })
 
+      addNewAttendanceWeek();
       return updatedteam
     },
   },

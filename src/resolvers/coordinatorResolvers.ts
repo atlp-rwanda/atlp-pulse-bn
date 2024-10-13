@@ -431,51 +431,51 @@ const manageStudentResolvers = {
           if (!user.team) {
             // add trainee to attendance
 
-            if (role === RoleOfUser.COORDINATOR) {
-              const attendanceRecords: any = Attendance.find({
-                coordinatorId: userId,
-              })
+            // if (role === RoleOfUser.COORDINATOR) {
+            //   const attendanceRecords: any = Attendance.find({
+            //     coordinatorId: userId,
+            //   })
 
-              const traineeArray = (await attendanceRecords).map(
-                (data: any) => data.trainees
-              )
+            //   const traineeArray = (await attendanceRecords).map(
+            //     (data: any) => data.trainees
+            //   )
 
-              let traineeEmailExists = false
-              for (const weekTrainees of traineeArray) {
-                for (const trainee of weekTrainees) {
-                  if (trainee.traineeEmail === email) {
-                    traineeEmailExists = true
-                    break
-                  }
-                }
-              }
-              if (!traineeEmailExists) {
-                // create new trainee
-                const newTrainee: Trainee = {
-                  traineeId: user.id,
-                  traineeEmail: email,
-                  status: [],
-                }
+            //   let traineeEmailExists = false
+            //   for (const weekTrainees of traineeArray) {
+            //     for (const trainee of weekTrainees) {
+            //       if (trainee.traineeEmail === email) {
+            //         traineeEmailExists = true
+            //         break
+            //       }
+            //     }
+            //   }
+            //   if (!traineeEmailExists) {
+            //     // create new trainee
+            //     const newTrainee: Trainee = {
+            //       traineeId: user.id,
+            //       traineeEmail: email,
+            //       status: [],
+            //     }
 
-                const attendanceLength: any = await Attendance.find({
-                  coordinatorId: userId,
-                })
+            //     const attendanceLength: any = await Attendance.find({
+            //       coordinatorId: userId,
+            //     })
 
-                if (attendanceLength.length > 0) {
-                  for (const attendData of attendanceLength) {
-                    attendData.trainees.push(newTrainee)
-                    await attendData.save()
-                  }
-                } else {
-                  const newAttendRecord = new Attendance({
-                    week: 1,
-                    coordinatorId: [userId],
-                    trainees: [newTrainee],
-                  })
-                  await newAttendRecord.save()
-                }
-              }
-            }
+            //     if (attendanceLength.length > 0) {
+            //       for (const attendData of attendanceLength) {
+            //         attendData.trainees.push(newTrainee)
+            //         await attendData.save()
+            //       }
+            //     } else {
+            //       const newAttendRecord = new Attendance({
+            //         week: 1,
+            //         coordinatorId: [userId],
+            //         trainees: [newTrainee],
+            //       })
+            //       await newAttendRecord.save()
+            //     }
+            //   }
+            // }
 
             user.team = team.id
             user.cohort = team.cohort.id
