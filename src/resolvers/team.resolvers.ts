@@ -539,7 +539,7 @@ const resolvers = {
       const prevTeamName = team.name
       const teamCohort = team?.cohort
       const cohortProgram = team?.cohort?.program as ProgramType
-      const cohortOrg = cohortProgram.organization as OrganizationType
+      const cohortOrg = cohortProgram?.organization as OrganizationType
       const org = await checkLoggedInOrganization(orgToken)
 
       if (!team) {
@@ -564,8 +564,10 @@ const resolvers = {
 
       if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
-
-        if (cohortOrg.id.toString() !== org.id.toString()) {
+        console.log('>>>>>>>>>>>>>')
+        console.log(cohortOrg)
+        console.log('>>>>>>>>>>>>>')
+        if (cohortOrg?.id.toString() !== org.id.toString()) {
           throw new GraphQLError(
             `Team with id "${team?.id}" doesn't exist in this organization`,
             {
