@@ -53,11 +53,11 @@ const invitationSchema = gql`
   }
 
   type Query {
-    getAllInvitations(orgToken: String!,limit: Int, offset: Int): PaginatedInvitations!
+    getAllInvitations(orgToken: String!,limit: Int, offset: Int,sortBy:Int): PaginatedInvitations!
   }
 
     type Query {
-    filterInvitations(limit: Int, offset: Int, role: String, status: String, orgToken: String!): PaginatedInvitations!
+    filterInvitations(limit: Int, offset: Int, role: String, status: String, orgToken: String!,sortBy:Int): PaginatedInvitations!
   }
 
   type InvitationResult {
