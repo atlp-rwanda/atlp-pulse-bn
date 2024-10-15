@@ -10,15 +10,14 @@ const DocumentationResolvers = {
   },
   Mutation: {
     async addDocumentation(_: any, args: any, context: any) {
-      console.log(args)
       const documentation = await Documentation.create(args)
       return documentation
     },
     async updateDocumentation(_: any, args: any, context: any) {
-      const { id, title, description } = args
+      const { id, title, for: forUpdate, description } = args
       const documentation = await Documentation.findByIdAndUpdate(
         id,
-        { title, description },
+        { title, description, for: forUpdate },
         { new: true }
       )
       if (!documentation) {
