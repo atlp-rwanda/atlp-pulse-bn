@@ -36,7 +36,7 @@ const TableViewInvitationResolver = {
 
         const invitations = await Invitation.find(searchCriteria)
           .skip(offset)
-          .limit(limit)
+          .limit(limit).sort({createdAt:-1})
 
         const totalInvitations = invitations.length
 
@@ -61,7 +61,7 @@ const TableViewInvitationResolver = {
         const { orgToken } = args;
         if (!orgToken) throw new GraphQLError('No organization token provided'); 
         const org = (await checkLoggedInOrganization(orgToken)).name.toLocaleLowerCase();
-        const invitations = await Invitation.find({orgName:org});
+        const invitations = await Invitation.find({orgName:org}).sort({createdAt:-1});
         const totalInvitations = invitations.length;
 
         return {
@@ -127,7 +127,7 @@ const TableViewInvitationResolver = {
         if (role && status) {
         invitations = await Invitation.find(criteria)
           .skip(offset)
-          .limit(limit);
+          .limit(limit).sort({createdAt:-1});
     
       } else if (role) {
         invitations = await Invitation.find({           
@@ -136,7 +136,7 @@ const TableViewInvitationResolver = {
           {'invitees.role': { $regex: role, $options: 'i' } }
           ]})
          .skip(offset)
-         .limit(limit);
+         .limit(limit).sort({createdAt:-1});
 
       } else if (status) {
         invitations = await Invitation.find({
@@ -146,7 +146,7 @@ const TableViewInvitationResolver = {
           ],
         })
          .skip(offset)
-         .limit(limit);
+         .limit(limit).sort({createdAt:-1});
       }
 
       const totalInvitations = invitations.length;
