@@ -1,9 +1,12 @@
-import bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import { User } from '../models/user';
-import { Profile } from '../models/profile.model';
-import { emailExpression, generateToken } from '../helpers/user.helpers';
+import bcrypt from 'bcryptjs'
+import * as jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
+import { User } from '../models/user'
+import { Profile } from '../models/profile.model'
+import { emailExpression, generateToken } from '../helpers/user.helpers'
+import { logActivity } from '../helpers/loginActivities'
+import { checkloginAttepmts } from '../helpers/logintracker'
+import getGeoLocation from '../helpers/geolocation.helper'
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -55,7 +58,22 @@ const resolvers = {
 
       return { token, user: newUser }
     },
-    async loginUser(_: any, { loginInput: { email, password } }: any) {
+    async loginUser(
+      _: any,
+      { loginInput: { email, password } }: any,
+      { req }: any
+    ) {
+      const ipAddress =
+        req.headers['x-forwarded-for'] || req.connection.remoteAddress
+      console.log(
+        'here is ip adressssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
+        ipAddress
+      )
+
+      if (!ipAddress) {
+        throw new Error('IP address not found')
+      }
+
       const user: any = await User.findOne({ email: email })
       if (await user?.checkPass(password)) {
         const token = jwt.sign(
@@ -65,12 +83,50 @@ const resolvers = {
             expiresIn: '2h',
           }
         )
+
+        const geoData = await getGeoLocation(ipAddress)
+        console.log(
+          'GeoDataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:',
+          geoData
+        )
+
+        const profile = await Profile.findOne({ user: user._id })
+        if (!profile) {
+          throw new Error('Profile not found for the user')
+        }
+
+        profile.activity.push({
+          country_code: geoData?.country_code || null,
+          country_name: geoData?.country_name || null,
+          IPv4: ipAddress,
+          city: geoData?.city || null,
+          state: geoData?.region || null,
+          postal: geoData?.postal || null,
+          latitude: geoData?.latitude || null,
+          longitude: geoData?.longitude || null,
+          failed: 0,
+          date: new Date().toISOString(),
+        })
+
         const data = {
           token: token,
           user: user.toJSON(),
         }
         return data
       } else {
+        await logActivity(user._id, {
+          country_code: null,
+          country_name: null,
+          IPv4: ipAddress,
+          city: null,
+          state: null,
+          postal: null,
+          latitude: null,
+          longitude: null,
+          failed: 1,
+          date: new Date().toISOString(),
+        })
+
         throw new Error('Invalid credential')
       }
     },
