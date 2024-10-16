@@ -419,6 +419,12 @@ const Schema = gql`
       confirmPassword: String!
       token: String!
     ): String!
+    changeUserPassword(
+      currentPassword: String!
+      newPassword: String!
+      confirmPassword: String!
+      token: String!
+    ): String!
 
     addActiveRepostoOrganization(name: String!, repoUrl: String!): Organization!
 
