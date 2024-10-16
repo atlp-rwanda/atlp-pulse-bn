@@ -7,6 +7,7 @@ import { emailExpression, generateToken } from '../helpers/user.helpers'
 import { logActivity } from '../helpers/loginActivities'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import getGeoLocation from '../helpers/geolocation.helper'
+import logger from '../utils/logger.utils'
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -63,71 +64,87 @@ const resolvers = {
       { loginInput: { email, password } }: any,
       { req }: any
     ) {
-      const ipAddress =
-        req.headers['x-forwarded-for'] || req.connection.remoteAddress
-      console.log(
-        'here is ip adressssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
-        ipAddress
-      )
+      try {
+        console.log('Incoming request headers:', req.headers)
 
-      if (!ipAddress) {
-        throw new Error('IP address not found')
-      }
+        const ipAddress =
+          req.headers['x-forwarded-for'] || req.connection.remoteAddress
 
-      const user: any = await User.findOne({ email: email })
-      if (await user?.checkPass(password)) {
-        const token = jwt.sign(
-          { userId: user._id, role: user._doc?.role || 'user' },
-          SECRET,
-          {
-            expiresIn: '2h',
+        console.log('Attempting to retrieve IP address...')
+        logger.info(`IP Address: ${ipAddress}`)
+
+        if (!ipAddress) {
+          console.error('IP address not found')
+          throw new Error('Failed to retrieve IP address')
+        }
+
+        console.log('User IP address:', ipAddress)
+
+        if (ipAddress === '127.0.0.1' || ipAddress === '::1') {
+          console.warn('Request is coming from localhost')
+        }
+
+        const user: any = await User.findOne({ email: email })
+        if (!user) {
+          throw new Error('User not found')
+        }
+
+        if (await user?.checkPass(password)) {
+          const token = jwt.sign(
+            { userId: user._id, role: user._doc?.role || 'user' },
+            SECRET,
+            {
+              expiresIn: '2h',
+            }
+          )
+
+          const geoData = await getGeoLocation(ipAddress)
+          console.log('GeoData:', geoData)
+
+          const profile = await Profile.findOne({ user: user._id })
+          if (!profile) {
+            throw new Error('Profile not found for the user')
           }
-        )
 
-        const geoData = await getGeoLocation(ipAddress)
-        console.log(
-          'GeoDataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:',
-          geoData
-        )
+          profile.activity.push({
+            country_code: geoData?.country_code || null,
+            country_name: geoData?.country_name || null,
+            IPv4: ipAddress,
+            city: geoData?.city || null,
+            state: geoData?.region || null,
+            postal: geoData?.postal || null,
+            latitude: geoData?.latitude || null,
+            longitude: geoData?.longitude || null,
+            failed: 0,
+            date: new Date().toISOString(),
+          })
 
-        const profile = await Profile.findOne({ user: user._id })
-        if (!profile) {
-          throw new Error('Profile not found for the user')
+          await profile.save() // Save the updated profile
+
+          const data = {
+            token: token,
+            user: user.toJSON(),
+          }
+          return data
+        } else {
+          await logActivity(user._id, {
+            country_code: null,
+            country_name: null,
+            IPv4: ipAddress,
+            city: null,
+            state: null,
+            postal: null,
+            latitude: null,
+            longitude: null,
+            failed: 1,
+            date: new Date().toISOString(),
+          })
+
+          throw new Error('Invalid credential')
         }
-
-        profile.activity.push({
-          country_code: geoData?.country_code || null,
-          country_name: geoData?.country_name || null,
-          IPv4: ipAddress,
-          city: geoData?.city || null,
-          state: geoData?.region || null,
-          postal: geoData?.postal || null,
-          latitude: geoData?.latitude || null,
-          longitude: geoData?.longitude || null,
-          failed: 0,
-          date: new Date().toISOString(),
-        })
-
-        const data = {
-          token: token,
-          user: user.toJSON(),
-        }
-        return data
-      } else {
-        await logActivity(user._id, {
-          country_code: null,
-          country_name: null,
-          IPv4: ipAddress,
-          city: null,
-          state: null,
-          postal: null,
-          latitude: null,
-          longitude: null,
-          failed: 1,
-          date: new Date().toISOString(),
-        })
-
-        throw new Error('Invalid credential')
+      } catch (error) {
+        console.error('Login error:', error)
+        throw new Error('Login failed. Please try again.')
       }
     },
     async createProfile(_: any, args: any, context: { userId: any }) {

@@ -31,7 +31,7 @@ export const logActivity = async (userId: string, details: any) => {
       latitude: details.latitude,
       longitude: details.longitude,
       failed: details.failed || 0,
-      date: new Date(details.date),
+      date: new Date(details.date).toISOString(),
     })
 
     await profile.save()

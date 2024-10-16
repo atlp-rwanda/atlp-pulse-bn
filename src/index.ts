@@ -173,4 +173,5 @@ async function startApolloServer(
 
 startApolloServer(typeDefs, resolvers).catch((error) => {
   logger.error('Failed to start the server:', error)
+  console.log('server not starting: ', error)
 })
