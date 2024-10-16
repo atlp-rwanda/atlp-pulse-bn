@@ -397,14 +397,18 @@ const resolvers: any = {
           admin: user.id,
         })
 
-        if (user?.role === RoleOfUser.ADMIN && organization) {
-          const token = generateToken(user._id, user._doc?.role || 'user')
-          const data = {
-            token: token,
-            user: user.toJSON(),
-          }
-          return data
-        } else if (user?.role === RoleOfUser.MANAGER) {
+        if (user?.role === RoleOfUser.ADMIN) {
+      if (user?.organizations?.includes(org?.name)) {
+        const token = generateToken(user._id, user._doc?.role || 'user');
+        const data = {
+          token: token,
+          user: user.toJSON(),
+        };
+        return data;
+      } else {
+        throw new Error('You do not have access to this organization.');
+      }
+    } else if (user?.role === RoleOfUser.MANAGER) {
           const program: any = await Program.find({
             manager: user.id,
           }).populate({
