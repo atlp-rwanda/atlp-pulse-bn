@@ -134,7 +134,7 @@ const Schema = gql`
   }
 
   type Activity {
-    date: Date
+    date: String
     country_code: String
     country_name: String
     city: String

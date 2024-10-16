@@ -14,6 +14,7 @@ const profileResolvers: any = {
         throw new Error('You need to login first')
       }
       const profile = await Profile.findOne({ user: userId })
+      console.log('Profile Dataaaa', profile)
       return profile
     },
     getAllUsers: async (
