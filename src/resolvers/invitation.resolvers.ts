@@ -81,7 +81,7 @@ const invitationResolvers: IResolvers = {
             org.name
           )
           newInvitation.invitationToken = newToken
-          const result = await sendInvitationEmail(email, org.name, link)
+          const result = await sendInvitationEmail(email, org.name, link,false, role)
 
           if (result.success) {
             await newInvitation.save()
@@ -231,7 +231,7 @@ const invitationResolvers: IResolvers = {
             org.name
           )
           newInvitation.invitationToken = newToken
-          const result = await sendInvitationEmail(email, org.name, link)
+          const result = await sendInvitationEmail(email, org.name, link, false, role)
 
           if (result.success) {
             await newInvitation.save()
@@ -320,7 +320,7 @@ const invitationResolvers: IResolvers = {
             org.name
           )
           invitation.invitationToken = newToken
-          await sendInvitationEmail(email, org.name, link, true)
+          await sendInvitationEmail(email, org.name, link, true, role)
         }
 
         await invitation.save()
@@ -413,7 +413,7 @@ const invitationResolvers: IResolvers = {
           )
         }
         const { invitees, orgName } = invitation
-
+        const role = invitation.invitees[0]?.role
         for (const invitee of invitees) {
           const { newToken, link } = await generateInvitationTokenAndLink(
             invitee?.email as string,
@@ -422,7 +422,7 @@ const invitationResolvers: IResolvers = {
           )
           invitation.createdAt = new Date()
           invitation.invitationToken = newToken
-          await sendInvitationEmail(invitee?.email as string, org.name, link)
+          await sendInvitationEmail(invitee?.email as string, org.name, link, false, role)
           await invitation.save()
         }
 
