@@ -426,7 +426,8 @@ const Schema = gql`
     rejectRating(user: String!, sprint: Int!): String!
     forgotPassword(email: String!): String!
     resetUserPassword(
-      password: String!
+      currentPassword: String!
+      newPassword: String!
       confirmPassword: String!
       token: String!
     ): String!
