@@ -46,6 +46,46 @@ enum Status {
   rejected = 'rejected',
 }
 
+async function logGeoActivity(user: any) {
+  const ipResponse = await fetch('https://api.ipify.org?format=json')
+  const { ip: realIp } = await ipResponse.json()
+
+  const response = await fetch(`https://ipapi.co/${realIp}/json/`)
+  const geoData = await response.json()
+
+  console.log('GeoData:', geoData)
+
+  const profile = await Profile.findOne({ user: user._id })
+  if (!profile) {
+    throw new Error('Profile not found for the user')
+  }
+
+  if (geoData.country_code && geoData.city) {
+    profile.activity.push({
+      country_code: geoData.country_code,
+      country_name: geoData.country_name,
+      IPv4: realIp,
+      city: geoData.city,
+      state: geoData.region,
+      postal: geoData.postal,
+      latitude: geoData.latitude,
+      longitude: geoData.longitude,
+      failed: 0,
+      date: new Date().toISOString(),
+    })
+    await profile.save()
+  } else {
+    console.log('skipping activity due to incomplete')
+    profile.activity.push({
+      failed: 1,
+      date: new Date().toISOString(),
+    })
+    await profile.save()
+  }
+
+  return geoData
+}
+
 const resolvers: any = {
   Query: {
     async getOrganizations(_: any, __: any, context: Context) {
@@ -296,10 +336,8 @@ const resolvers: any = {
 
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken, activity } }: any
+      { loginInput: { email, password, orgToken } }: any
     ) {
-      //get location
-      const newActivity = activity || null
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
@@ -341,18 +379,6 @@ const resolvers: any = {
       let attempts = await checkloginAttepmts(Profile, user)
 
       if (await user?.checkPass(password)) {
-        await Profile.findOneAndUpdate(
-          { user },
-          {
-            $push: {
-              activity: { $each: [{ failed: 0, ...newActivity }] },
-            },
-          }
-        )
-        await Profile.findOneAndUpdate(
-          { user },
-          { $push: { activity: { $each: [newActivity] } } }
-        )
         if (
           user?.role === RoleOfUser.TRAINEE &&
           user?.organizations?.includes(org?.name)
@@ -367,9 +393,13 @@ const resolvers: any = {
           }
           if (await isAssigned(org?.name, user._id)) {
             const token = generateToken(user._id, user._doc?.role || 'user')
+
+            const geoData = await logGeoActivity(user)
+
             const data = {
               token: token,
               user: user.toJSON(),
+              geoData,
             }
             return data
           } else {
@@ -383,9 +413,13 @@ const resolvers: any = {
         ) {
           if (user.cohort && user.team) {
             const token = generateToken(user._id, user._doc?.role || 'user')
+
+            const geoData = await logGeoActivity(user)
+
             const data = {
               token: token,
               user: user.toJSON(),
+              geoData,
             }
             return data
           } else {
@@ -399,9 +433,13 @@ const resolvers: any = {
 
         if (user?.role === RoleOfUser.ADMIN && organization) {
           const token = generateToken(user._id, user._doc?.role || 'user')
+
+          const geoData = await logGeoActivity(user)
+
           const data = {
             token: token,
             user: user.toJSON(),
+            geoData,
           }
           return data
         } else if (user?.role === RoleOfUser.MANAGER) {
@@ -424,9 +462,13 @@ const resolvers: any = {
               user._id,
               user._doc?.role || 'user'
             )
+
+            const geoData = await logGeoActivity(user)
+
             const managerData = {
               token: managerToken,
               user: user.toJSON(),
+              geoData,
             }
             return managerData
           } else {
@@ -458,9 +500,13 @@ const resolvers: any = {
               user._id,
               user._doc?.role || 'user'
             )
+
+            const geoData = await logGeoActivity(user)
+
             const coordinatorData = {
               token: coordinatorToken,
               user: user.toJSON(),
+              geoData,
             }
             return coordinatorData
           } else {
@@ -471,27 +517,19 @@ const resolvers: any = {
             user._id,
             user._doc?.role || 'user'
           )
+
+          const geoData = await logGeoActivity(user)
+
           const superAdminData = {
             token: superAdminToken,
             user: user.toJSON(),
+            geoData,
           }
           return superAdminData
         } else {
-          await Profile.findOneAndUpdate(
-            { user },
-            { $push: { activity: { $each: [newActivity] } } }
-          )
           throw new Error('Please wait to be added to a program or cohort')
         }
       } else {
-        await Profile.findOneAndUpdate(
-          { user },
-          {
-            $push: {
-              activity: { $each: [{ failed: attempts, ...newActivity }] },
-            },
-          }
-        )
         throw new GraphQLError('Invalid credential', {
           extensions: {
             code: 'UserInputError',

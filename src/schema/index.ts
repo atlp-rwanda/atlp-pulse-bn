@@ -82,22 +82,10 @@ const Schema = gql`
     password: String!
     role: String
   }
-  input ActivityInput {
-    date: String
-    country_code: String
-    country_name: String
-    city: String
-    postal: String
-    latitude: Float
-    longitude: Float
-    IPv4: String
-    state: String
-  }
   input LoginInput {
     email: String
     password: String
     orgToken: String
-    activity: ActivityInput
   }
   input OrgInput {
     name: String

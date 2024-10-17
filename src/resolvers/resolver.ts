@@ -4,10 +4,7 @@ import mongoose from 'mongoose'
 import { User } from '../models/user'
 import { Profile } from '../models/profile.model'
 import { emailExpression, generateToken } from '../helpers/user.helpers'
-import { logActivity } from '../helpers/loginActivities'
 import { checkloginAttepmts } from '../helpers/logintracker'
-import getGeoLocation from '../helpers/geolocation.helper'
-import logger from '../utils/logger.utils'
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -65,25 +62,6 @@ const resolvers = {
       { req }: any
     ) {
       try {
-        console.log('Incoming request headers:', req.headers)
-
-        const ipAddress =
-          req.headers['x-forwarded-for'] || req.connection.remoteAddress
-
-        console.log('Attempting to retrieve IP address...')
-        logger.info(`IP Address: ${ipAddress}`)
-
-        if (!ipAddress) {
-          console.error('IP address not found')
-          throw new Error('Failed to retrieve IP address')
-        }
-
-        console.log('User IP address:', ipAddress)
-
-        if (ipAddress === '127.0.0.1' || ipAddress === '::1') {
-          console.warn('Request is coming from localhost')
-        }
-
         const user: any = await User.findOne({ email: email })
         if (!user) {
           throw new Error('User not found')
@@ -98,48 +76,12 @@ const resolvers = {
             }
           )
 
-          const geoData = await getGeoLocation(ipAddress)
-          console.log('GeoData:', geoData)
-
-          const profile = await Profile.findOne({ user: user._id })
-          if (!profile) {
-            throw new Error('Profile not found for the user')
-          }
-
-          profile.activity.push({
-            country_code: geoData?.country_code || null,
-            country_name: geoData?.country_name || null,
-            IPv4: ipAddress,
-            city: geoData?.city || null,
-            state: geoData?.region || null,
-            postal: geoData?.postal || null,
-            latitude: geoData?.latitude || null,
-            longitude: geoData?.longitude || null,
-            failed: 0,
-            date: new Date().toISOString(),
-          })
-
-          await profile.save() // Save the updated profile
-
           const data = {
             token: token,
             user: user.toJSON(),
           }
           return data
         } else {
-          await logActivity(user._id, {
-            country_code: null,
-            country_name: null,
-            IPv4: ipAddress,
-            city: null,
-            state: null,
-            postal: null,
-            latitude: null,
-            longitude: null,
-            failed: 1,
-            date: new Date().toISOString(),
-          })
-
           throw new Error('Invalid credential')
         }
       } catch (error) {
