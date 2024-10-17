@@ -3,7 +3,6 @@ import { RoleOfUser, User } from '../models/user'
 import { Context } from './../context'
 import * as jwt from 'jsonwebtoken'
 
-
 const SECRET: string = process.env.SECRET ?? 'test_secret'
 
 export const generateToken = (userId: string, role: string) => {
@@ -16,7 +15,8 @@ export const generateTokenOrganization = (name: string) => {
   return jwt.sign({ name }, SECRET, { expiresIn: '336h' })
 }
 
-export const emailExpression = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+export const emailExpression =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
 export async function checkUserLoggedIn(
   context: Context
@@ -36,6 +36,14 @@ export async function checkUserLoggedIn(
     throw new GraphQLError('User with this token no longer exist!!', {
       extensions: {
         code: 'VALIDATION_ERROR',
+      },
+    })
+  }
+
+  if (user.status?.status !== 'active') {
+    throw new GraphQLError('User is not active', {
+      extensions: {
+        CODE: 'USER_NOT_ACTIVE',
       },
     })
   }
