@@ -40,6 +40,14 @@ export async function checkUserLoggedIn(
     })
   }
 
+  if(user.status?.status !== "active"){
+    throw new GraphQLError("User is not active",{
+      extensions: {
+        CODE: 'USER_NOT_ACTIVE'
+      }
+    })
+  }
+
   return (inputRoles: Array<string> = [RoleOfUser.ADMIN]) => {
     if (inputRoles && !inputRoles.includes(role as string)) {
       throw new GraphQLError(

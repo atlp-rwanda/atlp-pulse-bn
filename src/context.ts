@@ -2,8 +2,8 @@ import { GraphQLError } from 'graphql'
 import 'dotenv/config'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
-import { AuthenticationError } from 'apollo-server'
-import { checkUserAccountStatus } from './helpers/logintracker'
+//import { AuthenticationError } from 'apollo-server'
+//import { checkUserAccountStatus } from './helpers/logintracker'
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -48,17 +48,8 @@ export const context = async ({ req }: { req: Request }): Promise<Context> => {
     !req.body.variables.organisationInput &&
     !req.body.variables.loginInput
   ) {
-    throw new GraphQLError('User account does not exist or has been suspended')
+    return {}
   } else {
-    if (token?.userId) {
-      const accountStatus = await checkUserAccountStatus(token?.userId)
-      if (!accountStatus || accountStatus !== 'active') {
-        throw new GraphQLError(
-          'User account does not exist or has been suspended'
-        )
-      }
-    }
-
     return {
       userId: token?.userId,
       role: token?.role,
