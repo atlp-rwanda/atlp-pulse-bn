@@ -1,6 +1,9 @@
 import gql from 'graphql-tag'
 
 const Schema = gql`
+
+  scalar Upload
+
   type Cohort {
     name: String
     phase: Phase
@@ -179,6 +182,7 @@ const Schema = gql`
   }
 
   type Rating {
+    id: ID!
     user: User!
     sprint: Int!
     phase: String!
@@ -277,6 +281,22 @@ const Schema = gql`
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
+    getRatingsByCohort(cohortId: String!, orgToken: String!): [Rating]!
+    getTeamsByCohort(cohortId: String!,orgToken: String!): [Team]!
+  }
+
+  type RejectedRows{
+    email: String
+    quantity: Int
+    quality: Int
+    professional_skills: Int
+    feedBacks: String
+  }
+  
+  type AddRatingsByFileData{
+    NewRatings: [Rating]!
+    UpdatedRatings: [updateRating]!
+    RejectedRatings: [RejectedRows]!
   }
 
   type Mutation {
@@ -346,6 +366,12 @@ const Schema = gql`
       professional_Skills: String!
       orgToken: String!
     ): AddRating
+    addRatingsByFile(
+      file: Upload!
+      cohortId: String!
+      sprint: Int!
+      orgToken: String!
+    ):AddRatingsByFileData!
     updateRating(
       user: String!
       sprint: Int!
