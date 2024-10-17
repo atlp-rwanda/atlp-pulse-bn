@@ -1117,20 +1117,26 @@ const resolvers: any = {
 
     async resetUserPassword(
       _: any,
-      { password, confirmPassword, token }: any,
+      { currentPassword, newPassword, confirmPassword, token }: any,
       context: any
     ) {
-      const { email } = verify(token, SECRET) as JwtPayload
-      if (password === confirmPassword) {
-        const user: any = await User.findOne({ email })
+      const { userId } = verify(token, SECRET) as JwtPayload
+      if (newPassword === confirmPassword) {
+        const user: any = await User.findById(userId)
         if (!user) {
           throw new Error("User doesn't exist! ")
         }
-        user.password = password
-        await user.save()
-        return 'Your password was reset successfully! '
-      } else if (password !== confirmPassword) {
-        throw new Error('Password mismatch! ')
+        console.log(bcrypt.compareSync(currentPassword, user.password))
+
+        if (bcrypt.compareSync(currentPassword, user.password)) {
+          user.password = newPassword
+          await user.save()
+          return 'Your password was reset successfully! '
+        } else {
+          throw new Error('Current Password is incorrect')
+        }
+      } else if (newPassword !== confirmPassword) {
+        throw new Error('New password mismatch!')
       } else {
         throw new Error('Oopps! something went wrong')
       }
