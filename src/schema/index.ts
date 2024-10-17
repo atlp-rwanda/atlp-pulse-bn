@@ -1,6 +1,9 @@
 import gql from 'graphql-tag'
 
 const Schema = gql`
+
+  scalar Upload
+
   type Cohort {
     name: String
     phase: Phase
@@ -317,6 +320,15 @@ const Schema = gql`
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
   }
 
+  input RatingsFileInput{
+    file: Upload,
+  }
+  
+  type AddRatingsByFileData{
+    AcceptedRatings: [Rating]!
+    RejectedRatings: [String]!
+  }
+
   type Mutation {
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
@@ -390,6 +402,11 @@ const Schema = gql`
       bodyProfessional: String
       orgToken: String!
     ): AddRating
+    addRatingsByFile(
+      doc: RatingsFileInput!,
+      cohort: String!
+      orgToken: String!
+    ):AddRatingsByFileData!
     updateRating(
       user: String!
       sprint: Int!

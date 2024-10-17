@@ -18,7 +18,24 @@ import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
 import mongoose, { Types } from 'mongoose'
+import { GraphQLError } from 'graphql'
+import { FileUpload } from 'graphql-upload-ts'
+import { extractSheetRatings, FileRating } from '../utils/sheets/extractSheetRatings'
 const pubsub = new PubSub()
+
+type RatingsFileInput = {
+  file: Promise<FileUpload>
+}
+
+const ratingEmailContent = generalTemplate({
+  message:
+    "We're excited to announce that your latest performance ratings are ready for review.",
+  linkMessage: 'To access your new ratings, click the button below',
+  buttonText: 'View Ratings',
+  link: `${process.env.FRONTEND_LINK}/performance`,
+  closingText:
+    "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+})
 
 let org: InstanceType<typeof Organization>
 const ratingResolvers: any = {
@@ -113,7 +130,7 @@ const ratingResolvers: any = {
     },
 
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.COORDINATOR,
         RoleOfUser.ADMIN,
         RoleOfUser.TRAINEE,
@@ -276,22 +293,12 @@ const ratingResolvers: any = {
           //   })
           // }
           if (userExists.emailNotifications) {
-            const content = generalTemplate({
-              message:
-                "We're excited to announce that your latest performance ratings are ready for review.",
-              linkMessage: 'To access your new ratings, click the button below',
-              buttonText: 'View Ratings',
-              link: `${process.env.FRONTEND_LINK}/performance`,
-              closingText:
-                "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
-            })
-
             await sendEmails(
               process.env.SENDER_EMAIL,
               process.env.ADMIN_PASS,
               userExists.email,
               'New Rating notice',
-              content
+              ratingEmailContent
             )
             return saveUserRating.populate({
               path: 'feedbacks',
@@ -301,6 +308,95 @@ const ratingResolvers: any = {
         }
       )
     ),
+    async addRatingsByFile(_: any, { doc, cohort, orgToken }: { doc: RatingsFileInput, cohort: string, orgToken: string }, context: Context) {
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
+      const org = await checkLoggedInOrganization(orgToken)
+      if (!org) {
+        throw new GraphQLError("No such organization found", {
+          extensions: {
+            code: "ORGANIZATION_NOT_FOUND"
+          }
+        })
+      }
+      const currentCohort = await Cohort.findById(cohort)
+      if(!currentCohort){
+        throw new GraphQLError("No such cohort found",{
+          extensions: {
+            code: "COHORT_NOT_FOUND"
+          }
+        })
+      }
+      const ratingsFile = await doc.file
+      if(!ratingsFile){
+        throw new GraphQLError("No file provided",{
+          extensions: {
+            code: "NO_FILE_FOUND"
+          }
+        })
+      }
+      const { validRows, invalidRows } = await extractSheetRatings(ratingsFile)
+      const AcceptedRatings: any =[]
+      const RejectedRatings: any =[...invalidRows.map(rating=>rating.email)]
+
+      for(const row of validRows){
+        const user = await User.findOne({email: row.email})
+        if(user){
+          const rating = await Rating.create({
+            user: user._id,
+            sprint: row.sprint,
+            phase: row.phase,
+            quantity: row.quantity,
+            quantityRemark: row.quantityRemark,
+            feedbacks: [{
+              sender: userId,
+              content: row.feedBacks
+            }],
+            quality: row.quality,
+            qualityRemark: row.qualityRemark,
+            professional_Skills: row.professional_skills,
+            professionalRemark: row.professionalRemark,
+            approved: true,
+            coordinator: currentCohort?.coordinator,
+            cohort: cohort,
+            average: (row.quality+row.quantity+row.professional_skills)/3,
+            organization: org._id,
+          })
+
+          const populatedRating = await Rating.findById(rating._id)
+          .populate({
+            path: 'user',
+            strictPopulate: false,
+          })
+          .populate({
+            path: 'feedbacks',
+            strictPopulate: false,
+            populate: {
+              path: 'sender',
+              strictPopulate: false,
+            }
+          })
+          .populate({
+            path: 'cohort',
+            strictPopulate: false,
+          })
+          AcceptedRatings.push(populatedRating)
+
+          await sendEmails(
+            process.env.SENDER_EMAIL,
+            process.env.ADMIN_PASS,
+            user.email,
+            'New Rating notice',
+            ratingEmailContent
+          )
+        }else{
+          RejectedRatings.push(row.email)
+        }
+      }
+      return { 
+        AcceptedRatings,
+        RejectedRatings
+      }
+    },
     async deleteReply() {
       await Rating.deleteMany({})
       return 'The rating table has been deleted successfully'
@@ -348,7 +444,7 @@ const ratingResolvers: any = {
             oldData?.professional_Skills == professional_Skills[0].toString() &&
             oldData?.professionalRemark == professionalRemark[0].toString() &&
             (oldData?.feedbacks?.[0]?.content ?? '') ==
-              (feedbackContent ?? '') &&
+            (feedbackContent ?? '') &&
             (feedbacks[0]?.toString() ?? '') == (feedbackContent ?? '')
           ) {
             throw new Error('No changes to update!')
@@ -364,9 +460,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                      `${oldData?.quantityRemark} ->`,
-                      quantityRemark?.toString(),
-                    ],
+                    `${oldData?.quantityRemark} ->`,
+                    quantityRemark?.toString(),
+                  ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -377,19 +473,19 @@ const ratingResolvers: any = {
                   : [`${oldData?.qualityRemark} ->`, qualityRemark?.toString()],
               professional_Skills:
                 oldData?.professional_Skills ==
-                professional_Skills[0].toString()
+                  professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                      `${oldData?.professional_Skills} ->`,
-                      professional_Skills?.toString(),
-                    ],
+                    `${oldData?.professional_Skills} ->`,
+                    professional_Skills?.toString(),
+                  ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                      `${oldData?.professionalRemark} ->`,
-                      professionalRemark?.toString(),
-                    ],
+                    `${oldData?.professionalRemark} ->`,
+                    professionalRemark?.toString(),
+                  ],
 
               feedbacks: oldData?.feedbacks.map((feedback) => {
                 feedbackContent === feedback.content
