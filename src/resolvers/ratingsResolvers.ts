@@ -18,7 +18,14 @@ import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
 import mongoose, { Types } from 'mongoose'
+import { GraphQLError } from 'graphql'
+import { FileUpload } from 'graphql-upload-ts'
+import { extractSheetRatings, FileRating } from '../utils/sheets/extractSheetRatings'
 const pubsub = new PubSub()
+
+type RatingsFileInput = {
+  file: Promise<FileUpload>
+}
 
 let org: InstanceType<typeof Organization>
 const ratingResolvers: any = {
@@ -113,7 +120,7 @@ const ratingResolvers: any = {
     },
 
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.COORDINATOR,
         RoleOfUser.ADMIN,
         RoleOfUser.TRAINEE,
@@ -301,6 +308,51 @@ const ratingResolvers: any = {
         }
       )
     ),
+    async addRatingsByFile(_: any, { doc, cohort, orgToken }: { doc: RatingsFileInput, cohort: string, orgToken: string }, context: Context) {
+      (await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.COORDINATOR, RoleOfUser.MANAGER, RoleOfUser.TTL])
+      const { userId, role } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
+      const org = await checkLoggedInOrganization(orgToken)
+      if (!org) {
+        throw new GraphQLError("No such organization found", {
+          extensions: {
+            code: "ORGANIZATION_NOT_FOUND"
+          }
+        })
+      }
+      const currentCohort = await Cohort.findById(cohort)
+      if(!currentCohort){
+        throw new GraphQLError("No such cohort found",{
+          extensions: {
+            code: "COHORT_NOT_FOUND"
+          }
+        })
+      }
+      const ratingsFile = await doc.file
+      const { validRows, invalidRows } = await extractSheetRatings(ratingsFile)
+      validRows.forEach(async(row: FileRating) => {
+        await Rating.create({
+          user: row.email,
+          sprint: row.sprint,
+          phase: row.phase,
+          quantity: row.quantity,
+          quantityRemark: row.quantityRemark,
+          feedBacks: [{
+            sender: userId,
+            content: row.feedBacks
+          }],
+          quality: row.quality,
+          qualityRemark: row.qualityRemark,
+          professional_Skills: row.professional_skills,
+          professionalRemark: row.professionalRemark,
+          approved: true,
+          coordinator: currentCohort?.coordinator,
+          cohort: cohort,
+          average: (row.quality+row.quantity+row.professional_skills)/3,
+          organization: org._id,
+        })
+      })
+      return { message: "ok" }
+    },
     async deleteReply() {
       await Rating.deleteMany({})
       return 'The rating table has been deleted successfully'
@@ -348,7 +400,7 @@ const ratingResolvers: any = {
             oldData?.professional_Skills == professional_Skills[0].toString() &&
             oldData?.professionalRemark == professionalRemark[0].toString() &&
             (oldData?.feedbacks?.[0]?.content ?? '') ==
-              (feedbackContent ?? '') &&
+            (feedbackContent ?? '') &&
             (feedbacks[0]?.toString() ?? '') == (feedbackContent ?? '')
           ) {
             throw new Error('No changes to update!')
@@ -364,9 +416,9 @@ const ratingResolvers: any = {
                 oldData?.quantityRemark == quantityRemark[0].toString()
                   ? oldData?.quantityRemark
                   : [
-                      `${oldData?.quantityRemark} ->`,
-                      quantityRemark?.toString(),
-                    ],
+                    `${oldData?.quantityRemark} ->`,
+                    quantityRemark?.toString(),
+                  ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
@@ -377,19 +429,19 @@ const ratingResolvers: any = {
                   : [`${oldData?.qualityRemark} ->`, qualityRemark?.toString()],
               professional_Skills:
                 oldData?.professional_Skills ==
-                professional_Skills[0].toString()
+                  professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                      `${oldData?.professional_Skills} ->`,
-                      professional_Skills?.toString(),
-                    ],
+                    `${oldData?.professional_Skills} ->`,
+                    professional_Skills?.toString(),
+                  ],
               professionalRemark:
                 oldData?.professionalRemark == professionalRemark[0].toString()
                   ? oldData?.professionalRemark
                   : [
-                      `${oldData?.professionalRemark} ->`,
-                      professionalRemark?.toString(),
-                    ],
+                    `${oldData?.professionalRemark} ->`,
+                    professionalRemark?.toString(),
+                  ],
 
               feedbacks: oldData?.feedbacks.map((feedback) => {
                 feedbackContent === feedback.content

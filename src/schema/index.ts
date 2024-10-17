@@ -317,6 +317,15 @@ const Schema = gql`
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
   }
 
+  scalar Upload
+
+  input RatingsFileInput{
+    file: Upload,
+  }
+  type AddRatingsByFileData{
+    message: String!
+  }
+
   type Mutation {
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
@@ -390,6 +399,11 @@ const Schema = gql`
       bodyProfessional: String
       orgToken: String!
     ): AddRating
+    addRatingsByFile(
+      doc: RatingsFileInput!,
+      cohort: String!
+      orgToken: String!
+    ):AddRatingsByFileData!
     updateRating(
       user: String!
       sprint: Int!
