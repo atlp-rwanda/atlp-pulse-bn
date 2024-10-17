@@ -633,8 +633,47 @@ const Schema = gql`
     attendancePerc: String!
   }
 
+  type AttendanceDatesData {
+    date: String!
+    isValid: Boolean!
+  }
+  type AttendanceDates {
+    mon: AttendanceDatesData!
+    tue: AttendanceDatesData!
+    wed: AttendanceDatesData!
+    thu: AttendanceDatesData!
+    fri: AttendanceDatesData!
+  }
+  type TraineeAttendanceData {
+    trainee: User!
+    score: Int!
+  }
+  type AttendanceDays {
+    mon: [TraineeAttendanceData]!
+    tue: [TraineeAttendanceData]!
+    wed: [TraineeAttendanceData]!
+    thu: [TraineeAttendanceData]!
+    fri: [TraineeAttendanceData]!
+  }
+  type AttendanceWeeks {
+    phase: Phase!
+    weeks: [Int!]
+  }
+  type FilteredAttendance {
+    week: Int!
+    phase: Phase!
+    dates: AttendanceDates!
+    days: AttendanceDays!
+  }
+  type SanitizedAttendance {
+    today: String!
+    yesterday: String!
+    attendanceWeeks: [AttendanceWeeks!]!
+    attendance: [FilteredAttendance!]!
+  }
+
   type Query {
-    getTeamAttendance(orgToken: String, team: String!): [Attendance]
+    getTeamAttendance(orgToken: String, team: String!): SanitizedAttendance
     getTraineeAttendanceByID(traineeEmail: String!): [weeklyAttendance]
     getAttendanceStats(orgToken: String!): [AttendanceStats]
   }
@@ -642,10 +681,11 @@ const Schema = gql`
     recordAttendance(
       week: Int!
       team: String!
-      date: String!
+      today: Boolean!
+      yesterday: Boolean!
       trainees: [TraineeInput!]!
       orgToken: String!
-    ): AttendanceTeam
+    ): SanitizedAttendance
 
     updateAttendance(
       week: Int!
@@ -658,14 +698,9 @@ const Schema = gql`
     deleteAttendance(week: String!, team: String!, day: String!): [Attendance]
   }
 
-  input StatusInput {
-    day: String!
-    score: String!
-  }
-
   input TraineeInput {
     trainee: ID!
-    status: StatusInput!
+    score: Int!
   }
   type Session {
     id: String

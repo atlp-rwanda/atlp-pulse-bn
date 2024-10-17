@@ -42,7 +42,7 @@ const AttendanceSchema = new Schema({
               },
               score: {
                 type: String,
-                enum: ['0', '1', '2'],
+                enum: [0, 1, 2],
                 required: true 
               },
             },
