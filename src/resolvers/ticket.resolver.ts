@@ -289,8 +289,8 @@ const resolvers = {
             'New Ticket Assigned',
             `A new ticket  with ID: ${ticket._id} and subject: ${ticket.subject} has been assigned to you`,
             `${process.env.FRONTEND_LINK}/tickets/${ticket._id}`,
-            process.env.SENDER_EMAIL,
-            process.env.SENDER_PASSWORD
+            process.env.ADMIN_EMAIL,
+            process.env.ADMIN_PASS
           )
         }
         return {
@@ -502,30 +502,42 @@ const resolvers = {
 
         await ticket.save()
 
-        // Handle status change notification
+        const senderId: any = context.userId
+
         if (input.status && input.status !== oldStatus) {
           const ticketOwner = await User.findById(ticket.user)
+
           if (ticketOwner) {
+            await pushNotification(
+              ticketOwner._id,
+              `Your ticket (ID: ${updateTicketId}) status has been updated to: ${input.status}`,
+              senderId
+            )
             await sendEmail(
               ticketOwner.email,
               'Ticket Status Updated',
               `Your ticket (ID: ${updateTicketId}) status has been updated to: ${input.status}`,
               `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
-              process.env.SENDER_EMAIL,
-              process.env.SENDER_PASSWORD
+              process.env.ADMIN_EMAIL,
+              process.env.ADMIN_PASS
             )
           }
 
           if (input.status === 'closed') {
             const assignee = await User.findById(ticket.assignee)
             if (assignee) {
+              await pushNotification(
+                assignee._id,
+                `The ticket (ID: ${updateTicketId}) assigned to you has been closed.`,
+                senderId
+              )
               await sendEmail(
                 assignee.email,
                 'Ticket Closed',
                 `The ticket (ID: ${updateTicketId}) assigned to you has been closed.`,
                 `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
-                process.env.SENDER_EMAIL,
-                process.env.SENDER_PASSWORD
+                process.env.ADMIN_EMAIL,
+                process.env.ADMIN_PASS
               )
             }
           }
@@ -534,26 +546,36 @@ const resolvers = {
         if (input.assignee && input.assignee !== oldAssignee) {
           const newAssignee = await User.findById(input.assignee)
           if (newAssignee) {
+            await pushNotification(
+              newAssignee._id,
+              `A ticket with ID: ${updateTicketId} and subject: ${ticket.subject} has been assigned to you.`,
+              senderId
+            )
             await sendEmail(
               newAssignee.email,
               'Ticket Assigned',
               `A ticket with ID: ${updateTicketId} and subject: ${ticket.subject} has been assigned to you.`,
               `${process.env.FRONTEND_LINK}/tickets/${updateTicketId}`,
-              process.env.SENDER_EMAIL,
-              process.env.SENDER_PASSWORD
+              process.env.ADMIN_EMAIL,
+              process.env.ADMIN_PASS
             )
           }
 
           if (oldAssignee) {
             const previousAssignee = await User.findById(oldAssignee)
             if (previousAssignee) {
+              await pushNotification(
+                previousAssignee._id,
+                `The ticket with ID: ${updateTicketId} and subject: ${ticket.subject} previously assigned to you has been reassigned.`,
+                senderId
+              )
               await sendEmail(
                 previousAssignee.email,
                 'Ticket Reassigned',
                 `The ticket with ID: ${updateTicketId} and subject: ${ticket.subject} previously assigned to you has been reassigned.`,
                 `${process.env.FRONTEND_LINK}/tickets`,
-                process.env.SENDER_EMAIL,
-                process.env.SENDER_PASSWORD
+                process.env.ADMIN_EMAIL,
+                process.env.ADMIN_PASS
               )
             }
           }
@@ -566,6 +588,7 @@ const resolvers = {
         })
       }
     },
+
     deleteTicket: async (_: any, { id }: { id: string }, context: Context) => {
       try {
         await (
@@ -588,16 +611,41 @@ const resolvers = {
           })
         }
 
+        const senderId: any = context.userId
+
+        // Notify ticket owner
+        const ticketOwner = await User.findById(ticket.user)
+        if (ticketOwner) {
+          await pushNotification(
+            ticketOwner._id,
+            `Your ticket (ID: ${id}) has been deleted.`,
+            senderId
+          )
+          await sendEmail(
+            ticketOwner.email,
+            'Ticket Deleted',
+            `Your ticket with ID: ${id} and subject: ${ticket.subject} has been deleted.`,
+            `${process.env.FRONTEND_LINK}/tickets`,
+            process.env.ADMIN_EMAIL,
+            process.env.ADMIN_PASS
+          )
+        }
+
         if (ticket.assignee) {
           const assignee = await User.findById(ticket.assignee)
           if (assignee) {
+            await pushNotification(
+              assignee._id,
+              `The ticket (ID: ${id}) previously assigned to you has been deleted.`,
+              senderId
+            )
             await sendEmail(
               assignee.email,
               'Ticket Deleted',
-              `The ticket  with ID: ${id} and subject: ${ticket.subject} previously assigned to you has been deleted.`,
+              `The ticket with ID: ${id} and subject: ${ticket.subject} previously assigned to you has been deleted.`,
               `${process.env.FRONTEND_LINK}/tickets`,
-              process.env.SENDER_EMAIL,
-              process.env.SENDER_PASSWORD
+              process.env.ADMIN_EMAIL,
+              process.env.ADMIN_PASS
             )
           }
         }
