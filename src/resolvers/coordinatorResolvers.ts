@@ -881,7 +881,7 @@ const manageStudentResolvers = {
           type == 'user'
             ? `${process.env.FRONTEND_LINK}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
-        const content = inviteUserTemplate(org?.name || '', link)
+        const content = inviteUserTemplate(org?.name || '', link, role || '')
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
         await sendEmail(

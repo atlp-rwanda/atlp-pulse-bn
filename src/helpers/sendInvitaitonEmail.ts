@@ -15,10 +15,11 @@ export default async function sendInvitationEmail(
   email: string,
   orgName: string,
   link: string,
-  updateInvitation = false
+  updateInvitation = false,
+  role: string
 ) {
   try {
-    const content = updateInvitation ? updateInvitationTemplate(orgName || '', link) : inviteUserTemplate(orgName || '', link);
+    const content = updateInvitation ? updateInvitationTemplate(orgName || '', link, role || '') : inviteUserTemplate(orgName || '', link, role || '');
   
     // Send invitation email
     await sendEmail(
