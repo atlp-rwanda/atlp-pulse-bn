@@ -1,4 +1,4 @@
-export default function Template(link: any, deepLink: string) {
+export default function forgotPasswordTemplate(link: any, deepLink: string) {
   return /* html */ `
     <table style="font-size: 16px; font-family: 'Rubik'; text-align: left">
       <tbody>
