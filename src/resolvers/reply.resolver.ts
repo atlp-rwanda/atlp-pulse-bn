@@ -30,9 +30,7 @@ const replyResolver = {
         rating: string | ObjectId
         userEmail: string | ObjectId
         sprint: IntegerType | ObjectId
-        quantityRemark: string | ObjectId
-        qualityRemark: string | ObjectId
-        professionalRemark: string | ObjectId
+        // generalRemark: string | ObjectId
         bodyQuantity: string
         bodyQuality: string
         bodyProfessional: string
@@ -58,9 +56,7 @@ const replyResolver = {
           user: context.userId,
           sprint,
           rating,
-          quantityRemark: remarkToReplyOn[0].quantityRemark,
-          qualityRemark: remarkToReplyOn[0].qualityRemark,
-          professionalRemark: remarkToReplyOn[0].professionalRemark,
+          // generalRemark: remarkToReplyOn[0].generalRemark,
           bodyQuantity,
           bodyQuality,
           bodyProfessional,

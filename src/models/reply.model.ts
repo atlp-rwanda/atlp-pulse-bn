@@ -18,18 +18,10 @@ const ReplySchema = new Schema(
       type: Number,
       required: true,
     },
-    quantityRemark: {
-      type: String,
-      required: false,
-    },
-    qualityRemark: {
-      type: String,
-      required: false,
-    },
-    professionalRemark: {
-      type: String,
-      required: false,
-    },
+    // generalRemark: {
+    //   type: String,
+    //   required: false,
+    // },
     bodyQuantity: {
       type: String,
       required: false,

@@ -185,12 +185,10 @@ const ratingResolvers: any = {
             user,
             sprint,
             quantity,
-            quantityRemark,
             quality,
             cohort,
-            qualityRemark,
+            // generalRemark,
             professional_Skills,
-            professionalRemark,
             bodyQuality,
             bodyQuantity,
             bodyProfessional,
@@ -238,17 +236,15 @@ const ratingResolvers: any = {
             user: userExists,
             sprint,
             quantity,
-            quantityRemark,
             quality,
             phase: phaseName,
             cohort: Kohort,
-            qualityRemark,
+            // generalRemark,
             feedbacks: [],
             bodyQuality,
             bodyQuantity,
             bodyProfessional,
             professional_Skills,
-            professionalRemark,
             average,
             coordinator: context.userId,
             organization: org,
@@ -313,11 +309,9 @@ const ratingResolvers: any = {
             user,
             sprint,
             quantity,
-            quantityRemark,
             quality,
-            qualityRemark,
+            // generalRemark,
             professional_Skills,
-            professionalRemark,
             feedbacks,
             orgToken,
           },
@@ -342,11 +336,9 @@ const ratingResolvers: any = {
 
           if (
             oldData?.quantity == quantity[0].toString() &&
-            oldData?.quantityRemark == quantityRemark[0].toString() &&
             oldData?.quality == quality[0].toString() &&
-            oldData?.qualityRemark == qualityRemark[0].toString() &&
+            // oldData?.generalRemark == generalRemark[0].toString() &&
             oldData?.professional_Skills == professional_Skills[0].toString() &&
-            oldData?.professionalRemark == professionalRemark[0].toString() &&
             (oldData?.feedbacks?.[0]?.content ?? '') ==
               (feedbackContent ?? '') &&
             (feedbacks[0]?.toString() ?? '') == (feedbackContent ?? '')
@@ -360,21 +352,14 @@ const ratingResolvers: any = {
                 oldData?.quantity == quantity[0].toString()
                   ? oldData?.quantity
                   : [`${oldData?.quantity} ->`, quantity?.toString()],
-              quantityRemark:
-                oldData?.quantityRemark == quantityRemark[0].toString()
-                  ? oldData?.quantityRemark
-                  : [
-                      `${oldData?.quantityRemark} ->`,
-                      quantityRemark?.toString(),
-                    ],
               quality:
                 oldData?.quality == quality[0].toString()
                   ? oldData?.quality
                   : [`${oldData?.quality} ->`, quality?.toString()],
-              qualityRemark:
-                oldData?.qualityRemark == qualityRemark[0].toString()
-                  ? oldData?.qualityRemark
-                  : [`${oldData?.qualityRemark} ->`, qualityRemark?.toString()],
+              // generalRemark:
+              //   oldData?.generalRemark == generalRemark[0].toString()
+              //     ? oldData?.generalRemark
+              //     : [`${oldData?.generalRemark} ->`, generalRemark?.toString()],
               professional_Skills:
                 oldData?.professional_Skills ==
                 professional_Skills[0].toString()
@@ -382,13 +367,6 @@ const ratingResolvers: any = {
                   : [
                       `${oldData?.professional_Skills} ->`,
                       professional_Skills?.toString(),
-                    ],
-              professionalRemark:
-                oldData?.professionalRemark == professionalRemark[0].toString()
-                  ? oldData?.professionalRemark
-                  : [
-                      `${oldData?.professionalRemark} ->`,
-                      professionalRemark?.toString(),
                     ],
 
               feedbacks: oldData?.feedbacks.map((feedback) => {
@@ -411,11 +389,9 @@ const ratingResolvers: any = {
             })
             await Rating.findOneAndUpdate(
               { user: user, sprint: sprint },
-              {
-                quantityRemark: quantityRemark[0]?.toString(),
-                qualityRemark: qualityRemark[0]?.toString(),
-                professionalRemark: professionalRemark[0]?.toString(),
-              }
+              // {
+              //   generalRemark: generalRemark[0]?.toString(),
+              // }
             )
 
             // Send a notification to the admin
@@ -446,17 +422,12 @@ const ratingResolvers: any = {
 
         const updates = {
           quantity: updatedData?.quantity[1] ?? updatedData?.quantity[0],
-          quantityRemark:
-            updatedData?.quantityRemark[1] ?? updatedData?.quantityRemark[0],
           quality: updatedData?.quality[1] ?? updatedData?.quality[0],
-          qualityRemark:
-            updatedData?.qualityRemark[1] ?? updatedData?.qualityRemark[0],
+          // generalRemark:
+          //   updatedData?.generalRemark[1] ?? updatedData?.generalRemark[0],
           professional_Skills:
             updatedData?.professional_Skills[1] ??
             updatedData?.professional_Skills[0],
-          professionalRemark:
-            updatedData?.professionalRemark[1] ??
-            updatedData?.professionalRemark[0],
           feedbacks: updatedData?.feedbacks ?? [],
         }
 
@@ -464,11 +435,9 @@ const ratingResolvers: any = {
           { user: user, sprint: sprint },
           {
             quantity: updates.quantity,
-            quantityRemark: updates.quantityRemark,
             quality: updates.quality,
-            qualityRemark: updates.qualityRemark,
+            // generalRemark: updates.generalRemark,
             professional_Skills: updates.professional_Skills,
-            professionalRemark: updates.professionalRemark,
             feedbacks: updates.feedbacks,
             approved: true,
             average:
