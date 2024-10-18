@@ -183,15 +183,9 @@ const Schema = gql`
     sprint: Int!
     phase: String!
     quantity: String!
-    quantityRemark: String
-    bodyQuantity: String
     quality: String!
-    qualityRemark: String
     attendance: String
-    bodyQuality: String
     professional_Skills: String!
-    professionalRemark: String
-    bodyProfessional: String
     approved: Boolean!
     coordinator: String!
     cohort: Cohort!
@@ -205,14 +199,8 @@ const Schema = gql`
     cohort: Cohort!
     phase: String!
     quantity: String!
-    quantityRemark: String
-    bodyQuantity: String
     quality: String!
-    qualityRemark: String
-    bodyQuality: String
     professional_Skills: String!
-    professionalRemark: String
-    bodyProfessional: String
     average: String
     approved: Boolean!
     coordinator: String!
@@ -223,11 +211,8 @@ const Schema = gql`
     user: String
     sprint: Int
     quantity: [String]
-    quantityRemark: [String]
     quality: [String]
-    qualityRemark: [String]
     professional_Skills: [String]
-    professionalRemark: [String]
     feedbacks: [RatingMessageTemp]
     oldFeedback: [String]
     approved: Boolean
@@ -236,14 +221,8 @@ const Schema = gql`
     user: String
     sprint: Int
     quantity: [String]
-    bodyQuantity: [String]
-    quantityRemark: [String]
-    bodyQuality: [String]
     quality: [String]
-    qualityRemark: [String]
     professional_Skills: [String]
-    professionalRemark: [String]
-    bodyProfessional: String
     approved: Boolean
   }
 
@@ -251,11 +230,8 @@ const Schema = gql`
     user: User!
     sprint: Int
     quantity: [String]
-    quantityRemark: [String]
     quality: [String]
-    qualityRemark: [String]
     professional_Skills: [String]
-    professionalRemark: [String]
     feedbacks: [RatingMessageTemp]
     oldFeedback: [String]
     approved: Boolean
@@ -266,11 +242,8 @@ const Schema = gql`
     user: String!
     sprint: Int!
     quantity: String!
-    quantityRemark: String
     quality: String!
-    qualityRemark: String
     professional_Skills: String!
-    professionalRemark: String
     feedbacks: [RatingMessageTemp]
     approved: Boolean!
   }
@@ -368,26 +341,17 @@ const Schema = gql`
       user: String!
       sprint: Int!
       quantity: String!
-      quantityRemark: String
       quality: String!
       cohort: String!
-      bodyQuality: String
-      qualityRemark: String
       professional_Skills: String!
-      bodyQuantity: String
-      professionalRemark: String
-      bodyProfessional: String
       orgToken: String!
     ): AddRating
     updateRating(
       user: String!
       sprint: Int!
       quantity: [String]
-      quantityRemark: [String]
       quality: [String]
-      qualityRemark: [String]
       professional_Skills: [String]
-      professionalRemark: [String]
       feedbacks: [String]
       orgToken: String!
     ): updateRating
@@ -395,14 +359,8 @@ const Schema = gql`
       user: String!
       sprint: Int!
       quantity: [String]
-      bodyQuantity: [String]
-      quantityRemark: [String]
       quality: [String]
-      bodyQuality: [String]
-      qualityRemark: [String]
       professional_Skills: [String]
-      professionalRemark: [String]
-      bodyProfessional: [String]
       orgToken: String!
     ): updateToReply
     AddRatingFeedback(
@@ -470,12 +428,6 @@ const Schema = gql`
     id: ID!
     user: String!
     sprint: Int!
-    quantityRemark: String!
-    qualityRemark: String!
-    professionalRemark: String!
-    bodyQuantity: String
-    bodyQuality: String
-    bodyProfessional: String
     createdAt: String!
   }
   type Query {
@@ -514,9 +466,6 @@ const Schema = gql`
     addReply(
       rating: ID!
       sprint: Int!
-      bodyQuantity: String
-      bodyQuality: String
-      bodyProfessional: String
     ): Notifications!
     deleteTeam(id: ID!): String!
     updateTeam(
