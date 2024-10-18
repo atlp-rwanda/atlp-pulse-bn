@@ -62,7 +62,10 @@ const TableViewInvitationResolver = {
       args: { limit?: number; offset?: number; orgToken: string; sortBy?: 1 | -1 }
     ) {
       try {
-        const { limit = 3, offset = 0, orgToken, sortBy = -1 } = args;
+        const { orgToken, sortBy = -1 } = args;
+        const limit = args.limit ?? 3;
+        const offset = args.offset ?? 0;
+
     
         if (!orgToken) throw new GraphQLError('No organization token provided');
     
@@ -96,8 +99,10 @@ const TableViewInvitationResolver = {
     ) {
       try {
         const { userId } = await (await checkUserLoggedIn(context))(['admin']);
-        const { orgToken, role, status, limit = 5, offset = 0, sortBy = -1 } = args;
-    
+        const { orgToken, role, status, sortBy = -1 } = args;
+        const limit = args.limit ?? 3;
+        const offset = args.offset ?? 0;
+        
         if (!userId) throw new GraphQLError('User ID not provided');
         const user = await User.findById(userId);
         if (!user) throw new GraphQLError('User not found');
