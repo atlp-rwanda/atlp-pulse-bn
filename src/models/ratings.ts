@@ -19,10 +19,6 @@ const RatingSchema = new Schema(
       type: String,
       required: true,
     },
-    quantityRemark: {
-      type: String,
-      default: 'no remark',
-    },
     feedbacks: [
       {
         sender: {
@@ -42,17 +38,9 @@ const RatingSchema = new Schema(
       type: String,
       required: true,
     },
-    qualityRemark: {
-      type: String,
-      default: 'no remark',
-    },
     professional_Skills: {
       type: String,
       required: true,
-    },
-    professionalRemark: {
-      type: String,
-      default: 'no remark',
     },
     approved: {
       type: Boolean,
@@ -112,25 +100,13 @@ const TempData = mongoose.model(
         type: [String],
         default: [],
       },
-      quantityRemark: {
-        type: [String],
-        default: ['no remark'],
-      },
       quality: {
         type: [String],
         default: [],
       },
-      qualityRemark: {
-        type: [String],
-        default: ['no remark'],
-      },
       professional_Skills: {
         type: [String],
         default: [],
-      },
-      professionalRemark: {
-        type: [String],
-        default: ['no remark'],
       },
       feedbacks: [
         {
