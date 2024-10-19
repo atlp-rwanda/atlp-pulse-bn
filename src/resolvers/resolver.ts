@@ -1,9 +1,10 @@
-import bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import { User } from '../models/user';
-import { Profile } from '../models/profile.model';
-import { emailExpression, generateToken } from '../helpers/user.helpers';
+import bcrypt from 'bcryptjs'
+import * as jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
+import { User } from '../models/user'
+import { Profile } from '../models/profile.model'
+import { emailExpression, generateToken } from '../helpers/user.helpers'
+import { checkloginAttepmts } from '../helpers/logintracker'
 
 const SECRET = process.env.SECRET || 'test_secret'
 
@@ -56,22 +57,32 @@ const resolvers = {
       return { token, user: newUser }
     },
     async loginUser(_: any, { loginInput: { email, password } }: any) {
-      const user: any = await User.findOne({ email: email })
-      if (await user?.checkPass(password)) {
-        const token = jwt.sign(
-          { userId: user._id, role: user._doc?.role || 'user' },
-          SECRET,
-          {
-            expiresIn: '2h',
-          }
-        )
-        const data = {
-          token: token,
-          user: user.toJSON(),
+      try {
+        const user: any = await User.findOne({ email: email })
+        if (!user) {
+          throw new Error('User not found')
         }
-        return data
-      } else {
-        throw new Error('Invalid credential')
+
+        if (await user?.checkPass(password)) {
+          const token = jwt.sign(
+            { userId: user._id, role: user._doc?.role || 'user' },
+            SECRET,
+            {
+              expiresIn: '2h',
+            }
+          )
+
+          const data = {
+            token: token,
+            user: user.toJSON(),
+          }
+          return data
+        } else {
+          throw new Error('Invalid credential')
+        }
+      } catch (error) {
+        console.error('Login error:', error)
+        throw new Error('Login failed. Please try again.')
       }
     },
     async createProfile(_: any, args: any, context: { userId: any }) {

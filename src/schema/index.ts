@@ -6,14 +6,14 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  type Phase{
-    name:String
-    description:String
+  type Phase {
+    name: String
+    description: String
   }
-  type Program{
-    name:String
-    description:String
-    manager:User
+  type Program {
+    name: String
+    description: String
+    manager: User
   }
 
   type Subscription {
@@ -58,9 +58,9 @@ const Schema = gql`
     startingPhase: DateTime
     active: Boolean
     organization: Organization
-    phase:Phase
-    manager:User
-    program:Program
+    phase: Phase
+    manager: User
+    program: Program
   }
   type User {
     id: ID!
@@ -82,22 +82,10 @@ const Schema = gql`
     password: String!
     role: String
   }
-  input ActivityInput {
-    date: String
-    country_code: String
-    country_name: String
-    city: String
-    postal: String
-    latitude: Float
-    longitude: Float
-    IPv4: String
-    state: String
-  }
   input LoginInput {
     email: String
     password: String
     orgToken: String
-    activity: ActivityInput
   }
   input OrgInput {
     name: String
@@ -118,6 +106,7 @@ const Schema = gql`
   type Profile {
     id: ID!
     user: User!
+    activity: [Activity]
     firstName: String
     lastName: String
     name: String
@@ -128,12 +117,12 @@ const Schema = gql`
     biography: String
     avatar: String
     cover: String
-    activity: [Activity]
     githubUsername: String
     resume: String
   }
+
   type Activity {
-    date: String!
+    date: String
     country_code: String
     country_name: String
     city: String
@@ -530,9 +519,9 @@ const Schema = gql`
       name: String
       cohort: String
       TTL: String
-      phase:String
-      program:String
-      manager:String
+      phase: String
+      program: String
+      manager: String
     ): Team
     deleteReply: String!
   }
