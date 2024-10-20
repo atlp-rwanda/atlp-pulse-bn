@@ -1,11 +1,12 @@
-import bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import { User } from '../models/user';
-import { Profile } from '../models/profile.model';
-import { emailExpression, generateToken } from '../helpers/user.helpers';
+import bcrypt from 'bcryptjs'
+import * as jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
+import { User } from '../models/user'
+import { Profile } from '../models/profile.model'
+import { emailExpression, generateToken } from '../helpers/user.helpers'
+import { GraphQLError } from 'graphql/error'
 
-const SECRET = process.env.SECRET || 'test_secret'
+const SECRET = process.env.SECRET as string
 
 const resolvers = {
   Query: {
