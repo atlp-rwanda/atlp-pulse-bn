@@ -3,7 +3,7 @@ import 'dotenv/config'
 import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 
-const SECRET = process.env.SECRET || 'test_secret'
+const SECRET = process.env.SECRET
 
 export interface AuthTokenPayload {
   userId: string
@@ -20,7 +20,7 @@ export function decodeAuthHeader(authHeader: string): AuthTokenPayload {
     })
   }
   try {
-    const data = jwt.verify(token, SECRET)
+    const data = jwt.verify(token, SECRET as string)
     return data as AuthTokenPayload
   } catch (error: any) {
     throw new GraphQLError('Missing or expired token', {

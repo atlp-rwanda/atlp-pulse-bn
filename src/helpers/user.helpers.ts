@@ -3,7 +3,7 @@ import { RoleOfUser, User } from '../models/user'
 import { Context } from './../context'
 import * as jwt from 'jsonwebtoken'
 
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET: string = process.env.SECRET as string
 
 export const generateToken = (userId: string, role: string) => {
   return jwt.sign({ userId, role }, SECRET, { expiresIn: '2h' })

@@ -36,7 +36,7 @@ import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET: string = process.env.SECRET as string
 export type OrganizationType = InstanceType<typeof Organization>
 export type UserType = InstanceType<typeof User>
 
@@ -398,17 +398,17 @@ const resolvers: any = {
         })
 
         if (user?.role === RoleOfUser.ADMIN) {
-      if (user?.organizations?.includes(org?.name)) {
-        const token = generateToken(user._id, user._doc?.role || 'user');
-        const data = {
-          token: token,
-          user: user.toJSON(),
-        };
-        return data;
-      } else {
-        throw new Error('You do not have access to this organization.');
-      }
-    } else if (user?.role === RoleOfUser.MANAGER) {
+          if (user?.organizations?.includes(org?.name)) {
+            const token = generateToken(user._id, user._doc?.role || 'user')
+            const data = {
+              token: token,
+              user: user.toJSON(),
+            }
+            return data
+          } else {
+            throw new Error('You do not have access to this organization.')
+          }
+        } else if (user?.role === RoleOfUser.MANAGER) {
           const program: any = await Program.find({
             manager: user.id,
           }).populate({
