@@ -12,6 +12,7 @@ import { ProgramType } from './program.resolvers'
 import { OrganizationType } from './userResolver'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { Types } from 'mongoose'
+import { addNewAttendanceWeek } from '../utils/cron-jobs/team-jobs'
 
 export type CohortType = InstanceType<typeof Cohort>
 
@@ -100,8 +101,8 @@ const resolvers = {
           orgToken,
         } = args
 
-        // some validations
-        ;(await checkUserLoggedIn(context))([
+          // some validations
+          ; (await checkUserLoggedIn(context))([
           RoleOfUser.SUPER_ADMIN,
           RoleOfUser.ADMIN,
           RoleOfUser.MANAGER,
@@ -147,7 +148,7 @@ const resolvers = {
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
         ) {
-          throw new GraphQLError("End Date can't be before Start Date", {
+          throw new GraphQLError('End Date can\'t be before Start Date', {
             extensions: {
               code: 'VALIDATION_ERROR',
             },
@@ -180,7 +181,7 @@ const resolvers = {
           `You\'ve been assigned a new cohort "${name}"`,
           senderId
         )
-
+        addNewAttendanceWeek()
         return newCohort
       } catch (error) {
         const { message } = error as { message: any }
@@ -291,7 +292,7 @@ const resolvers = {
             new Date(endDate)
           ))
       ) {
-        throw new GraphQLError("End Date can't be before Start Date", {
+        throw new GraphQLError('End Date can\'t be before Start Date', {
           extensions: {
             code: 'VALIDATION_ERROR',
           },
@@ -371,7 +372,8 @@ const resolvers = {
         notificationChanges.push('Name')
       }
       if (phaseName && cohort.phase.toString() !== phase.id.toString()) {
-        cohort.phase = phase.id
+        cohort.phase = phase.id;
+        addNewAttendanceWeek();
         notificationChanges.push('Phase')
       }
 
@@ -399,10 +401,8 @@ const resolvers = {
       if (notificationChanges.length) {
         pushNotification(
           coordinator.id,
-          `${
-            role[0].toUpperCase() + role.slice(1)
-          } has made the following changes to "${
-            cohort.name
+          `${role[0].toUpperCase() + role.slice(1)
+          } has made the following changes to "${cohort.name
           }": ${notificationChanges.join(', ')}`,
           senderId
         )

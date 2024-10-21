@@ -50,6 +50,7 @@ import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
 import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
 import eventSchema from './schema/event.schema'
+import './utils/cron-jobs/team-jobs'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
