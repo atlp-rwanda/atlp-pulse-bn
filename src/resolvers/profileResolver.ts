@@ -14,7 +14,7 @@ const profileResolvers: any = {
         throw new Error('You need to login first')
       }
       const profile = await Profile.findOne({ user: userId })
-      return profile;
+      return profile
     },
     getAllUsers: async (
       _: any,
@@ -165,16 +165,16 @@ const profileResolvers: any = {
     },
   },
   Profile: {
-    user: async (parent: any ) => {
+    user: async (parent: any) => {
       const user = await User.findById(parent.user)
       return user
-    }
+    },
   },
   User: {
-    cohort: async (parent: any ) => {
+    cohort: async (parent: any) => {
       const cohort = await Cohort.findById(parent.cohort)
-      return cohort;
-    }
+      return cohort
+    },
   },
   Mutation: {
     uploadResume: async (parent: any, args: any, context: Context) => {
