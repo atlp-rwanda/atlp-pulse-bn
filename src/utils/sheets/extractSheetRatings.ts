@@ -5,15 +5,10 @@ import { User } from "../../models/user"
 
 export type FileRating={
     email: string,
-    sprint: number,
-    phase: string,
     quantity: number,
-    quantityRemark: string,
     feedBacks: string,
     quality: number,
-    qualityRemark: string,
     professional_skills: number,
-    professionalRemark: string
 }
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/

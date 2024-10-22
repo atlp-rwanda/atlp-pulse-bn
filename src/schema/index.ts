@@ -325,7 +325,8 @@ const Schema = gql`
   }
   
   type AddRatingsByFileData{
-    AcceptedRatings: [Rating]!
+    NewRatings: [Rating]!
+    UpdatedRatings: [updateRating]!
     RejectedRatings: [String]!
   }
 
@@ -403,8 +404,9 @@ const Schema = gql`
       orgToken: String!
     ): AddRating
     addRatingsByFile(
-      doc: RatingsFileInput!,
+      doc: RatingsFileInput!
       cohort: String!
+      sprint: Int!
       orgToken: String!
     ):AddRatingsByFileData!
     updateRating(

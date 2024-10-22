@@ -17,14 +17,20 @@ import { PubSub, withFilter } from 'graphql-subscriptions'
 import { ObjectId } from 'mongodb'
 import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
-import mongoose, { Types } from 'mongoose'
+import mongoose, { Document, Types } from 'mongoose'
 import { GraphQLError } from 'graphql'
 import { FileUpload } from 'graphql-upload-ts'
 import { extractSheetRatings, FileRating } from '../utils/sheets/extractSheetRatings'
+import Phase from '../models/phase.model'
 const pubsub = new PubSub()
 
 type RatingsFileInput = {
   file: Promise<FileUpload>
+}
+
+interface Phase extends Document{
+  name?: string,
+  description?: string
 }
 
 const ratingEmailContent = generalTemplate({
@@ -308,7 +314,7 @@ const ratingResolvers: any = {
         }
       )
     ),
-    async addRatingsByFile(_: any, { doc, cohort, orgToken }: { doc: RatingsFileInput, cohort: string, orgToken: string }, context: Context) {
+    async addRatingsByFile(_: any, { doc, cohort, sprint, orgToken }: { doc: RatingsFileInput, cohort: string, sprint: number, orgToken: string }, context: Context) {
       const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
       const org = await checkLoggedInOrganization(orgToken)
       if (!org) {
@@ -318,7 +324,8 @@ const ratingResolvers: any = {
           }
         })
       }
-      const currentCohort = await Cohort.findById(cohort)
+      const currentCohort = await Cohort.findById(cohort).populate('phase')
+
       if(!currentCohort){
         throw new GraphQLError("No such cohort found",{
           extensions: {
@@ -326,6 +333,7 @@ const ratingResolvers: any = {
           }
         })
       }
+
       const ratingsFile = await doc.file
       if(!ratingsFile){
         throw new GraphQLError("No file provided",{
@@ -335,26 +343,59 @@ const ratingResolvers: any = {
         })
       }
       const { validRows, invalidRows } = await extractSheetRatings(ratingsFile)
-      const AcceptedRatings: any =[]
+      const NewRatings: any =[]
+      const UpdatedRatings: any =[]
       const RejectedRatings: any =[...invalidRows.map(rating=>rating.email)]
 
       for(const row of validRows){
+
+        //check if user exists
         const user = await User.findOne({email: row.email})
         if(user){
+
+          //check if user is already rated
+          const existingRating = await Rating.findOne({
+            user: user._id,
+            cohort,
+            sprint,
+          })
+
+          //if rating exists, update it
+          if(existingRating){
+            const tempRating = await TempData.create({
+              user: user._id,
+              sprint: existingRating.sprint,
+              quantity: existingRating.quantity === row.quantity.toString() ? [existingRating.quantity] : [`${existingRating.quantity}->`,row.quantity],
+              quality: existingRating.quality === row.quality.toString() ? [existingRating.quality] : [`${existingRating.quality}->`,row.quality],
+              professional_Skills: existingRating.professional_Skills === row.professional_skills.toString() ? [existingRating.professional_Skills] : [`${existingRating.professional_Skills}->`,row.professional_skills],
+              feedbacks: [...existingRating.feedbacks.map(rating=>{
+                if(rating.sender?.toString() === user._id.toString()){
+                  return {...rating, content: row.feedBacks}
+                }
+                return rating
+              })],
+              oldFeedback: existingRating.feedbacks.map(feedback=>feedback.content),
+              coordinator: existingRating.coordinator,
+              cohort: existingRating.cohort,
+              approved: false,
+              average: (row.quantity + row.quality + row.professional_skills)/3,
+              organization: existingRating.organization,
+            })
+            UpdatedRatings.push(tempRating)
+            continue
+          }
+
           const rating = await Rating.create({
             user: user._id,
-            sprint: row.sprint,
-            phase: row.phase,
+            sprint: sprint,
+            phase: (currentCohort.phase as Phase).name,
             quantity: row.quantity,
-            quantityRemark: row.quantityRemark,
             feedbacks: [{
               sender: userId,
               content: row.feedBacks
             }],
             quality: row.quality,
-            qualityRemark: row.qualityRemark,
             professional_Skills: row.professional_skills,
-            professionalRemark: row.professionalRemark,
             approved: true,
             coordinator: currentCohort?.coordinator,
             cohort: cohort,
@@ -379,7 +420,8 @@ const ratingResolvers: any = {
             path: 'cohort',
             strictPopulate: false,
           })
-          AcceptedRatings.push(populatedRating)
+
+          NewRatings.push(populatedRating)
 
           await sendEmails(
             process.env.SENDER_EMAIL,
@@ -393,7 +435,8 @@ const ratingResolvers: any = {
         }
       }
       return { 
-        AcceptedRatings,
+        NewRatings,
+        UpdatedRatings,
         RejectedRatings
       }
     },
