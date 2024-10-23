@@ -91,6 +91,23 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    twoFactorAuth: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+
+    },
+    oneTimeCode: {
+      type: String,
+      code: String,
+      required: false
+    },
+    oneTimeCodeExpiresAt: {
+      type: Date,
+      required: false
+    },
   },
 
   {
