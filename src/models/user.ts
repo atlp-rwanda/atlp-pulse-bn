@@ -44,6 +44,23 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      twoFactorAuth: {
+        type: Boolean,
+        default: false,
+      },
+      twoFactorSecret: {
+        type: String,
+  
+      },
+      oneTimeCode: {
+        type: String,
+        code: String,
+        required: false
+      },
+      oneTimeCodeExpiresAt: {
+        type: Date,
+        required: false
+      },
     },
     password: {
       type: String,

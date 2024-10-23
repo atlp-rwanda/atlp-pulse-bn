@@ -34,6 +34,9 @@ import organizationRejectedTemplate from '../utils/templates/organizationRejecte
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
+import { authenticator } from 'otplib'
+import sendEmaile from '../utils/sendotp'
+import check2FA from '../resolvers/check2fa.resolvers';
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -334,7 +337,7 @@ const resolvers: any = {
 
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken } }: any
+      { loginInput: { email, password, orgToken,twoFactorCode } }: any
     ) {
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
