@@ -17,7 +17,8 @@ export const extractSheetRatings = async(file: FileUpload): Promise<{validRows: 
     try{
         const validRows: FileRating[] = []
         const invalidRows: FileRating[] = []
-        const dataStream: ReadStream = file.createReadStream()
+        const { createReadStream }  = await file
+        const dataStream: ReadStream = createReadStream()
         const dataBuffer = new Promise<Buffer>((resolve, reject)=>{
             const data: Buffer[] = []
             dataStream.on('data',(chunk)=>{
@@ -30,7 +31,6 @@ export const extractSheetRatings = async(file: FileUpload): Promise<{validRows: 
         workbook.SheetNames.forEach((SheetName: string)=>{
             const sheetData = workbook.Sheets[SheetName]
             const data: FileRating[] = XLSX.utils.sheet_to_json(sheetData)
-            console.log(data)
             for(const rating of data){
                 if(
                     !emailRegex.test(rating.email) ||

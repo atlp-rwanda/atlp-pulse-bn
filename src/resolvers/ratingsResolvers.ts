@@ -19,19 +19,11 @@ import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
 import mongoose, { Document, Types } from 'mongoose'
 import { GraphQLError } from 'graphql'
-import { FileUpload } from 'graphql-upload-ts'
+import { FileUpload, GraphQLUpload } from 'graphql-upload-ts'
 import { extractSheetRatings, FileRating } from '../utils/sheets/extractSheetRatings'
 import Phase from '../models/phase.model'
+import Team from '../models/team.model'
 const pubsub = new PubSub()
-
-type RatingsFileInput = {
-  file: Promise<FileUpload>
-}
-
-interface Phase extends Document{
-  name?: string,
-  description?: string
-}
 
 const ratingEmailContent = generalTemplate({
   message:
@@ -45,6 +37,7 @@ const ratingEmailContent = generalTemplate({
 
 let org: InstanceType<typeof Organization>
 const ratingResolvers: any = {
+  Upload: GraphQLUpload,
   Subscription: {
     newRating: {
       subscribe: withFilter(
@@ -110,6 +103,49 @@ const ratingResolvers: any = {
         .populate('user')
         .populate('cohort')
       return ratingsAdmin
+    },
+
+    async fetchSprints(_:any, {orgToken}: {orgToken: string}, context: Context){
+      const {userId, role} = (await checkUserLoggedIn(context))([ RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+      const user = await User.findById(userId)
+      if(!user){
+        throw new GraphQLError("No such user found",{
+          extensions: {
+            code: "USER_NOT_FOUND"
+          }
+        })
+      }
+      const org = await checkLoggedInOrganization(orgToken)
+      if(!org){
+        throw new GraphQLError("No such organization found",{
+          extensions: {
+            code: "ORGANIZATION_NOT_FOUND"
+          }
+        })
+      }
+      let cohort: any = null
+      if(role === RoleOfUser.COORDINATOR){
+        cohort = await Cohort.findOne({
+          coordinator: userId,
+          organization: org._id,
+        })
+      }
+      if(role === RoleOfUser.TTL){
+        cohort = await Cohort.findById(user?.cohort)
+      }
+      if(!cohort){
+        throw new GraphQLError("No cohort is associated with this user",{
+          extensions: {
+            code: "COHORT_NOT_FOUND"
+          }
+        })
+      }
+      const ratings = await Rating.find({
+        cohort: cohort._id,
+        organization: org._id,
+      })
+      
+      return ratings.map(rating=>rating.sprint).sort()
     },
 
     async fetchTrainees(
@@ -314,8 +350,8 @@ const ratingResolvers: any = {
         }
       )
     ),
-    async addRatingsByFile(_: any, { doc, cohort, sprint, orgToken }: { doc: RatingsFileInput, cohort: string, sprint: number, orgToken: string }, context: Context) {
-      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
+    async addRatingsByFile(_: any, { file, sprint, orgToken }: { file: FileUpload, sprint: number, orgToken: string }, context: Context) {
+      const { userId, role } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
       const org = await checkLoggedInOrganization(orgToken)
       if (!org) {
         throw new GraphQLError("No such organization found", {
@@ -324,39 +360,67 @@ const ratingResolvers: any = {
           }
         })
       }
-      const currentCohort = await Cohort.findById(cohort).populate('phase')
+      let currentCohort: any = null
+      let userList: string[] = []
 
-      if(!currentCohort){
-        throw new GraphQLError("No such cohort found",{
-          extensions: {
-            code: "COHORT_NOT_FOUND"
-          }
-        })
+      //get user's cohort depending on role
+      if(role === RoleOfUser.COORDINATOR){
+        currentCohort = await Cohort.findOne({
+          coordinator: userId,
+          organization: org._id
+        }).populate('phase')
+        if(!currentCohort){
+          throw new GraphQLError("This COORDINATOR account is not associated with any cohort",{
+            extensions: {
+              code: "COHORT_NOT_FOUND"
+            }
+          })
+        }
+        const cohortTrainees = await User.find({cohort: currentCohort._id})
+        userList = cohortTrainees.map(trainee=>trainee.email)
       }
 
-      const ratingsFile = await doc.file
-      if(!ratingsFile){
+      if(role === RoleOfUser.TTL){
+        const user = await User.findById(userId)
+        currentCohort = await Cohort.findById(user?.cohort).populate('phase')
+        if(!currentCohort){
+          throw new GraphQLError("This TTL account is not associated with any cohort",{
+            extensions: {
+              code: "COHORT_NOT_FOUND"
+            }
+          })
+        }
+        const team = await Team.findById(user?.team).populate('members')
+        if(!team){
+          throw new GraphQLError("This TTL account is not associated with any team",{
+            extensions: {
+              code: "TEAM_NOT_FOUND"
+            }
+          })
+        }
+        userList = team.members.map(trainee=>(trainee as any)?.email)
+      }
+
+      if(!file){
         throw new GraphQLError("No file provided",{
           extensions: {
             code: "NO_FILE_FOUND"
           }
         })
       }
-      const { validRows, invalidRows } = await extractSheetRatings(ratingsFile)
+      const { validRows, invalidRows } = await extractSheetRatings(file)
       const NewRatings: any =[]
       const UpdatedRatings: any =[]
       const RejectedRatings: any =[...invalidRows.map(rating=>rating.email)]
 
       for(const row of validRows){
-
         //check if user exists
-        const user = await User.findOne({email: row.email})
-        if(user){
-
+        const user = await User.findOne({email: row.email,})
+        if(user && userList.includes(row.email)){
           //check if user is already rated
           const existingRating = await Rating.findOne({
             user: user._id,
-            cohort,
+            cohort: currentCohort._id,
             sprint,
           })
 
@@ -388,7 +452,7 @@ const ratingResolvers: any = {
           const rating = await Rating.create({
             user: user._id,
             sprint: sprint,
-            phase: (currentCohort.phase as Phase).name,
+            phase: (currentCohort.phase as any).name,
             quantity: row.quantity,
             feedbacks: [{
               sender: userId,
@@ -398,7 +462,7 @@ const ratingResolvers: any = {
             professional_Skills: row.professional_skills,
             approved: true,
             coordinator: currentCohort?.coordinator,
-            cohort: cohort,
+            cohort: currentCohort._id,
             average: (row.quality+row.quantity+row.professional_skills)/3,
             organization: org._id,
           })

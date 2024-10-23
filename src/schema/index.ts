@@ -318,10 +318,7 @@ const Schema = gql`
     getAllTeams(orgToken: String): [Team!]
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
-  }
-
-  input RatingsFileInput{
-    file: Upload,
+    fetchSprints(orgToken: String!): [Int]!
   }
   
   type AddRatingsByFileData{
@@ -404,8 +401,7 @@ const Schema = gql`
       orgToken: String!
     ): AddRating
     addRatingsByFile(
-      doc: RatingsFileInput!
-      cohort: String!
+      file: Upload!
       sprint: Int!
       orgToken: String!
     ):AddRatingsByFileData!
