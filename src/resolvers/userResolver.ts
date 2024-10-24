@@ -17,14 +17,13 @@ import {
   generateTokenUserExists,
 } from '../helpers/user.helpers'
 import Cohort from '../models/cohort.model'
-import { Invitation } from '../models/invitation.model'
+import { User } from '../models/user'
 import { Organization } from '../models/organization.model'
 import Phase from '../models/phase.model'
 import { Profile } from '../models/profile.model'
 import Program from '../models/program.model'
 import { Rating } from '../models/ratings'
 import Team from '../models/team.model'
-import { RoleOfUser, User, UserRole } from '../models/user'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { sendEmail } from '../utils/sendEmail'
 import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
@@ -34,7 +33,11 @@ import organizationRejectedTemplate from '../utils/templates/organizationRejecte
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
-const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
+import { Invitation } from '../models/invitation.model'
+import { Roles } from '../types/roles'
+import UserRole from '../models/userRoles'
+import logger from '../utils/logger.utils'
+const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET as string
 export type OrganizationType = InstanceType<typeof Organization>
@@ -87,7 +90,7 @@ async function logGeoActivity(user: any) {
 const resolvers: any = {
   Query: {
     async getOrganizations(_: any, __: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([Roles.SUPER_ADMIN])
 
       return Organization.find()
     },
@@ -107,8 +110,8 @@ const resolvers: any = {
     },
     async getOrganization(_: any, { name }: any, context: Context) {
       const { userId, role } = (await checkUserLoggedIn(context))([
-        RoleOfUser.SUPER_ADMIN,
-        RoleOfUser.ADMIN,
+        Roles.SUPER_ADMIN,
+        Roles.ADMIN,
         'trainee',
       ])
 
@@ -142,18 +145,18 @@ const resolvers: any = {
       context: Context
     ) {
       ;(await checkUserLoggedIn(context))([
-        RoleOfUser.ADMIN,
-        RoleOfUser.COORDINATOR,
-        'trainee',
-        RoleOfUser.MANAGER,
-        'ttl',
+        Roles.ADMIN,
+        Roles.COORDINATOR,
+        Roles.TRAINEE,
+        Roles.MANAGER,
+        Roles.TTL,
       ])
 
       const organisationExists = await Organization.findOne({
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -282,13 +285,29 @@ const resolvers: any = {
         invitee = invitation.invitees.find((invitee) => invitee.email === email)
       }
 
+      const existingRole = await UserRole.findOne({ name: { $regex: new RegExp(`^${role}$`, 'i') } });
+      let roleID: mongoose.Types.ObjectId | null = null;
+
+      if (!existingRole) {
+        const newRole = await UserRole.create({ name: role });
+        if (newRole) {
+          roleID = newRole._id;   
+        } else {
+          throw new Error('Failed to create new role');
+        }
+      } else {
+        roleID = existingRole._id;
+      }
+
       const user = await User.create({
-        role: role || invitee?.role || 'user',
+        role: roleID || invitee?.role || 'user',
         email: email,
         password,
         organizations: org.name,
       })
-      const token = generateToken(user._id.toString(), user?.role)
+
+
+      const token = generateToken(user._id.toString(), role)
 
       if (user && invitation) {
         invitation.status = 'accepted'
@@ -336,6 +355,8 @@ const resolvers: any = {
       _: any,
       { loginInput: { email, password, orgToken } }: any
     ) {
+
+      logger.info('Inside login', { email, orgToken });
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
@@ -376,9 +397,13 @@ const resolvers: any = {
       }
       let attempts = await checkloginAttepmts(Profile, user)
 
+      const user_role = await UserRole.findById(user.role);
+      if (!user_role) {
+        throw new Error('User role not found')
+      }
       if (await user?.checkPass(password)) {
         if (
-          user?.role === RoleOfUser.TRAINEE &&
+          user_role.name === Roles.TRAINEE &&
           user?.organizations?.includes(org?.name)
         ) {
           if (
@@ -387,6 +412,7 @@ const resolvers: any = {
             !user.team ||
             user.team === null
           ) {
+            logger.debug('Inside login, process failed because of cohort or team', { cohort: user.cohort, team: user.team })
             throw new Error('Please wait to be added to a program or cohort')
           }
           if (await isAssigned(org?.name, user._id)) {
@@ -406,7 +432,7 @@ const resolvers: any = {
             )
           }
         } else if (
-          user?.role === RoleOfUser.TTL &&
+          user?.role === Roles.TTL &&
           user?.organizations?.includes(org?.name)
         ) {
           if (user.cohort && user.team) {
@@ -429,7 +455,7 @@ const resolvers: any = {
           admin: user.id,
         })
 
-        if (user?.role === RoleOfUser.ADMIN) {
+        if (user?.role === Roles.ADMIN) {
           if (user?.organizations?.includes(org?.name)) {
             const token = generateToken(user._id, user._doc?.role || 'user')
 
@@ -444,7 +470,7 @@ const resolvers: any = {
           } else {
             throw new Error('You do not have access to this organization.')
           }
-        } else if (user?.role === RoleOfUser.MANAGER) {
+        } else if (user?.role === Roles.MANAGER) {
           const program: any = await Program.find({
             manager: user.id,
           }).populate({
@@ -476,7 +502,7 @@ const resolvers: any = {
           } else {
             throw new Error('You are not assigned to any program yet.')
           }
-        } else if (user?.role === RoleOfUser.COORDINATOR) {
+        } else if (user?.role === Roles.COORDINATOR) {
           const cohort: any = await Cohort.find({
             coordinator: user.id,
           }).populate({
@@ -514,7 +540,7 @@ const resolvers: any = {
           } else {
             throw new Error('You are not assigned to any cohort yet.')
           }
-        } else if (user?.role === RoleOfUser.SUPER_ADMIN) {
+        } else if (user?.role === Roles.SUPER_ADMIN) {
           const superAdminToken = generateToken(
             user._id,
             user._doc?.role || 'user'
@@ -545,9 +571,15 @@ const resolvers: any = {
       if (!requester) {
         throw new Error('Requester does not exist')
       }
+
+      const GetRequesterRole = await UserRole.findById(requester.role);
+      if (!GetRequesterRole) {
+        throw new Error('Requester role not found')
+      }
+
       if (
-        requester.role !== RoleOfUser.ADMIN &&
-        requester.role !== RoleOfUser.SUPER_ADMIN
+        GetRequesterRole.name !== Roles.ADMIN &&
+        GetRequesterRole.name !== Roles.SUPER_ADMIN
       ) {
         throw new Error('You do not have permission to delete users')
       }
@@ -561,8 +593,14 @@ const resolvers: any = {
         throw new Error('User is already suspended')
       }
 
+      const GetuserToSuspendRole = await UserRole.findById(userToSuspend.role);
+      if (!GetuserToSuspendRole) {
+        throw new Error('User role not found')
+      }
+
+
       // Handle coordinator suspension
-      if (userToSuspend.role === RoleOfUser.COORDINATOR) {
+      if (GetuserToSuspendRole.name === Roles.COORDINATOR) {
         const hasCohort = await Cohort.findOne({ coordinator: input.id })
         if (hasCohort) {
           await Cohort.findOneAndReplace(
@@ -577,7 +615,7 @@ const resolvers: any = {
         }
       }
       // Handle TTL suspension
-      else if (userToSuspend.role === 'ttl') {
+      else if (GetuserToSuspendRole.name === Roles.TTL) {
         const hasTeam = await Team.findOne({ ttl: input.id })
         if (hasTeam) {
           await Team.findOneAndReplace({ ttl: input.id }, { ttl: null })
@@ -612,23 +650,22 @@ const resolvers: any = {
     },
 
     async updateUserRole(_: any, { id, name, orgToken }: any) {
-      const allRoles = [
-        RoleOfUser.TRAINEE,
-        RoleOfUser.COORDINATOR,
-        RoleOfUser.MANAGER,
-        RoleOfUser.ADMIN,
-        RoleOfUser.SUPER_ADMIN,
-        RoleOfUser.TTL,
-      ]
-      const org = await checkLoggedInOrganization(orgToken)
-      const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
-      const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+      const org = await checkLoggedInOrganization(orgToken);
+
+      const roleExists = await UserRole.find({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+      if (!roleExists) throw new Error('This role doesn\'t exist');
+
+      const userExists = await User.findById(id).populate('role')
+      if (!userExists) throw new Error('User doesn\'t exist')
+
+      const AdminRole = await UserRole.findOne({ name: Roles.ADMIN });
+      if (!AdminRole) {
+        throw new Error('Admin role not found')
+      }
 
       const getAllUsers = await User.find({
-        role: RoleOfUser.ADMIN,
-      })
+        role: AdminRole._id,
+      });
 
       let checkUserOrganization = 0
 
@@ -638,14 +675,25 @@ const resolvers: any = {
         }
       })
 
-      if (checkUserOrganization == 1 && userExists.role == RoleOfUser.ADMIN) {
+      const isExistingUserAdmin = userExists.role === AdminRole._id;
+
+      if (checkUserOrganization == 1 && isExistingUserAdmin) {
         throw new Error('There must be at least one admin in the organization')
       }
 
-      if (userExists.role == RoleOfUser.COORDINATOR) {
+      // if (checkUserOrganization == 1 && userExists.role == 'admin') {
+      //   throw new Error('There must be at least one admin in the organization')
+      // }
+
+      if (userExists.role == Roles.COORDINATOR.toString()) {
         const userCohort: any = await Cohort.find({
           coordinator: userExists?.id,
         })
+
+        // if (userExists.role == 'coordinator') {
+        //   const userCohort: any = await Cohort.find({
+        //     coordinator: userExists?.id,
+        //   })
         if (userCohort) {
           await Cohort.updateMany(
             { coordinator: userExists?.id },
@@ -656,7 +704,8 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == RoleOfUser.MANAGER) {
+      } else if (userExists.role == Roles.MANAGER.toString()) {
+        // else if (userExists.role == 'manager') {
         const userProgram: any = await Program.find({ manager: userExists?.id })
         if (userProgram) {
           await Program.updateMany(
@@ -668,7 +717,7 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'ttl') {
+      } else if (userExists.role == Roles.TTL.toString()) {
         let teamttl: any = await Team.find({ ttl: userExists?.id })
         if (teamttl) {
           await Team.updateMany(
@@ -680,7 +729,7 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == RoleOfUser.ADMIN) {
+      } else if (userExists.role == Roles.ADMIN.toString()) {
         const userOrg: any = await Organization.find({ admin: userExists?.id })
         if (userOrg) {
           await Organization.findByIdAndUpdate(userOrg.id, {
@@ -690,7 +739,7 @@ const resolvers: any = {
           })
         }
       }
-      if (name == RoleOfUser.ADMIN) {
+      if (name == Roles.ADMIN) {
         org?.admin?.push(id)
         org.save()
       }
@@ -709,7 +758,7 @@ const resolvers: any = {
     },
 
     async createUserRole(_: any, { name }: any) {
-      const newRole = await UserRole.create({ name })
+      const newRole = await UserRole.create({ name: name })
       return newRole
     },
 
@@ -781,9 +830,9 @@ const resolvers: any = {
 
         const existingUser = await User.findOne({
           email,
-          role: { $ne: RoleOfUser.ADMIN },
+          role: { $ne: Roles.ADMIN },
         })
-        const admin = await User.findOne({ email, role: RoleOfUser.ADMIN })
+        const admin = await User.findOne({ email, role: Roles.ADMIN })
         if (existingUser) {
           throw new GraphQLError(
             `User with email '${email}' exists and is not an admin. Please use another email.`,
@@ -810,7 +859,7 @@ const resolvers: any = {
           newAdmin = await User.create({
             email: email,
             password: password,
-            role: RoleOfUser.ADMIN,
+            role: Roles.ADMIN,
             organizations: name,
           })
 
@@ -822,7 +871,7 @@ const resolvers: any = {
             status: 'pending',
           })
 
-          const superAdmin = await User.find({ role: RoleOfUser.SUPER_ADMIN })
+          const superAdmin = await User.find({ role: Roles.SUPER_ADMIN })
           // Get the email content
           const content = registrationRequest(email, name, description)
           const link = process.env.FRONTEND_LINK
@@ -850,7 +899,7 @@ const resolvers: any = {
       context: Context
     ) {
       // check if requester is super admin
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([Roles.SUPER_ADMIN])
       const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
@@ -920,7 +969,7 @@ const resolvers: any = {
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([Roles.SUPER_ADMIN])
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
@@ -933,7 +982,7 @@ const resolvers: any = {
       }
 
       // check if the requester is already an admin, if not create him
-      const admin = await User.findOne({ email, role: RoleOfUser.ADMIN })
+      const admin = await User.findOne({ email, role: Roles.ADMIN })
       // if (!admin) {
       //   console.log('admin exist')
       // }
@@ -943,7 +992,7 @@ const resolvers: any = {
         newAdmin = await User.create({
           email,
           password,
-          role: RoleOfUser.ADMIN,
+          role: Roles.ADMIN,
         })
       }
 
@@ -986,8 +1035,8 @@ const resolvers: any = {
       context: Context
     ) {
       ;(await checkUserLoggedIn(context))([
-        RoleOfUser.ADMIN,
-        RoleOfUser.SUPER_ADMIN,
+        Roles.ADMIN,
+        Roles.SUPER_ADMIN,
       ])
 
       const org = await Organization.findOne({ name: name })
@@ -1043,7 +1092,7 @@ const resolvers: any = {
     },
 
     async deleteActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN,RoleOfUser.SUPER_ADMIN]);
+      // const { userId } = (await checkUserLoggedIn(context))([Roles.ADMIN,Roles.SUPER_ADMIN]);
 
       const org = await Organization.findOne({ name: name })
       if (!org) {
@@ -1079,20 +1128,20 @@ const resolvers: any = {
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
       ;(await checkUserLoggedIn(context))([
-        RoleOfUser.ADMIN,
-        RoleOfUser.SUPER_ADMIN,
+        Roles.ADMIN,
+        Roles.SUPER_ADMIN,
       ])
 
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
       await User.deleteMany({
         organizations: organizationExists.name,
-        role: { $ne: RoleOfUser.SUPER_ADMIN },
+        role: { $ne: Roles.SUPER_ADMIN },
       })
       await User.deleteOne({ _id: organizationExists.admin[0] })
       const deleteOrg = await Organization.findOneAndDelete({
@@ -1164,7 +1213,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()
@@ -1184,7 +1233,7 @@ const resolvers: any = {
       if (newPassword === confirmPassword) {
         const user: any = await User.findById(userId)
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
 
         if (bcrypt.compareSync(currentPassword, user.password)) {

@@ -1,6 +1,9 @@
 import { hashSync } from 'bcryptjs'
-import { RoleOfUser, User } from '../models/user'
+import { User } from '../models/user'
 import { Profile } from '../models/profile.model'
+import seedUserRoles from './userRoles.seed'
+import mongoose from 'mongoose'
+import logger from '../utils/logger.utils'
 
 const organizations: any = {
   Andela: [],
@@ -9,11 +12,23 @@ const organizations: any = {
 
 const seedUsers = async () => {
   try {
-    // Clear existing users and profiles
-    await User.deleteMany({})
-    await Profile.deleteMany({})
+    // Seed user roles and get the roles with their IDs
+    const roles = await seedUserRoles()
 
-    // Define sample users
+    logger.debug('Roles: ', {roles});
+
+    if (roles.length === 0) {
+      throw new Error('Error seeding user roles')
+    }
+    // Create a function to get role ID by name
+    const roleId = (name: string): mongoose.Types.ObjectId => {
+      const role = roles.find((role) => role.name === name)
+      if (!role) {
+        throw new Error(`Role with name "${name}" not found`)
+      }
+      return role._id
+    }
+    // Random Users
     const users: Array<any> = [
       {
         firstName: 'ATLP',
@@ -36,7 +51,7 @@ const seedUsers = async () => {
       {
         firstName: 'Muheto',
         lastName: 'Darius',
-        email: 'muhedarius@gmail.com',
+        email: 'muhedarius96@gmail.com',
         githubUserName: '',
       },
       {
@@ -75,13 +90,32 @@ const seedUsers = async () => {
         email: 'ntihindukaelissa77@gmail.com',
         githubUserName: '',
       },
+      {
+        firstName: 'Jean Paul Elisa',
+        lastName: 'Ndevu',
+        email: 'jeanpaulelisa77@gmail.com',
+        githubUserName: 'Ndevu12',
+      },
+      // New users with USER role
+      {
+        firstName: 'Ndevu12',
+        lastName: 'UserOne',
+        email: 'newuserone@example.com',
+        githubUserName: 'Ndevu12',
+      },
+      {
+        firstName: 'Assignee',
+        lastName: 'UserTwo',
+        email: 'newusertwo@example.com',
+        githubUserName: 'Ndevu12',
+      },
     ]
 
-    // Distribute users among organizations
+    // Share random Users Among organizations
     organizations.Andela = [...users.slice(0, 7)]
-    organizations.Irembo = [...users.slice(7)]
+    organizations.Irembo = [...users.slice(7, users.length + 1)]
 
-    // Define the number of users per role
+    // Numbers of users per organization
     const usersTypes = {
       admin: 1,
       manager: 1,
@@ -90,117 +124,151 @@ const seedUsers = async () => {
       ttl: 2,
     }
 
-    // Create an array of users to be registered
+    // Create an array of users who will be registered
     const registerUsers: Array<any> = []
 
-    // Populate registerUsers with users for each organization
-    Object.entries(organizations).forEach(([orgName, orgUsers]: any) => {
-      // Admins
-      for (const element of orgUsers) {
-        if (registerUsers.find((user) => user.email === element.email)) continue
+    // Populate registerUsers
+    Object.entries(organizations).forEach((org: any) => {
+      // Admin
+      for (const element of org[1]) {
+        // Check if user exist in registerUsers
+
+        if (registerUsers.find((user) => user.email === element.email)) {
+          continue
+        }
+
         if (
           registerUsers.filter(
-            (user) =>
-              user.organizations.includes(orgName) && user.role === RoleOfUser.ADMIN
+            (user) => user.organizations.includes(org[0]) && user.role && user.role.toString() === roleId('admin').toString()
           ).length === usersTypes.admin
         )
           break
+
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: RoleOfUser.ADMIN,
-          organizations: [orgName],
+          role: roleId('admin'),
+          organizations: [org[0]],
         })
       }
 
-      for (const element of orgUsers) {
+      // Manager
+      for (const element of org[1]) {
         if (registerUsers.find((user) => user.email === element.email)) continue
+
         if (
           registerUsers.filter(
             (user) =>
-              user.organizations.includes(orgName) && user.role === RoleOfUser.MANAGER
+              user.organizations.includes(org[0]) && user.role && user.role.toString() === roleId('manager').toString()
           ).length === usersTypes.manager
         )
           break
+
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: RoleOfUser.MANAGER,
-          organizations: [orgName],
+          role: roleId('manager'),
+          organizations: [org[0]],
         })
       }
 
       // Coordinators
-      for (const element of orgUsers) {
+      for (const element of org[1]) {
         if (registerUsers.find((user) => user.email === element.email)) continue
+
         if (
           registerUsers.filter(
             (user) =>
-              user.organizations.includes(orgName) &&
-              user.role === RoleOfUser.COORDINATOR
+              user.organizations.includes(org[0]) && user.role && user.role.toString() === roleId('coordinator').toString()
           ).length === usersTypes.coordinators
         )
           break
+
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: RoleOfUser.COORDINATOR,
-          organizations: [orgName],
+          role: roleId('coordinator'),
+          organizations: [org[0]],
         })
       }
 
-      // Users
-      for (const element of orgUsers) {
+      //  REMOVE THESE TWO LINES AFTER TESTING
+      const testingRoleFunction = roleId('coordinator');
+
+      console.log('testingRoleFunction', {testingRoleFunction});
+
+      // Trainee change into Users
+      for (const element of org[1]) {
         if (registerUsers.find((user) => user.email === element.email)) continue
+
         if (
           registerUsers.filter(
-            (user) =>
-              user.organizations.includes(orgName) && user.role === 'user'
+            (user) => user.organizations.includes(org[0]) && user.role && user.role.toString() === roleId('trainee').toString()
           ).length === usersTypes.users
         )
           break
+
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: 'user',
-          organizations: [orgName],
+          role: roleId('trainee'),
+          organizations: [org[0]],
         })
       }
 
       // TTL
-      for (const element of orgUsers) {
-        if (registerUsers.find((user) => user.email === element.email)) continue
+      for (let i = 0; i < org[1].length; i++) {
+        if (registerUsers.find((user) => user.email === org[1][i].email)) continue
+
         if (
           registerUsers.filter(
-            (user) =>
-              user.organizations.includes(orgName) && user.role === 'ttl'
+            (user) => user.organizations.includes(org[0]) && user.role && user.role.toString() === roleId('ttl').toString()
           ).length === usersTypes.ttl
         )
           break
+
         registerUsers.push({
-          email: element.email,
+          email: org[1][i].email,
           password: hashSync('Test@12345'),
-          role: 'ttl',
-          organizations: [orgName],
+          role: roleId('ttl'),
+          organizations: [org[0]],
         })
       }
     })
 
-    // Add SuperAdmin
+    // Save Users to the database
+    await User.deleteMany({})
+
+    // SuperAdmin
     registerUsers.unshift({
       email: 'samuel.nishimwe@andela.com',
       password: hashSync('Test@12345'),
-      role: RoleOfUser.SUPER_ADMIN,
+      role: roleId('superAdmin'),
       organizations: ['Andela'],
     })
 
-    // Save users to the database
+    // Add new users with USER role
+    registerUsers.push({
+      email: 'ndevu12@example.com',
+      password: hashSync('Test@12345'),
+      role: roleId('user'),
+      organizations: ['Andela'],
+    })
+    
+    registerUsers.push({
+      email: 'ndevu12345@example.com',
+      password: hashSync('Test@12345'),
+      role: roleId('user'),
+      organizations: ['Irembo'],
+    })
+
     await User.insertMany(registerUsers)
 
-    // Generate profiles for registered users
+    // Query users that have been registered from database
     const profiles = []
     const dbUsers = await User.find().select('_id email')
 
+    // For every db user, generate a profile
     for (const element of dbUsers) {
       const userProfile = users.find((user) => user.email === element.email)
 
@@ -209,15 +277,20 @@ const seedUsers = async () => {
           user: element._id,
           firstName: userProfile.firstName,
           lastName: userProfile.lastName,
-          githubUsername: userProfile.githubUserName || 'unavailable',
+          githubUsername: userProfile
+            ? userProfile.githubUserName
+            : 'unavailable',
         })
       }
     }
 
-    // Save profiles to the database
+    await Profile.deleteMany({})
     await Profile.insertMany(profiles)
+
+    return null
   } catch (error) {
-    throw new Error('Failed to seed users and profiles')
+    console.error('Error seeding users INSIDE USER SEEDER:', error)
+    process.exit(1)
   }
 }
 

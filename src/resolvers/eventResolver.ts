@@ -12,6 +12,8 @@ import {
   sendEventUpdates,
   sendInvitationCancellations,
 } from '../helpers/sendEventEmails'
+import UserRole from '../models/userRoles'
+import { Roles } from '../types/roles'
 
 enum INVITEE_STATUS {
   PENDING = 'pending',
@@ -164,7 +166,13 @@ const eventResolvers: any = {
           },
         })
       }
-      if (user.role === 'trainee') {
+      const GetUserRole = await UserRole.findById(user.role);
+      if (!GetUserRole) {
+        throw new Error(`No such role found`);
+      }
+
+
+      if (GetUserRole.name === Roles.TRAINEE) {
         throw new GraphQLError('User not authorized', {
           extensions: {
             code: 'FORBIDDEN',
@@ -293,13 +301,28 @@ const eventResolvers: any = {
           },
         })
       }
-      if (user.role === 'trainee') {
+
+      const GetUserRole = await UserRole.findById(user.role);
+      if (!GetUserRole) {
+        throw new Error(`No such role found`);
+      }
+
+
+      if (GetUserRole.name === Roles.TRAINEE) {
         throw new GraphQLError('User not authorized', {
           extensions: {
             code: 'FORBIDDEN',
           },
         })
       }
+      
+      // if (user.role === 'trainee') {
+      //   throw new GraphQLError('User not authorized', {
+      //     extensions: {
+      //       code: 'FORBIDDEN',
+      //     },
+      //   })
+      // }
       const dateErrorMsg = validateDates(start, end)
       if (dateErrorMsg) {
         throw new GraphQLError(dateErrorMsg, {
@@ -454,13 +477,27 @@ const eventResolvers: any = {
           },
         })
       }
-      if (user.role === 'trainee') {
+
+      const GetUserRole = await UserRole.findById(user.role);
+      if (!GetUserRole) {
+        throw new Error(`No such role found`);
+      }
+
+
+      if (GetUserRole.name === Roles.TRAINEE) {
         throw new GraphQLError('User not authorized', {
           extensions: {
             code: 'FORBIDDEN',
           },
         })
       }
+      // if (user.role === 'trainee') {
+      //   throw new GraphQLError('User not authorized', {
+      //     extensions: {
+      //       code: 'FORBIDDEN',
+      //     },
+      //   })
+      // }
       const event = await Event.findById(eventId)
       if (!event) {
         throw new GraphQLError('No such event found', {

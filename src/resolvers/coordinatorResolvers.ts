@@ -17,6 +17,8 @@ import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
 import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 import { Context } from './../context'
+import UserRole from '../models/userRoles'
+import { Roles } from '../types/roles'
 
 const SECRET: string = process.env.SECRET as string
 
@@ -26,13 +28,9 @@ interface TraineeStatus {
 }
 
 interface Trainee {
-  traineeId: string
-  traineeEmail: string
+  TraineeId: string
+  TraineeEmail: string
   status: TraineeStatus[]
-}
-
-enum UserRoles {
-  TTL = 'ttl',
 }
 
 const manageStudentResolvers = {
@@ -80,7 +78,7 @@ const manageStudentResolvers = {
 
         return (
           await User.find({
-            $or: [{ role: 'user' }, { role: 'trainee' }],
+            $or: [{ role: 'user' }, { role: Roles.TRAINEE }],
             organizations: org?.name,
           })
         ).filter((user: any) => {
@@ -109,46 +107,28 @@ const manageStudentResolvers = {
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
 
-        const query: any = {
-          role: RoleOfUser.TRAINEE,
-          organizations: org.name,
-        }
-
-        let teamId: Types.ObjectId | undefined
-
-        if (role === 'ttl') {
-          const userTeam = await Team.findOne({
-            members: new Types.ObjectId(userId),
-          })
-          if (!userTeam) {
-            return []
-          }
-
-          teamId = userTeam._id
-          query['team'] = teamId
-        }
-        const trainees = await User.find(query).populate({
-          path: 'team',
-          strictPopulate: false,
-          populate: {
-            path: 'cohort',
+        return (
+          await User.find({
+            role: Roles.TRAINEE,
+            organizations: org.name,
+          }).populate({
+            path: 'team',
             strictPopulate: false,
             populate: {
-              path: 'program',
+              path: 'cohort',
               strictPopulate: false,
               populate: {
-                path: 'organization',
+                path: 'program',
                 strictPopulate: false,
+                populate: {
+                  path: 'organization',
+                  strictPopulate: false,
+                },
               },
             },
-          },
-        })
-        if (role === RoleOfUser.TTL) {
-          return trainees
-        }
-
-        return trainees.filter((user: any) => {
-          if (role === RoleOfUser.ADMIN) {
+          })
+        ).filter((user: any) => {
+          if (role === 'admin') {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
               user.team?.cohort?.program?.organization.admin.includes(userId)
@@ -203,7 +183,7 @@ const manageStudentResolvers = {
           await checkLoggedInOrganization(orgToken)
 
         return (
-          await User.find({ role: 'trainee' }).populate({
+          await User.find({ role: Roles.TRAINEE }).populate({
             path: 'team',
 
             strictPopulate: false,
@@ -388,7 +368,7 @@ const manageStudentResolvers = {
         if (team && user) {
           if (team.cohort.program.organization.name !== org?.name) {
             throw new Error(
-              " You logged into an organization that doesn't have such a team"
+              ' You logged into an organization that doesn\'t have such a team'
             )
           }
           const programId = team.cohort.program.id
@@ -433,33 +413,34 @@ const manageStudentResolvers = {
           }
 
           if (!user.team) {
-            // add trainee to attendance
+            // add Trainee to attendance
 
             if (role === RoleOfUser.COORDINATOR) {
               const attendanceRecords: any = Attendance.find({
                 coordinatorId: userId,
               })
 
-              const traineeArray = (await attendanceRecords).map(
-                (data: any) => data.trainees
+              const TraineeArray = (await attendanceRecords).map(
+                (data: any) => data.Trainees
               )
 
-              let traineeEmailExists = false
-              for (const weekTrainees of traineeArray) {
-                for (const trainee of weekTrainees) {
-                  if (trainee.traineeEmail === email) {
-                    traineeEmailExists = true
+              let TraineeEmailExists = false
+              for (const weekTrainees of TraineeArray) {
+                for (const Trainee of weekTrainees) {
+                  if (Trainee.TraineeEmail === email) {
+                    TraineeEmailExists = true
                     break
                   }
                 }
               }
-              if (!traineeEmailExists) {
-                // create new trainee
+              if (!TraineeEmailExists) {
+                // create new Trainee
                 const newTrainee: Trainee = {
-                  traineeId: user.id,
-                  traineeEmail: email,
+                  TraineeId: user.id,
+                  TraineeEmail: email,
                   status: [],
                 }
+                // console.log("new Trainee data:",newTrainee);
 
                 const attendanceLength: any = await Attendance.find({
                   coordinatorId: userId,
@@ -467,14 +448,14 @@ const manageStudentResolvers = {
 
                 if (attendanceLength.length > 0) {
                   for (const attendData of attendanceLength) {
-                    attendData.trainees.push(newTrainee)
+                    attendData.Trainees.push(newTrainee)
                     await attendData.save()
                   }
                 } else {
                   const newAttendRecord = new Attendance({
                     week: 1,
                     coordinatorId: [userId],
-                    trainees: [newTrainee],
+                    Trainees: [newTrainee],
                   })
                   await newAttendRecord.save()
                 }
@@ -483,7 +464,7 @@ const manageStudentResolvers = {
 
             user.team = team.id
             user.cohort = team.cohort.id
-            user.role = 'trainee'
+            user.role = Roles.TRAINEE
             await user.save()
             await team.members.push(user.id)
             await team.save()
@@ -561,7 +542,7 @@ const manageStudentResolvers = {
           RoleOfUser.COORDINATOR,
         ])
 
-        // traineeId: String!, reason: String!, date: DateTime!, these are the arges am getting from the resolver
+        // TraineeId: String!, reason: String!, date: DateTime!, these are the arges am getting from the resolver
 
         const loggedInUserOrg = await User.findById(context.userId).select(
           'organizations'
@@ -569,8 +550,8 @@ const manageStudentResolvers = {
         const orgName = loggedInUserOrg?.organizations[0]
         const organization = await Organization.findOne({ name: orgName })
 
-        const trainee = await User.findOneAndUpdate(
-          { _id: args.traineeId, organizations: orgName },
+        const Trainee = await User.findOneAndUpdate(
+          { _id: args.TraineeId, organizations: orgName },
           {
             status: {
               status: 'drop',
@@ -582,12 +563,12 @@ const manageStudentResolvers = {
         )
 
         // Send a notification to the admin
-        const admin = await User.findOne({ role: RoleOfUser.ADMIN }) // Assuming there's a single admin
-        if (admin && trainee) {
+        const admin = await User.findOne({ role: 'admin' }) // Assuming there's a single admin
+        if (admin && Trainee) {
           await pushNotification(
             admin._id,
-            `Trainee ${trainee.email} was dropped from the program.`,
-            new Types.ObjectId(context.userId) // sender is the ID of the one who removed the trainee
+            `Trainee ${Trainee.email} was dropped from the program.`,
+            new Types.ObjectId(context.userId) // sender is the ID of the one who removed the Trainee
           )
         }
 
@@ -705,23 +686,23 @@ const manageStudentResolvers = {
         })
 
         if (memberCheck[0].toString() == checkMember.id.toString()) {
-          // remove trainee to attendance
-          if (role === RoleOfUser.COORDINATOR) {
-            const traineeAttendance: any = await Attendance.findOne({
+          // remove Trainee to attendance
+          if (role === 'coordinator') {
+            const TraineeAttendance: any = await Attendance.findOne({
               coordinatorId: userId,
             })
             const Attendances: any[] = await Attendance.find({
               coordinatorId: userId,
             })
-            const traineeExist = traineeAttendance.trainees.findIndex(
-              (data: any) => data.traineeEmail === email
+            const TraineeExist = TraineeAttendance.Trainees.findIndex(
+              (data: any) => data.TraineeEmail === email
             )
 
-            if (traineeExist !== -1) {
+            if (TraineeExist !== -1) {
               for (const attendance of Attendances) {
-                for (let i = 0; i < attendance.trainees.length; i++) {
-                  if (attendance.trainees[i].traineeEmail === email) {
-                    attendance.trainees.splice(i, 1)
+                for (let i = 0; i < attendance.Trainees.length; i++) {
+                  if (attendance.Trainees[i].TraineeEmail === email) {
+                    attendance.Trainees.splice(i, 1)
                     await attendance.save()
                   }
                 }
@@ -804,16 +785,25 @@ const manageStudentResolvers = {
         path: 'team',
         model: Team,
         strictPopulate: false,
-      })
+      }).populate('userroles')
 
       if (member && newTeam) {
         // Check if the new team contains a TTL user
         const existingTTL = await User.findOne({
           team: newTeam.id,
-          role: UserRoles.TTL,
+          role: { 
+            UserRole: {
+              name: Roles.TTL
+            }
+
+          },
         })
 
-        if (existingTTL && member.role !== 'trainee') {
+        const memberRole = await UserRole.findById(member.role)
+
+        // const memberRole = await 
+        const isMemberTTL = memberRole?.name !== Roles.TRAINEE
+        if (existingTTL && isMemberTTL) {
           throw new Error('This team already has a TTL assigned.')
         }
 
@@ -922,7 +912,7 @@ async function sendEmailOnMembershipActions(
       _id: org.id,
     })
     if (!organization) {
-      throw new Error("You don't have an organization yet")
+      throw new Error('You don\'t have an organization yet')
     }
     if (organization.admin.includes(userId) && organization.name == org.name) {
       const link: any = process.env.FRONTEND_LINK + '/login/org'
@@ -942,7 +932,7 @@ async function sendEmailOnMembershipActions(
   if (role === RoleOfUser.MANAGER) {
     const program: any = await Program.findOne({ manager: userId })
     if (!program) {
-      throw new Error("You dont't have a program yet")
+      throw new Error('You dont\'t have a program yet')
     }
     if (program.organization._id.toString() == org?.id.toString()) {
       const content = getOrganizationTemplate(
@@ -966,7 +956,7 @@ async function sendEmailOnMembershipActions(
   if (role === RoleOfUser.COORDINATOR) {
     const cohort: any = await Cohort.findOne({ coordinator: userId })
     if (!cohort) {
-      throw new Error("You don't have a coordinator yet")
+      throw new Error('You don\'t have a coordinator yet')
     }
     const program: any = await Program.findOne({
       _id: cohort.program,

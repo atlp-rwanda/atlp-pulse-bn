@@ -1,5 +1,7 @@
 import Ticket from '../models/ticket.model'
-import { RoleOfUser, User } from '../models/user'
+import { User } from '../models/user'
+import UserRole from '../models/userRoles'
+import { Roles } from '../types/roles'
 
 const generateSubject = (userId: string): string => {
   const subjects = [
@@ -30,16 +32,34 @@ const generateMessage = (userId: string): string => {
 const seedTickets = async (): Promise<void> => {
   try {
     await Ticket.deleteMany({})
-    const assignees = await User.find({ role: 'user' }).select('_id')
+
+    // Find the user role for 'user'
+    const userRole = await UserRole.findOne({ title: Roles.USER })
+    if (!userRole) {
+      throw new Error('User role not found')
+    }
+
+    // Find assignees with the 'user' role
+    const assignees = await User.find({ role: userRole._id }).select('_id')
     if (assignees.length === 0) {
       throw new Error('No assignees found with the role "user".')
     }
+
+    // Find the user roles for 'admin' and 'coordinator'
+    const adminRole = await UserRole.findOne({ title: Roles.ADMIN })
+    const coordinatorRole = await UserRole.findOne({ title: Roles.COORDINATOR })
+    if (!adminRole || !coordinatorRole) {
+      throw new Error('Admin or Coordinator role not found')
+    }
+
+    // Find a user with the 'admin' or 'coordinator' role
     const user = await User.findOne({
-      role: { $in: [RoleOfUser.ADMIN, RoleOfUser.COORDINATOR] },
+      role: { $in: [adminRole._id, coordinatorRole._id] },
     }).select('_id')
     if (!user) {
       throw new Error('No user found with the role "admin" or "coordinator".')
     }
+
     const sampleTickets = []
 
     for (const assignee of assignees) {

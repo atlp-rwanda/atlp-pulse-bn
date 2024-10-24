@@ -50,8 +50,9 @@ const userSchema = new Schema(
       required: true,
     },
     role: {
-      type: String,
-      default: 'user',
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: 'UserRole',
     },
     team: {
       type: mongoose.Types.ObjectId,
@@ -127,6 +128,12 @@ userSchema.pre(
   }
 )
 
+userSchema.pre(/^find/, function (next) {
+  const doc = this as mongoose.Query<any, any>;
+  doc.populate('role')
+  next();
+});
+
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next()
   const hash = await bcrypt.hash(this.password || '', 10)
@@ -134,18 +141,6 @@ userSchema.pre('save', async function (next) {
   return next()
 })
 
-const UserRole = mongoose.model(
-  'UserRole',
-  new Schema({
-    name: {
-      type: String,
-      ref: 'User',
-      required: true,
-      unique: true,
-    },
-  })
-)
-
 const User = model('User', userSchema)
 
-export { User, UserRole }
+export { User }

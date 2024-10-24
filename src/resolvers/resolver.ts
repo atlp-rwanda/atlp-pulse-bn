@@ -6,6 +6,7 @@ import { Profile } from '../models/profile.model'
 import { emailExpression, generateToken } from '../helpers/user.helpers'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { GraphQLError } from 'graphql/error'
+import UserRole from '../models/userRoles'
 
 const SECRET = process.env.SECRET as string
 
@@ -41,21 +42,37 @@ const resolvers = {
       _: any,
       { registerInput: { email, password, role } }: any
     ) {
-      const userExists = await User.findOne({ email: email })
-      if (userExists) throw new Error('Email is taken')
-      const isValidEmail = emailExpression.test(String(email).toLowerCase())
-      if (!isValidEmail) throw new Error('invalid email format')
-      if (password.length < 6)
-        throw new Error('password should be minimum 6 characters')
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const newUser = await User.create({
-        role: role || 'user',
-        email: email,
-        password: hashedPassword,
-      })
-      const token = generateToken(newUser._id.toString(), newUser?.role)
+      try {
+        const userExists = await User.findOne({ email: email })
+        if (userExists) throw new Error('Email is taken')
+        const isValidEmail = emailExpression.test(String(email).toLowerCase())
+        if (!isValidEmail) throw new Error('invalid email format')
+        if (password.length < 6)
+          throw new Error('password should be minimum 6 characters')
+        const hashedPassword = await bcrypt.hash(password, 10)
 
-      return { token, user: newUser }
+        let roleID = null;
+        const GetUserRole = await UserRole.find({ title: role });
+        if (!GetUserRole) {
+          const newRole = await UserRole.create({ title: role });
+          if (!newRole) {
+            throw new Error('Failed to create new role');
+          }
+          roleID = newRole._id;
+        }
+
+        const newUser = await User.create({
+          role: roleID,
+          email: email,
+          password: hashedPassword,
+        })
+        const token = generateToken(newUser._id.toString(), role)
+
+        return { token, user: newUser }
+      } catch (error) {
+        console.error('Create user error:', error)
+        throw new Error('Failed to create user')
+      }
     },
     async loginUser(_: any, { loginInput: { email, password } }: any) {
       try {
@@ -64,9 +81,14 @@ const resolvers = {
           throw new Error('User not found')
         }
 
+        const GetUserRole = await UserRole.findById(user.role);
+        if (!GetUserRole) {
+          throw new Error('User Role not found');
+        }
+
         if (await user?.checkPass(password)) {
           const token = jwt.sign(
-            { userId: user._id, role: user._doc?.role || 'user' },
+            { userId: user._id, role: GetUserRole.name },
             SECRET,
             {
               expiresIn: '2h',
