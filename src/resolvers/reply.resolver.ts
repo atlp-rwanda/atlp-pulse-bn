@@ -30,17 +30,11 @@ const replyResolver = {
         rating: string | ObjectId
         userEmail: string | ObjectId
         sprint: IntegerType | ObjectId
-        quantityRemark: string | ObjectId
-        qualityRemark: string | ObjectId
-        professionalRemark: string | ObjectId
-        bodyQuantity: string
-        bodyQuality: string
-        bodyProfessional: string
       },
       context: Context
     ) => {
       try {
-        const { rating, sprint, bodyQuantity, bodyQuality, bodyProfessional } =
+        const { rating, sprint} =
           args
         ;(await checkUserLoggedIn(context))(['trainee'])
         const userExists = await User.findOne({ _id: context.userId })
@@ -58,12 +52,6 @@ const replyResolver = {
           user: context.userId,
           sprint,
           rating,
-          quantityRemark: remarkToReplyOn[0].quantityRemark,
-          qualityRemark: remarkToReplyOn[0].qualityRemark,
-          professionalRemark: remarkToReplyOn[0].professionalRemark,
-          bodyQuantity,
-          bodyQuality,
-          bodyProfessional,
         })
         const userProfile = await Profile.findOne({ user: context.userId })
         const message = `${userProfile?.firstName} ${userProfile?.lastName} has replied to your ratings`
