@@ -2,73 +2,260 @@
 import { Attendance } from '../models/attendance.model'
 import { IntegerType, ObjectId } from 'mongodb'
 import { Context } from './../context'
-import mongoose, { Error, Types } from 'mongoose'
+import mongoose, { Document, Error, Types } from 'mongoose'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { pushNotification } from '../utils/notification/pushNotification'
-import Phase from '../models/phase.model'
+import Phase, { PhaseInterface } from '../models/phase.model'
 import { RoleOfUser, User, UserInterface } from '../models/user'
-import Team from '../models/team.model'
+import Team, { TeamInterface } from '../models/team.model'
 import { CohortInterface } from '../models/cohort.model'
 import { GraphQLError } from 'graphql'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { getDateForDays } from '../utils/getDateForDays'
+import { format, isSameWeek } from 'date-fns'
+import { id } from 'date-fns/locale'
+import { AnyAaaaRecord } from 'dns'
+import { addNewAttendanceWeek } from '../utils/cron-jobs/team-jobs'
 
 interface TraineeAttendanceStatus {
   day: 'mon' | 'tue' | 'wed' | 'thu' | 'fri'
-  score: '0' | '1' | '2'
+  date: string
+  score: 0 | 1 | 2
 }
 interface TraineeAttendanceData {
   trainee: ObjectId
-  status: TraineeAttendanceStatus
+  score: number
 }
+interface TeamAttendanceData {
+  week: number
+  phase: PhaseInterface
+  cohort: CohortInterface
+  teams: Array<{
+    team: TeamInterface
+    date: string
+    trainees: Array<{
+      trainee: UserInterface
+      status: Array<TraineeAttendanceStatus>
+    }
+    >
+  }>
+  createdAt: string
+}
+
 interface AttendanceInput {
   week: string
+  day: 'mon' | 'tue' | 'wed' | 'thu' | 'fri'
   team: string
-  date?: string
   phase?: string
+  today: boolean
+  yesterday: boolean
   trainees: TraineeAttendanceData[]
   orgToken: string
 }
+
+interface TraineeAttendanceDataInterface {
+  trainee?: {
+    id: string;
+    email: string;
+    status: {
+      status: string
+    };
+    profile: {
+      name: string;
+    };
+  };
+  score?: number;
+}
+interface DayInterface {
+  date: string
+  isValid: boolean
+}
+export interface WeekdaysInterface {
+  mon: DayInterface;
+  tue: DayInterface;
+  wed: DayInterface;
+  thu: DayInterface;
+  fri: DayInterface;
+}
+interface TraineeAttendanceDayInterface {
+  week: number;
+  phase: {
+    id: string
+    name: string
+  };
+  dates: WeekdaysInterface;
+  days: {
+    mon: TraineeAttendanceDataInterface[];
+    tue: TraineeAttendanceDataInterface[];
+    wed: TraineeAttendanceDataInterface[];
+    thu: TraineeAttendanceDataInterface[];
+    fri: TraineeAttendanceDataInterface[];
+  };
+}
+
+interface AttendanceWeeksInterface {
+  phase: {
+    name: string,
+    id: string
+  }
+  weeks: Array<number>
+}
+
+const formatAttendanceData = (data: TeamAttendanceData[], teamData: TeamInterface) => {
+  const tempPhases: PhaseInterface[] = [];
+  const attendanceWeeks: AttendanceWeeksInterface[] = []
+  const phase = {
+    id: teamData.phase?._id.toString() || teamData.cohort!.phase._id.toString(),
+    name: teamData.phase?.name || teamData.cohort!.phase.name
+  }
+
+  const attendanceResult: TraineeAttendanceDayInterface[] = [];
+  data.forEach(attendance => {
+    const result: TraineeAttendanceDayInterface = {
+      week: attendance.week,
+      dates: {
+        mon: {
+          date: '',
+          isValid: false
+        },
+        tue: {
+          date: '',
+          isValid: false
+        },
+        wed: {
+          date: '',
+          isValid: false
+        },
+        thu: {
+          date: '',
+          isValid: false
+        },
+        fri: {
+          date: '',
+          isValid: false
+        },
+      },
+      phase: {
+        id: attendance.phase._id.toString(),
+        name: attendance.phase.name
+      },
+      days: {
+        mon: [],
+        tue: [],
+        wed: [],
+        thu: [],
+        fri: [],
+      },
+    };
+
+    // Store all attendance weeks
+    let isWeekSet = false
+    attendanceWeeks.forEach((week, index) => {
+      if (week.phase.id === attendance.phase._id.toString()) {
+        isWeekSet = true;
+        attendanceWeeks[index].weeks.push(attendance.week)
+      }
+    })
+
+    !isWeekSet && attendanceWeeks.push({
+      phase: {
+        id: attendance.phase._id.toString(),
+        name: attendance.phase.name
+      },
+      weeks: [attendance.week]
+    })
+
+    if (!tempPhases.find((p) => p._id.equals(attendance.phase._id)))
+      tempPhases.push(attendance.phase);
+    let date = attendance.teams[0].date;
+
+    attendance.teams[0].trainees.forEach((traineeData) => {
+      if (traineeData.status.length && traineeData.trainee.status.status !== 'drop') {
+        traineeData.status.forEach((traineeStatus) => {
+          if (traineeStatus.date && !date) {
+            date = traineeStatus.date;
+          }
+
+          result.days[
+            traineeStatus.day as 'mon' | 'tue' | 'wed' | 'thu' | 'fri'
+          ].push({
+            trainee: {
+              ...(traineeData.trainee as unknown as Document).toObject(),
+              profile: {
+                name: (traineeData.trainee.profile! as any).name
+              },
+              id: traineeData.trainee._id.toString(),
+            },
+            score: traineeStatus.score,
+          });
+        });
+      }
+    });
+    result.dates = getDateForDays(date);
+    attendanceResult.push(result);
+  });
+
+
+  const today = new Date();
+  const yesterday = new Date().getDay() === 1 ? new Date().setDate(new Date().getDate() - 3) : new Date().setDate(new Date().getDate() - 1);
+
+  return { attendanceWeeks, attendance: attendanceResult, today, yesterday }
+};
 
 const validateAttendance = async (
   team: string,
   orgToken: string,
   trainees: TraineeAttendanceData[],
-  context: Context
+  context: Context,
+  isUpdating = false
 ) => {
   const org = await checkLoggedInOrganization(orgToken)
   if (!org) {
-    throw new Error("Orgnasation doesn't exist")
+    throw new Error('Organisation doesn\'t exist')
   }
-  ;(await checkUserLoggedIn(context))(['coordinator'])
+  const { userId }: any = (await checkUserLoggedIn(context))(['coordinator', 'ttl'])
   const teamData = await Team.findById(team)
+    .populate({
+      path: 'members',
+      match: { role: 'trainee' }
+    })
     .populate('cohort')
+    .populate('phase')
     .populate('cohort.phase')
   if (!teamData) {
-    throw new Error("Team provided doesn't exist")
+    throw new Error('Team provided doesn\'t exist')
   }
+
   const phaseData = await Phase.findById(
-    (teamData.cohort as CohortInterface).phase._id
+    teamData.phase || (teamData.cohort as CohortInterface).phase._id
   )
   if (!phaseData) {
-    throw new Error("Phase provided doesn't exist")
+    throw new Error('Phase provided doesn\'t exist')
   }
-  trainees.forEach((trainee) => {
-    if (
-      trainee.status.day.toLowerCase() !== trainees[0].status.day.toLowerCase()
-    ) {
-      throw new GraphQLError(
-        'Please make sure, you submit same date for each trainee ',
-        {
+  teamData.members.forEach((member) => {
+    const trainee = member as UserInterface;
+    if (trainee.role === 'trainee' && trainee.status.status === 'active') {
+      const sentTestTrainee = trainees.find(traineeData => trainee._id.equals(traineeData.trainee))
+      if (!sentTestTrainee && !isUpdating) {
+        throw new GraphQLError('Please ensure attendance is taken for all active trainees in the team', {
           extensions: {
-            code: 'INCONSISTENT_TRAINEE_ATTENDANCE_DATE',
+            code: 'INCONSISTENT_TRAINEE_ATTENDANCE',
           },
-        }
-      )
+        })
+      }
+      if (sentTestTrainee && ![0, 1, 2].includes(sentTestTrainee.score)) {
+        throw new GraphQLError('Attendance cannot be recorded due to an invalid score for one of trainees.', {
+          extensions: {
+            code: 'INVALID_TRAINEE_SCORE',
+          },
+        })
+      }
     }
   })
   return {
     teamData,
     phaseData,
+    userId
   }
 }
 
@@ -77,16 +264,21 @@ const returnAttendanceData = async (teamData: any) => {
     .populate('phase')
     .populate('cohort')
     .populate('teams.team')
-    .populate('teams.trainees.trainee', '-password')
+    .populate({
+      path: 'teams.trainees.trainee',
+      select: '-password',
+      populate: {
+        path: 'profile',
+      }
+    })
   const sanitizedAttendance: any[] = []
   attendances.forEach((attendance) => {
+
     const result = attendance.teams.find((teamAttendanceData) =>
       (teamAttendanceData.team as ObjectId).equals(teamData.id)
     )
 
-    const filteredTrainees = result?.trainees.filter(
-      (trainee) => (trainee.trainee as UserInterface).status.status !== 'drop'
-    )
+    const filteredTrainees = result?.trainees.filter(trainee => (trainee.trainee as UserInterface).status.status !== 'drop')
 
     result &&
       sanitizedAttendance.push({
@@ -100,18 +292,10 @@ const returnAttendanceData = async (teamData: any) => {
           ...(attendance.phase as mongoose.Document).toObject(),
           id: (attendance.phase as mongoose.Document)._id,
         },
-        teams: [
-          {
-            team: {
-              ...(result.team as mongoose.Document).toObject(),
-              id: (result.team as mongoose.Document)._id,
-            },
-            trainees: filteredTrainees,
-          },
-        ],
+        teams: [{ date: result.date, team: { ...(result.team as unknown as mongoose.Document).toObject(), id: (result.team as unknown as mongoose.Document)._id }, trainees: filteredTrainees }],
       })
   })
-  return sanitizedAttendance
+  return formatAttendanceData(sanitizedAttendance, teamData)
 }
 
 const attendanceResolver = {
@@ -121,7 +305,7 @@ const attendanceResolver = {
       { traineeEmail }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.TRAINEE])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.TRAINEE])
       const attendance = await Attendance.find()
 
       const weeklyAttendance = attendance.map((week: any) => {
@@ -140,25 +324,29 @@ const attendanceResolver = {
       { team }: { team: string },
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
-      const { userId } = (await checkUserLoggedIn(context))([
-        RoleOfUser.COORDINATOR,
-      ])
+      (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+
+      await addNewAttendanceWeek();
 
       const teamData = await Team.findById(team)
+        .populate('phase')
+        .populate({
+          path: 'cohort',
+          populate: {
+            path: 'phase'
+          }
+        })
 
       if (!teamData) {
-        throw new Error("Team provided doesn't exist")
+        throw new Error('Team provided doesn\'t exist')
       }
 
       return returnAttendanceData(teamData)
     },
 
     async getAttendanceStats(_: any, args: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
-      const { userId } = (await checkUserLoggedIn(context))([
-        RoleOfUser.COORDINATOR,
-      ])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR])
       const attendances: any = await Attendance.find({ coordinatorId: userId })
 
       //calculate statistic
@@ -213,17 +401,68 @@ const attendanceResolver = {
   },
 
   Mutation: {
+    async pauseAndResumeTeamAttendance(_: any, { orgToken, team }: { orgToken: string, team: string }, context: Context) {
+      (await checkUserLoggedIn(context))(['coordinator', 'ttl']);
+
+      const teamData = await Team.findById(team).populate({
+        path: 'members',
+        match: { role: 'trainee' }
+      })
+        .populate('cohort')
+        .populate('phase')
+        .populate('cohort.phase');
+
+      if (!teamData) {
+        throw new Error('Team provided doesn\'t exist')
+      }
+      const tempIsJobActive = teamData.isJobActive
+      teamData.isJobActive = !tempIsJobActive;
+      const savedTeam = await teamData.save();
+
+      !tempIsJobActive && await addNewAttendanceWeek();
+      return { team: savedTeam, sanitizedAttendance: returnAttendanceData(teamData) }
+    },
+
     async recordAttendance(
       _: any,
-      { week, trainees, team, date, orgToken }: AttendanceInput,
+      { week, trainees, team, today, yesterday, orgToken }: AttendanceInput,
       context: Context
     ) {
-      const { teamData, phaseData } = await validateAttendance(
+
+      const { teamData, phaseData, userId } = await validateAttendance(
         team,
         orgToken,
         trainees,
         context
       )
+
+      if (!today && !yesterday) {
+        throw new Error('Recording attendance is only allowed for today and the day before within work days.')
+      }
+      if (today && yesterday) {
+        throw new Error('Please select either today or yesterday, not both.')
+      }
+      let date = (today && new Date()).toString();
+
+      if (yesterday) {
+        const today = new Date();
+        if (today.getDay() === 1) {
+          const lastFriday = new Date(today);
+
+          lastFriday.setDate(today.getDate() - 3);
+          date = lastFriday.toString()
+        } else {
+          const previousDay = new Date(today);
+          previousDay.setDate(today.getDate() - 1);
+          date = previousDay.toString()
+        }
+      }
+
+      // Check if the day is among work days
+      if (![1, 2, 3, 4, 5].includes(new Date(date).getDay())) {
+        throw new Error('Attendance can only be recorded on workdays.')
+      }
+
       const attendance = await Attendance.findOne({
         phase: phaseData.id,
         week,
@@ -249,9 +488,9 @@ const attendanceResolver = {
               trainee: traineeData,
               status: [
                 {
-                  ...trainees[i].status,
-                  date: new Date(date!),
-                  day: trainees[i].status.day.toLowerCase(),
+                  date: new Date(date),
+                  score: trainees[i].score,
+                  day: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase(),
                 },
               ],
             })
@@ -260,7 +499,7 @@ const attendanceResolver = {
 
         if (!attendants.length) {
           throw new Error(
-            "Invalid Ids for trainees or trainees doesn't belong to the team"
+            'Invalid Ids for trainees or trainees doesn\'t belong to the team'
           )
         }
 
@@ -277,8 +516,8 @@ const attendanceResolver = {
             ],
           }
 
-          const savedAttendance = await Attendance.create(newAttendance)
-          return savedAttendance.teams[0]
+          await Attendance.create(newAttendance)
+          return returnAttendanceData(teamData)
         }
 
         // Adding new team to week attendance
@@ -297,12 +536,17 @@ const attendanceResolver = {
           }
         )
           .populate('teams.team')
-          .populate('teams.trainees.trainee', '-password')
+          .populate('teams.trainees.trainee', '-password');
+
+        attendants.forEach(attendant => {
+          pushNotification(attendant.trainee._id, `Your attendance for ${today ? 'today' : 'yesterday'} has been recorded, Kindly review your score.`, userId, 'attendance')
+        });
 
         return savedAttendance?.teams[savedAttendance?.teams.length - 1]
       }
 
       let traineeStatusUpdated = false
+      const traineeIdsNotification = []
 
       for (let i = 0; i < trainees.length; i++) {
         const traineeIndex = attendance.teams[
@@ -310,28 +554,27 @@ const attendanceResolver = {
         ].trainees.findIndex((traineeData) =>
           (traineeData.trainee as UserInterface)._id.equals(trainees[i].trainee)
         )
-
         if (traineeIndex === -1) {
+          traineeStatusUpdated = true;
           const traineeData = await User.findOne(
             { _id: new ObjectId(trainees[i].trainee), team: teamData.id },
             { password: 0 }
           )
           if (traineeData) {
-            ;(attendance.teams[attendanceTeamIndex!].trainees as any[]).push({
+            (attendance.teams[attendanceTeamIndex!].trainees as any[]).push({
               trainee: traineeData,
               status: [
                 {
-                  day: trainees[i].status.day.toLowerCase() as
-                    | 'mon'
-                    | 'tue'
-                    | 'wed'
-                    | 'thu'
-                    | 'fri',
-                  date: new Date(date!),
-                  score: trainees[i].status.score as '0' | '1' | '2',
+                  day: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase(),
+                  date: new Date(date),
+                  score: trainees[i].score,
                 },
               ],
             })
+            traineeIdsNotification.push({
+              id: traineeData._id,
+              score: trainees[i].score
+            });
           }
         } else {
           if (
@@ -350,7 +593,7 @@ const attendanceResolver = {
 
           const existingDay = attendance.teams[attendanceTeamIndex!].trainees[
             traineeIndex
-          ].status.find((s) => s.day === trainees[i].status.day.toLowerCase())
+          ].status.find((s) => s.day === new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase())
 
           if (
             (
@@ -363,15 +606,19 @@ const attendanceResolver = {
             attendance.teams[attendanceTeamIndex!].trainees[
               traineeIndex
             ].status.push({
-              day: trainees[i].status.day.toLowerCase() as
+              day: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase() as
                 | 'mon'
                 | 'tue'
                 | 'wed'
                 | 'thu'
                 | 'fri',
               date: new Date(date!),
-              score: trainees[i].status.score,
-            })
+              score: trainees[i].score,
+            });
+            traineeIdsNotification.push({
+              id: (attendance.teams[attendanceTeamIndex!].trainees[traineeIndex].trainee as UserInterface)._id,
+              score: trainees[i].score
+            });
           }
         }
       }
@@ -386,27 +633,32 @@ const attendanceResolver = {
         )
       }
 
-      const savedTeamAttendance = await (
-        await attendance.save()
-      ).populate('teams.team')
-      return savedTeamAttendance.teams[attendanceTeamIndex!]
+      await attendance.save();
+      traineeIdsNotification.forEach(trainee => {
+        pushNotification(trainee.id, `Your attendance for ${today ? 'today,' : 'yesterday,'} ${format(new Date(date), 'MMMM dd, yyyy')} has been recorded, Your score is ${trainee.score}.`, userId, 'attendance')
+      })
+      return returnAttendanceData(teamData)
     },
 
     async updateAttendance(
       _: any,
-      { week, trainees, team, orgToken, phase }: AttendanceInput,
+      { week, trainees, team, orgToken, day, phase }: AttendanceInput,
       context: Context
     ) {
-      const { teamData } = await validateAttendance(
+
+      const { teamData, userId } = await validateAttendance(
         team,
         orgToken,
         trainees,
-        context
+        context,
+        true
       )
+
       const phaseData = await Phase.findById(phase)
 
+
       if (!phaseData) {
-        throw new Error("Phase provided doesn't exist")
+        throw new Error('Phase provided doesn\'t exist')
       }
       const attendance = await Attendance.findOne({
         phase: phaseData.id,
@@ -417,6 +669,7 @@ const attendanceResolver = {
         (teamAttendanceData) =>
           (teamAttendanceData.team as ObjectId).equals(teamData.id)
       )
+
       if (!attendance || teamToUpdateIndex === -1) {
         throw new GraphQLError('Invalid week or team', {
           extensions: {
@@ -424,7 +677,9 @@ const attendanceResolver = {
           },
         })
       }
-      const teamAttendanceTrainees = attendance.teams[teamToUpdateIndex!]
+      const teamAttendanceTrainees = attendance.teams[teamToUpdateIndex!];
+      const date = teamAttendanceTrainees.date ? format(new Date(getDateForDays(teamAttendanceTrainees.date.getTime().toString())[day].date), 'MMMM dd, yyyy') : day;
+      const traineeIdsNotification: { id: Types.ObjectId, score: number }[] = [];
 
       trainees.forEach((sentTrainee) => {
         let isDropped = false
@@ -447,19 +702,28 @@ const attendanceResolver = {
             }
           )
         }
+
         if (traineeIndex !== -1 && !isDropped) {
-          const traineeToUpdateStatus =
-            teamAttendanceTrainees.trainees[traineeIndex].status
+          const traineeToUpdateStatus = teamAttendanceTrainees.trainees[traineeIndex].status;
+
           traineeToUpdateStatus.forEach((status) => {
             if (
-              status.day === trainees[traineeIndex].status.day.toLowerCase()
+              status.day === day.toLowerCase()
             ) {
-              status.score = trainees[traineeIndex].status.score
+              (status.score != sentTrainee.score) && traineeIdsNotification.push({
+                id: (teamAttendanceTrainees.trainees[traineeIndex].trainee as UserInterface)._id,
+                score: sentTrainee.score
+              });
+              status.score = sentTrainee.score;
             }
           })
         }
       })
-      await attendance.save()
+
+      await attendance.save();
+      traineeIdsNotification.forEach(trainee => {
+        pushNotification(trainee.id, `Your attendance record for ${date}, has been updated, Your new score is ${trainee.score}.`, userId, 'attendance')
+      })
       return returnAttendanceData(teamData)
     },
 
@@ -468,31 +732,35 @@ const attendanceResolver = {
       { week, day, team }: { week: string; day: string; team: string },
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))(['coordinator'])
+      (await checkUserLoggedIn(context))(['coordinator', 'ttl'])
 
       const teamData = await Team.findById(team)
         .populate('cohort')
         .populate('cohort.phase')
 
       if (!teamData) {
-        throw new Error("Team provided doesn't exist")
+        throw new Error('Team provided doesn\'t exist')
       }
 
+      const phase = teamData.phase || (teamData.cohort as CohortInterface).phase._id
+
       const attendance = await Attendance.findOne({
-        phase: (teamData?.cohort as CohortInterface).phase._id,
+        phase: phase,
         week,
         cohort: teamData.cohort,
-      }).populate('teams.trainees.trainee', '-password')
+      }).populate('teams.trainees.trainee', '-password');
+
       const attendanceTeamIndex = attendance?.teams.findIndex(
         (teamAttendanceData) =>
           (teamAttendanceData.team as ObjectId).equals(teamData.id)
       )
 
       if (!attendance || attendanceTeamIndex === -1) {
-        throw new Error("Can't find the Attendance for this day")
+        throw new Error('Can\'t find the Attendance for this day')
       }
 
       let removedAttendances = 0
+      // attendance.teams[attendanceTeamIndex!].date
       attendance.teams[attendanceTeamIndex!].trainees.forEach((trainee) => {
         const statusIndex = trainee.status.findIndex(
           (s) => s.day === day.toLowerCase()
@@ -508,7 +776,7 @@ const attendanceResolver = {
         return returnAttendanceData(teamData)
       }
 
-      throw new Error("Can't find the Attendance for this day")
+      throw new Error('Can\'t find the Attendance for this day')
     },
   },
 }

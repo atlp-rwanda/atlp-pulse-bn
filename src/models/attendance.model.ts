@@ -18,8 +18,13 @@ const AttendanceSchema = new Schema({
 
   teams: [
     {
+      date: {
+        type: Date,
+        required: false,
+        default: () => new Date(),
+      },
       team: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Team',
         required: true
       },
@@ -34,24 +39,33 @@ const AttendanceSchema = new Schema({
               day: {
                 type: String,
                 enum: ['mon', 'tue', 'wed', 'thu', 'fri'],
-                required: true 
+                required: true
               },
               date: {
                 type: Date,
-                required: true 
+                required: true
               },
               score: {
                 type: String,
-                enum: ['0', '1', '2'],
-                required: true 
+                enum: [0, 1, 2],
+                required: true
               },
             },
           ],
         },
-      ],}
+      ],
+    }
   ],
-  
-})
+}, { timestamps: true })
+
+AttendanceSchema.index(
+  {
+    phase: 1,
+    cohort: 1,
+    createdAt: 1
+  },
+  { unique: true }
+);
 
 const Attendance = mongoose.model('Attendance', AttendanceSchema)
 export { Attendance }
