@@ -55,7 +55,7 @@ async function logGeoActivity(user: any) {
 
   const profile = await Profile.findOne({ user: user._id })
   if (!profile) {
-    throw new Error('Profile not found for the user')
+    return;
   }
 
   if (geoData.country_code && geoData.city) {
