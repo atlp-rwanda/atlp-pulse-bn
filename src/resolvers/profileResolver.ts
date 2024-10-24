@@ -271,7 +271,12 @@ const profileResolvers: any = {
       if (!user) {
         throw new Error('TTL user not found')
       }
-      await user.remove()
+      if (user.status?.status !== undefined) {
+    user.status.status = 'drop'; 
+  } else {
+    throw new Error('User status property does not exist');
+  }
+      await user.save();
       await sendEmail(
         user.email,
         'Dropped',
@@ -282,6 +287,34 @@ const profileResolvers: any = {
       )
       return `TTL user with email ${email} has been deleted. with Reason :${reason} `
     },
+    
+      undropTTLUser: async (
+      _: any,
+      { email }: { email: string },
+      context: Context
+    ) => {
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
+      const user = await User.findOne({ email, role: 'ttl' }).exec()
+      if (!user) {
+        throw new Error('TTL user not found')
+      }
+      if (user.status?.status !== undefined) {
+    user.status.status = 'active'; 
+  } else {
+    throw new Error('User status property does not exist');
+  }
+      await user.save();
+      await sendEmail(
+        user.email,
+        'Undropped',
+        'welcome back',
+        'To our Organisation',
+        process.env.COORDINATOR_EMAIL,
+        process.env.COORDINATOR_PASS
+      )
+      return `TTL user with email ${email} has Returned to our organisation. `
+    },
+
     updateCoverImage: async (parent: any, args: any, context: any) => {
       try {
         const { cover }: any = args
