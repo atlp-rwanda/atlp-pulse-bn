@@ -36,7 +36,7 @@ import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET: string = process.env.SECRET as string
 export type OrganizationType = InstanceType<typeof Organization>
 export type UserType = InstanceType<typeof User>
 

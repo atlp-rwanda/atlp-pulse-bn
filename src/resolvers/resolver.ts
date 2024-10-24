@@ -5,8 +5,9 @@ import { User } from '../models/user'
 import { Profile } from '../models/profile.model'
 import { emailExpression, generateToken } from '../helpers/user.helpers'
 import { checkloginAttepmts } from '../helpers/logintracker'
+import { GraphQLError } from 'graphql/error'
 
-const SECRET = process.env.SECRET || 'test_secret'
+const SECRET = process.env.SECRET as string
 
 const resolvers = {
   Query: {
