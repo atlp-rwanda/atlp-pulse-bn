@@ -9,7 +9,7 @@ import { Organization } from '../models/organization.model'
 import { Profile } from '../models/profile.model'
 import Program from '../models/program.model'
 import Team from '../models/team.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { sendEmail } from '../utils/sendEmail'
 import generalTemplate from '../utils/templates/generalTemplate'
@@ -18,7 +18,7 @@ import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 import { Context } from './../context'
 
-const SECRET: string = process.env.SECRET || 'test_secret'
+const SECRET: string = process.env.SECRET as string
 
 interface TraineeStatus {
   days: string
@@ -40,11 +40,15 @@ const manageStudentResolvers = {
     getAllCoordinators: async (_: any, { orgToken }: any, context: Context) => {
       try {
         // coordinator validation
-        ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
+        ;(await checkUserLoggedIn(context))([
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
+        ])
         const selectedOrganization = await checkLoggedInOrganization(orgToken)
         // Fetch coordinators based on the role
         const coordinators = await User.find({
-          role: 'coordinator',
+          role: RoleOfUser.COORDINATOR,
           organizations: selectedOrganization.name,
         })
         return coordinators || []
@@ -65,10 +69,10 @@ const manageStudentResolvers = {
       try {
         // coordinator validation
         ;(await checkUserLoggedIn(context))([
-          'superAdmin',
-          'admin',
-          'manager',
-          'coordinator',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
         ])
 
         const org: InstanceType<typeof Organization> =
@@ -95,18 +99,18 @@ const manageStudentResolvers = {
     getTrainees: async (_: any, { orgToken }: any, context: Context) => {
       try {
         const { userId, role }: any = (await checkUserLoggedIn(context))([
-          'superAdmin',
-          'admin',
-          'manager',
-          'coordinator',
-          'ttl',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
+          RoleOfUser.TTL,
         ])
 
         const org: InstanceType<typeof Organization> =
           await checkLoggedInOrganization(orgToken)
 
         const query: any = {
-          role: 'trainee',
+          role: RoleOfUser.TRAINEE,
           organizations: org.name,
         }
 
@@ -139,18 +143,18 @@ const manageStudentResolvers = {
             },
           },
         })
-        if (role === 'ttl') {
+        if (role === RoleOfUser.TTL) {
           return trainees
         }
 
         return trainees.filter((user: any) => {
-          if (role === 'admin') {
+          if (role === RoleOfUser.ADMIN) {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
               user.team?.cohort?.program?.organization.admin.includes(userId)
             )
           }
-          if (role === 'manager') {
+          if (role === RoleOfUser.MANAGER) {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
               JSON.stringify(user.team?.cohort?.program?.manager).replace(
@@ -159,7 +163,7 @@ const manageStudentResolvers = {
               ) == userId
             )
           }
-          if (role === 'coordinator') {
+          if (role === RoleOfUser.COORDINATOR) {
             return (
               user.team?.cohort?.program?.organization.name == org?.name &&
               JSON.stringify(user.team?.cohort?.coordinator).replace(
@@ -188,10 +192,10 @@ const manageStudentResolvers = {
       try {
         // coordinator validation
         const { userId, role } = (await checkUserLoggedIn(context))([
-          'admin',
-          'manager',
-          'coordinator',
-          'ttl',
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
+          RoleOfUser.TTL,
         ])
 
         // get the organization if someone  logs in
@@ -221,14 +225,14 @@ const manageStudentResolvers = {
             },
           })
         ).filter((user: any) => {
-          if (role === 'admin') {
+          if (role === RoleOfUser.ADMIN) {
             return (
               user.team?.cohort?.name == cohort &&
               user.team?.cohort?.program?.organization.name == org?.name &&
               user.team?.cohort?.program?.organization.admin.includes(userId)
             )
           }
-          if (role === 'manager') {
+          if (role === RoleOfUser.MANAGER) {
             return (
               user.team?.cohort?.name == cohort &&
               user.team?.cohort?.program?.organization.name == org?.name &&
@@ -238,7 +242,7 @@ const manageStudentResolvers = {
               ) == userId
             )
           }
-          if (role === 'coordinator') {
+          if (role === RoleOfUser.COORDINATOR) {
             return (
               user.team?.cohort?.name == cohort &&
               user.team?.cohort?.program?.organization.name == org?.name &&
@@ -262,21 +266,21 @@ const manageStudentResolvers = {
     async getCohorts(_: any, { orgToken }: any, context: any) {
       // coordinator validation
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'admin',
-        'manager',
-        'coordinator',
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.COORDINATOR,
       ])
 
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
 
-      if (role === 'coordinator') {
+      if (role === RoleOfUser.COORDINATOR) {
         const allCohorts = await Cohort.find({
           coordinator: context.userId,
         }).populate({
           path: 'program',
-          match: role === 'coordinator',
+          match: role === RoleOfUser.COORDINATOR,
           strictPopulate: false,
           populate: {
             path: 'organization',
@@ -293,7 +297,7 @@ const manageStudentResolvers = {
 
       const allCohorts = await Cohort.find({}).populate({
         path: 'program',
-        match: role === 'coordinator',
+        match: role === RoleOfUser.COORDINATOR,
         strictPopulate: false,
         populate: {
           path: 'organization',
@@ -301,20 +305,20 @@ const manageStudentResolvers = {
         },
       })
       return allCohorts.filter((cohort: any) => {
-        if (role === 'admin') {
+        if (role === RoleOfUser.ADMIN) {
           return (
             cohort.program?.organization.name == org?.name &&
             cohort.program?.organization?.admin.includes(userId)
           )
         }
-        if (role === 'manager') {
+        if (role === RoleOfUser.MANAGER) {
           return (
             cohort.program?.organization.name == org?.name &&
             JSON.stringify(cohort.program?.manager).replace(/['"]+/g, '') ==
               userId
           )
         }
-        if (role === 'coordinator') {
+        if (role === RoleOfUser.COORDINATOR) {
           return (
             cohort.program?.organization.name == org?.name &&
             JSON.stringify(cohort.coordinator).replace(/['"]+/g, '') == userId
@@ -332,9 +336,9 @@ const manageStudentResolvers = {
       try {
         // coordinator validation
         const { userId, role } = (await checkUserLoggedIn(context))([
-          'admin',
-          'manager',
-          'coordinator',
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+          RoleOfUser.COORDINATOR,
         ])
 
         // get the organization if someone  logs in
@@ -406,8 +410,8 @@ const manageStudentResolvers = {
           })
           const results: any[] = checkTeam.filter((team: any) => {
             return (
-              team.cohort.program?.id === programId &&
-              team.cohort.program?.organization?.name === org?.name
+              team?.cohort?.program?.id === programId &&
+              team?.cohort?.program?.organization?.name === org?.name
             )
           })
 
@@ -431,7 +435,7 @@ const manageStudentResolvers = {
           if (!user.team) {
             // add trainee to attendance
 
-            if (role === 'coordinator') {
+            if (role === RoleOfUser.COORDINATOR) {
               const attendanceRecords: any = Attendance.find({
                 coordinatorId: userId,
               })
@@ -456,7 +460,6 @@ const manageStudentResolvers = {
                   traineeEmail: email,
                   status: [],
                 }
-                // console.log("new trainee data:",newTrainee);
 
                 const attendanceLength: any = await Attendance.find({
                   coordinatorId: userId,
@@ -468,7 +471,6 @@ const manageStudentResolvers = {
                     await attendData.save()
                   }
                 } else {
-                  // If no attendance record exists, create a new one
                   const newAttendRecord = new Attendance({
                     week: 1,
                     coordinatorId: [userId],
@@ -542,6 +544,7 @@ const manageStudentResolvers = {
 
         // CATCH ERROR
       } catch (error: any) {
+        console.log(error)
         throw new GraphQLError(error.message, {
           extensions: {
             code: '500',
@@ -554,8 +557,8 @@ const manageStudentResolvers = {
       try {
         // coordinator validation
         const { userId, role } = (await checkUserLoggedIn(context))([
-          'admin',
-          'coordinator',
+          RoleOfUser.ADMIN,
+          RoleOfUser.COORDINATOR,
         ])
 
         // traineeId: String!, reason: String!, date: DateTime!, these are the arges am getting from the resolver
@@ -579,7 +582,7 @@ const manageStudentResolvers = {
         )
 
         // Send a notification to the admin
-        const admin = await User.findOne({ role: 'admin' }) // Assuming there's a single admin
+        const admin = await User.findOne({ role: RoleOfUser.ADMIN }) // Assuming there's a single admin
         if (admin && trainee) {
           await pushNotification(
             admin._id,
@@ -597,6 +600,49 @@ const manageStudentResolvers = {
         })
       }
     },
+    async undropTrainee(_: any, args: any, context: Context) {
+      try {
+        const { userId, role } = (await checkUserLoggedIn(context))([
+          'admin',
+          'coordinator',
+        ])
+
+        const loggedInUserOrg = await User.findById(context.userId).select(
+          'organizations'
+        )
+        const orgName = loggedInUserOrg?.organizations[0]
+        const organization = await Organization.findOne({ name: orgName })
+
+        const trainee = await User.findOneAndUpdate(
+          { _id: args.traineeId, organizations: orgName },
+          {
+            status: {
+              status: 'active',
+              reason: null,
+              date: null,
+            },
+          },
+          { new: true }
+        )
+
+        const admin = await User.findOne({ role: 'admin' })
+        if (admin && trainee) {
+          await pushNotification(
+            admin._id,
+            `Trainee ${trainee.email} has been restored to the program.`,
+            new Types.ObjectId(context.userId)
+          )
+        }
+
+        return 'Trainee restored successfully!'
+      } catch (error: any) {
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: '500',
+          },
+        })
+      }
+    },
 
     async removeMemberFromCohort(
       _: any,
@@ -605,9 +651,9 @@ const manageStudentResolvers = {
     ) {
       // coordinator validation
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'admin',
-        'manager',
-        'coordinator',
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.COORDINATOR,
       ])
 
       // get the organization if someone  logs in
@@ -660,7 +706,7 @@ const manageStudentResolvers = {
 
         if (memberCheck[0].toString() == checkMember.id.toString()) {
           // remove trainee to attendance
-          if (role === 'coordinator') {
+          if (role === RoleOfUser.COORDINATOR) {
             const traineeAttendance: any = await Attendance.findOne({
               coordinatorId: userId,
             })
@@ -735,7 +781,11 @@ const manageStudentResolvers = {
       context: Context
     ) {
       // Coordinator validation
-      ;(await checkUserLoggedIn(context))(['admin', 'manager', 'coordinator'])
+      ;(await checkUserLoggedIn(context))([
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.COORDINATOR,
+      ])
 
       // Get the organization if someone logs in
       const org: InstanceType<typeof Organization> =
@@ -818,8 +868,8 @@ const manageStudentResolvers = {
 
     async inviteUser(_: any, { email, orgToken, type }: any, context: any) {
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'admin',
-        'manager',
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
       ])
 
       // get the organization if someone  logs in
@@ -837,9 +887,9 @@ const manageStudentResolvers = {
         const newToken: any = token.replace(/\./g, '*')
         const link =
           type == 'user'
-            ? `${process.env.REGISTER_FRONTEND_URL}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
+            ? `${process.env.FRONTEND_LINK}/redirect?token=${newToken}&dest=app&path=/auth/register&fallback=/register/${newToken}`
             : `${process.env.REGISTER_ORG_FRONTEND_URL}`
-        const content = inviteUserTemplate(org?.name || '', link)
+        const content = inviteUserTemplate(org?.name || '', link, role || '')
         const someSpace = process.env.FRONTEND_LINK + '/login/org'
 
         await sendEmail(
@@ -847,10 +897,10 @@ const manageStudentResolvers = {
           'Invitation',
           content,
           someSpace,
-          role === 'manager'
+          role === RoleOfUser.MANAGER
             ? process.env.MANAGER_EMAIL
             : process.env.ADMIN_EMAIL,
-          role === 'manager'
+          role === RoleOfUser.MANAGER
             ? process.env.MANAGER_PASSWORD
             : process.env.ADMIN_PASS
         )
@@ -867,7 +917,7 @@ async function sendEmailOnMembershipActions(
   user: any,
   content: string
 ) {
-  if (role === 'admin') {
+  if (role === RoleOfUser.ADMIN) {
     const organization: any = await Organization.findOne({
       _id: org.id,
     })
@@ -889,7 +939,7 @@ async function sendEmailOnMembershipActions(
     }
   }
 
-  if (role === 'manager') {
+  if (role === RoleOfUser.MANAGER) {
     const program: any = await Program.findOne({ manager: userId })
     if (!program) {
       throw new Error("You dont't have a program yet")
@@ -913,7 +963,7 @@ async function sendEmailOnMembershipActions(
     }
   }
 
-  if (role === 'coordinator') {
+  if (role === RoleOfUser.COORDINATOR) {
     const cohort: any = await Cohort.findOne({ coordinator: userId })
     if (!cohort) {
       throw new Error("You don't have a coordinator yet")

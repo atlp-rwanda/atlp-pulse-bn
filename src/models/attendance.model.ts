@@ -2,31 +2,55 @@ import mongoose, { Schema } from 'mongoose'
 
 const AttendanceSchema = new Schema({
   week: {
-    type: String,
+    type: Number,
     required: true,
   },
-  coordinatorId: {
-    type: [mongoose.Types.ObjectId],
-    ref: 'User',
+  phase: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Phase',
+    required: true,
   },
-  trainees: [
+  cohort: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Cohort',
+    required: true,
+  },
+
+  teams: [
     {
-      traineeId: {
-        type: [mongoose.Types.ObjectId],
-        ref: 'User',
+      team: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Team',
+        required: true
       },
-      traineeEmail: {
-        type: String,
-        requried: false,
-      },
-      status: [
+      trainees: [
         {
-          days: String,
-          value: Number,
+          trainee: {
+            type: mongoose.Types.ObjectId,
+            ref: 'User',
+          },
+          status: [
+            {
+              day: {
+                type: String,
+                enum: ['mon', 'tue', 'wed', 'thu', 'fri'],
+                required: true 
+              },
+              date: {
+                type: Date,
+                required: true 
+              },
+              score: {
+                type: String,
+                enum: ['0', '1', '2'],
+                required: true 
+              },
+            },
+          ],
         },
-      ],
-    },
+      ],}
   ],
+  
 })
 
 const Attendance = mongoose.model('Attendance', AttendanceSchema)

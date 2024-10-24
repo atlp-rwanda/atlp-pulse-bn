@@ -1,12 +1,12 @@
 /* eslint-disable */
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Attendance } from '../models/attendance.model'
 
 const seedAttendance = async () => {
   const traineeLimit = 25
 
   const coordinators = await User.find({
-    role: 'coordinator',
+    role: RoleOfUser.COORDINATOR,
     organizations: { $in: ['Andela'] },
   })
 

@@ -5,7 +5,7 @@ import { IResolvers } from '@graphql-tools/utils'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { sendEmail } from '../utils/sendEmail'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import sendInvitationEmail from '../helpers/sendInvitaitonEmail'
 import sendCancelInvitationEmail from '../helpers/cancelInvitationEmail'
 import jwt from 'jsonwebtoken'
@@ -13,13 +13,13 @@ import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import { extractFileData } from '../utils/extractFileData'
 import generateInvitationTokenAndLink from '../helpers/generateInvitationToken.helper'
 
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET: string = process.env.SECRET as string
 
 const ROLE = {
-  TRAINEE: 'trainee',
-  ADMIN: 'admin',
-  TTL: 'ttl',
-  COORDINATOR: 'coordinator',
+  TRAINEE: RoleOfUser.TRAINEE,
+  ADMIN: RoleOfUser.ADMIN,
+  TTL: RoleOfUser.TTL,
+  COORDINATOR: RoleOfUser.COORDINATOR,
 } as const
 export type Role = typeof ROLE[keyof typeof ROLE]
 
@@ -33,11 +33,17 @@ const invitationResolvers: IResolvers = {
         invitees,
         orgToken,
         orgName,
-      }: { invitees: { email: string; role: string }[]; orgName: string; orgToken: string },
+      }: {
+        invitees: { email: string; role: string }[]
+        orgName: string
+        orgToken: string
+      },
       context
     ) => {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        const { userId } = (await checkUserLoggedIn(context))([
+          RoleOfUser.ADMIN,
+        ])
         if (!userId) {
           throw new GraphQLError('User is not logged in', {
             extensions: {
@@ -77,7 +83,13 @@ const invitationResolvers: IResolvers = {
             org.name
           )
           newInvitation.invitationToken = newToken
-          const result = await sendInvitationEmail(email, org.name, link)
+          const result = await sendInvitationEmail(
+            email,
+            org.name,
+            link,
+            false,
+            role
+          )
 
           if (result.success) {
             await newInvitation.save()
@@ -98,7 +110,9 @@ const invitationResolvers: IResolvers = {
       context
     ) => {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        const { userId } = (await checkUserLoggedIn(context))([
+          RoleOfUser.ADMIN,
+        ])
         if (!userId) {
           throw new GraphQLError('User is not logged in', {
             extensions: {
@@ -166,10 +180,14 @@ const invitationResolvers: IResolvers = {
 
     async uploadInvitationFile(
       _: any,
-      { file,orgName, orgToken }: { file: any;orgName: string, orgToken: string },
+      {
+        file,
+        orgName,
+        orgToken,
+      }: { file: any; orgName: string; orgToken: string },
       context: any
     ) {
-      const { userId } = (await checkUserLoggedIn(context))(['admin'])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
       if (!userId) {
         throw new GraphQLError('User is not logged in', {
           extensions: {
@@ -223,7 +241,13 @@ const invitationResolvers: IResolvers = {
             org.name
           )
           newInvitation.invitationToken = newToken
-          const result = await sendInvitationEmail(email, org.name, link)
+          const result = await sendInvitationEmail(
+            email,
+            org.name,
+            link,
+            false,
+            role
+          )
 
           if (result.success) {
             await newInvitation.save()
@@ -258,7 +282,9 @@ const invitationResolvers: IResolvers = {
       context: any
     ) {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        const { userId } = (await checkUserLoggedIn(context))([
+          RoleOfUser.ADMIN,
+        ])
         if (!userId) {
           throw new GraphQLError('User is not logged in', {
             extensions: {
@@ -312,7 +338,7 @@ const invitationResolvers: IResolvers = {
             org.name
           )
           invitation.invitationToken = newToken
-          await sendInvitationEmail(email, org.name, link, true)
+          await sendInvitationEmail(email, org.name, link, true, role)
         }
 
         await invitation.save()
@@ -331,7 +357,7 @@ const invitationResolvers: IResolvers = {
       { invitationId }: { invitationId: string },
       context: any
     ) {
-      const { userId } = (await checkUserLoggedIn(context))(['admin'])
+      const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
       if (!userId) {
         throw new GraphQLError('User is not logged in', {
           extensions: {
@@ -363,6 +389,78 @@ const invitationResolvers: IResolvers = {
 
       await Invitation.findByIdAndDelete(invitationId)
       return { message: 'Invitation deleted successfully ' }
+    },
+
+    resendInvitation: async (
+      _: any,
+      { invitationId, orgToken }: { invitationId: string; orgToken: string },
+      context: any
+    ) => {
+      try {
+        const { userId } = (await checkUserLoggedIn(context))(['admin'])
+        if (!userId) {
+          throw new GraphQLError('User not logged In', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+            },
+          })
+        }
+        const org = await checkLoggedInOrganization(orgToken)
+        if (!org) {
+          throw new GraphQLError('Organization not logged In', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+            },
+          })
+        }
+
+        const invitation = await Invitation.findOne({
+          _id: invitationId,
+          status: 'pending',
+          orgName: org.name.toLocaleLowerCase(),
+        })
+
+        if (!invitation) {
+          throw new GraphQLError(
+            'Invitation with the given id does not exists',
+            {
+              extensions: {
+                code: 'INVALID_INPUT',
+              },
+            }
+          )
+        }
+        const { invitees, orgName } = invitation
+        const role = invitation.invitees[0]?.role
+        for (const invitee of invitees) {
+          const { newToken, link } = await generateInvitationTokenAndLink(
+            invitee?.email as string,
+            invitee.role,
+            orgName
+          )
+          invitation.createdAt = new Date()
+          invitation.invitationToken = newToken
+          await sendInvitationEmail(
+            invitee?.email as string,
+            org.name,
+            link,
+            false,
+            role
+          )
+          await invitation.save()
+        }
+
+        return {
+          success: true,
+          message: 'Invitation was resent successfully',
+        }
+      } catch (error: any) {
+        throw new GraphQLError(error.message, {
+          extensions: {
+            code: 'INTERNAL_SERVER_ERROR',
+          },
+        })
+      }
     },
   },
 }

@@ -1,10 +1,11 @@
 import { ReadStream } from 'fs'
 import { GraphQLError } from 'graphql'
 import * as xlsx from 'xlsx'
+import { RoleOfUser } from '../models/user'
 
 const EmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-type Role = 'trainee' | 'admin' | 'ttl' | 'coordinator'
+type Role = RoleOfUser.TRAINEE | RoleOfUser.ADMIN | RoleOfUser.TTL | RoleOfUser.COORDINATOR
 
 export async function extractFileData(file: any) {
   try {
@@ -30,7 +31,7 @@ export async function extractFileData(file: any) {
         const email = (row as { email?: string }).email?.trim()
         const role = (row as { role?: string }).role?.trim().toLowerCase()
 
-        const validRoles: Role[] = ['trainee', 'admin', 'ttl', 'coordinator']
+        const validRoles: Role[] = [RoleOfUser.TRAINEE, RoleOfUser.ADMIN, RoleOfUser.TTL, RoleOfUser.COORDINATOR]
         if (
           email &&
           EmailPattern.test(email) &&

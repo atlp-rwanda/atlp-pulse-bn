@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import Program from '../models/program.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { Context } from './../context'
 import { OrganizationType } from './userResolver'
@@ -15,12 +15,12 @@ const resolvers = {
     getAllPrograms: async (_: any, { orgToken }: any, context: Context) => {
       try {
         const { role } = (await checkUserLoggedIn(context))([
-          'superAdmin',
-          'admin',
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
         ])
         let org
         let where: any = { active: true }
-        if (role === 'admin') {
+        if (role === RoleOfUser.ADMIN) {
           org = await checkLoggedInOrganization(orgToken)
           where = { ...where, organization: org.id }
         }
@@ -37,7 +37,7 @@ const resolvers = {
     },
     getProgram: async (_: any, { orgToken }: any, context: Context) => {
       try {
-        const { userId } = (await checkUserLoggedIn(context))(['manager'])
+        const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.MANAGER])
         const org = await checkLoggedInOrganization(orgToken)
 
         return Program.findOne({
@@ -67,7 +67,7 @@ const resolvers = {
       context: Context
     ) => {
       try {
-        ;(await checkUserLoggedIn(context))(['superAdmin', 'admin'])
+        ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN])
 
         const { name, description, managerEmail, orgToken } = args
 
@@ -114,9 +114,9 @@ const resolvers = {
       context: Context
     ) => {
       const { userId, role }: any = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
-        'manager',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
       ])
 
       // get the program and its organization from the id and checks if it exists
@@ -151,7 +151,7 @@ const resolvers = {
       }
 
       // check if a given user have priviledges to update this program
-      if (role !== 'superAdmin') {
+      if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (programOrg.id.toString() !== org.id.toString()) {
@@ -164,7 +164,7 @@ const resolvers = {
             }
           )
         }
-        if (role === 'admin' && !programOrg.admin.includes(userId)) {
+        if (role === RoleOfUser.ADMIN && !programOrg.admin.includes(userId)) {
           throw new GraphQLError(
             `Program with id "${program?.id}" doesn't exist in your organization`,
             {
@@ -174,7 +174,7 @@ const resolvers = {
             }
           )
         }
-        if (role === 'manager' && program.manager.toString() !== userId) {
+        if (role === RoleOfUser.MANAGER && program.manager.toString() !== userId) {
           throw new GraphQLError(
             'You are not assigned this program',
 
@@ -197,8 +197,8 @@ const resolvers = {
     },
     deleteProgram: async (_: any, { id, orgToken }: any, context: Context) => {
       const { userId, role } = (await checkUserLoggedIn(context))([
-        'superAdmin',
-        'admin',
+        RoleOfUser.SUPER_ADMIN,
+        RoleOfUser.ADMIN,
       ])
 
       const program = await Program.findById(id).populate('organization')
@@ -211,7 +211,7 @@ const resolvers = {
       }
       const deleteOrganization = program?.organization as OrganizationType
 
-      if (role !== 'superAdmin') {
+      if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
         if (deleteOrganization.id.toString() !== org.id.toString()) {

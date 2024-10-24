@@ -2,6 +2,34 @@ import bcrypt from 'bcryptjs'
 import mongoose, { model, Schema } from 'mongoose'
 import { Profile } from './profile.model'
 
+export interface UserStatus {
+  status: 'active' | 'drop' | 'suspended'
+  reason?: string
+  date?: Date
+}
+
+export interface UserInterface {
+  _id: mongoose.Types.ObjectId
+  email: string
+  password: string
+  role: string
+  team?: mongoose.Types.ObjectId
+  status: UserStatus
+  cohort?: mongoose.Types.ObjectId
+  program?: mongoose.Types.ObjectId
+  organizations: string[]
+  pushNotifications: boolean
+  emailNotifications: boolean
+}
+
+export enum RoleOfUser {
+  TRAINEE = 'trainee',
+  COORDINATOR = 'coordinator',
+  MANAGER = 'manager',
+  ADMIN = 'admin',
+  SUPER_ADMIN = 'superAdmin',
+  TTL = 'ttl',
+}
 mongoose.set('toJSON', {
   virtuals: true,
   versionKey: false,
@@ -33,7 +61,7 @@ const userSchema = new Schema(
     status: {
       status: {
         type: String,
-        enum: ['active', 'drop'],
+        enum: ['active', 'drop', 'suspended'],
         default: 'active',
       },
       reason: String,

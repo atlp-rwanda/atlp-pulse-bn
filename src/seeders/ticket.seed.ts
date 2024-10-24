@@ -1,5 +1,5 @@
 import Ticket from '../models/ticket.model'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 
 const generateSubject = (userId: string): string => {
   const subjects = [
@@ -35,7 +35,7 @@ const seedTickets = async (): Promise<void> => {
       throw new Error('No assignees found with the role "user".')
     }
     const user = await User.findOne({
-      role: { $in: ['admin', 'coordinator'] },
+      role: { $in: [RoleOfUser.ADMIN, RoleOfUser.COORDINATOR] },
     }).select('_id')
     if (!user) {
       throw new Error('No user found with the role "admin" or "coordinator".')

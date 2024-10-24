@@ -6,14 +6,14 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  type Phase{
-    name:String
-    description:String
+  type Phase {
+    name: String
+    description: String
   }
-  type Program{
-    name:String
-    description:String
-    manager:User
+  type Program {
+    name: String
+    description: String
+    manager: User
   }
 
   type Subscription {
@@ -58,9 +58,9 @@ const Schema = gql`
     startingPhase: DateTime
     active: Boolean
     organization: Organization
-    phase:Phase
-    manager:User
-    program:Program
+    phase: Phase
+    manager: User
+    program: Program
   }
   type User {
     id: ID!
@@ -82,22 +82,10 @@ const Schema = gql`
     password: String!
     role: String
   }
-  input ActivityInput {
-    date: String
-    country_code: String
-    country_name: String
-    city: String
-    postal: String
-    latitude: Float
-    longitude: Float
-    IPv4: String
-    state: String
-  }
   input LoginInput {
     email: String
     password: String
     orgToken: String
-    activity: ActivityInput
   }
   input OrgInput {
     name: String
@@ -118,6 +106,7 @@ const Schema = gql`
   type Profile {
     id: ID!
     user: User!
+    activity: [Activity]
     firstName: String
     lastName: String
     name: String
@@ -128,12 +117,12 @@ const Schema = gql`
     biography: String
     avatar: String
     cover: String
-    activity: [Activity]
     githubUsername: String
     resume: String
   }
+
   type Activity {
-    date: String!
+    date: String
     country_code: String
     country_name: String
     city: String
@@ -430,6 +419,12 @@ const Schema = gql`
       confirmPassword: String!
       token: String!
     ): String!
+    changeUserPassword(
+      currentPassword: String!
+      newPassword: String!
+      confirmPassword: String!
+      token: String!
+    ): String!
 
     addActiveRepostoOrganization(name: String!, repoUrl: String!): Organization!
 
@@ -530,9 +525,9 @@ const Schema = gql`
       name: String
       cohort: String
       TTL: String
-      phase:String
-      program:String
-      manager:String
+      phase: String
+      program: String
+      manager: String
     ): Team
     deleteReply: String!
   }
@@ -595,20 +590,25 @@ const Schema = gql`
 
   type Attendance {
     id: ID!
+    phase: Phase!
+    cohort: Cohort!
     week: String!
-    coordinator: [String!]
+    teams: [AttendanceTeam]!
+  }
+  type AttendanceTeam {
+    team: Team!
     trainees: [TraineeAttendance!]!
   }
 
   type TraineeAttendance {
-    traineeId: [String!]
-    traineeEmail: String!
+    trainee: User!
     status: [AttendanceStatus!]!
   }
 
   type AttendanceStatus {
-    days: String!
-    value: Int!
+    day: String!
+    date: String!
+    score: Int!
   }
 
   type AttendanceStats {
@@ -629,31 +629,38 @@ const Schema = gql`
   }
 
   type Query {
-    getTraineeAttendance(orgToken: String): [Attendance]
+    getTeamAttendance(orgToken: String, team: String!): [Attendance]
     getTraineeAttendanceByID(traineeEmail: String!): [weeklyAttendance]
     getAttendanceStats(orgToken: String!): [AttendanceStats]
   }
   type Mutation {
     recordAttendance(
-      week: String!
-      days: String!
+      week: Int!
+      team: String!
+      date: String!
       trainees: [TraineeInput!]!
       orgToken: String!
-    ): Attendance
+    ): AttendanceTeam
 
-    deleteAttendance(
-      week: String!
-      days: String!
-      traineeId: ID!
+    updateAttendance(
+      week: Int!
+      team: String!
+      phase: String!
+      trainees: [TraineeInput!]!
       orgToken: String!
-    ): Attendance
+    ): [Attendance]
+
+    deleteAttendance(week: String!, team: String!, day: String!): [Attendance]
   }
+
   input StatusInput {
-    value: String!
+    day: String!
+    score: String!
   }
+
   input TraineeInput {
-    traineeId: ID!
-    status: [StatusInput]
+    trainee: ID!
+    status: StatusInput!
   }
   type Session {
     id: String

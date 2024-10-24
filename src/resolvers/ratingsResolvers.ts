@@ -1,5 +1,5 @@
 import { Rating, TempData } from '../models/ratings'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { sendEmails } from '../utils/sendEmails'
 import { Context } from './../context'
@@ -100,7 +100,7 @@ const ratingResolvers: any = {
         path: 'members',
         populate: {
           path: 'program',
-          match: context.role === 'coordinator',
+          match: context.role === RoleOfUser.COORDINATOR,
           strictPopulate: false,
           populate: {
             path: 'organization',
@@ -114,10 +114,10 @@ const ratingResolvers: any = {
 
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
       ;(await checkUserLoggedIn(context))([
-        'coordinator',
-        'admin',
-        'trainee',
-        'ttl',
+        RoleOfUser.COORDINATOR,
+        RoleOfUser.ADMIN,
+        RoleOfUser.TRAINEE,
+        RoleOfUser.TTL,
       ])
       return (
         await Rating.find({}).populate([
@@ -147,7 +147,7 @@ const ratingResolvers: any = {
         path: 'members',
         populate: {
           path: 'program',
-          match: context.role === 'coordinator',
+          match: context.role === RoleOfUser.COORDINATOR,
           strictPopulate: false,
           populate: {
             path: 'organization',
@@ -178,7 +178,7 @@ const ratingResolvers: any = {
   },
   Mutation: {
     addRatings: authenticated(
-      validateTtlOrCoordinator(['coordinator', 'ttl'])(
+      validateTtlOrCoordinator([RoleOfUser.COORDINATOR, RoleOfUser.TTL])(
         async (
           root,
           {
@@ -206,9 +206,9 @@ const ratingResolvers: any = {
           if (!userExists) throw new Error('User does not exist!')
 
           if (userExists.status?.status === 'drop') {
-          throw new Error('The trainee is dropped');
-        }
-          
+            throw new Error('The trainee is dropped')
+          }
+
           const Kohort = await Cohort.findOne({ _id: cohort })
           const Phase = await Cohort.findOne({ _id: cohort }).populate(
             'phase',
@@ -306,7 +306,7 @@ const ratingResolvers: any = {
       return 'The rating table has been deleted successfully'
     },
     updateRating: authenticated(
-      validateTtlOrCoordinator(['coordinator', 'ttl'])(
+      validateTtlOrCoordinator([RoleOfUser.COORDINATOR, RoleOfUser.TTL])(
         async (
           root,
           {
@@ -419,7 +419,7 @@ const ratingResolvers: any = {
             )
 
             // Send a notification to the admin
-            const admin = await User.findOne({ role: 'admin' })
+            const admin = await User.findOne({ role: RoleOfUser.ADMIN })
             if (admin) {
               await pushNotification(
                 admin._id,
@@ -436,7 +436,7 @@ const ratingResolvers: any = {
     ),
 
     approveRating: authenticated(
-      validateRole('admin')(async (root, { user, sprint }) => {
+      validateRole(RoleOfUser.ADMIN)(async (root, { user, sprint }) => {
         const updatedData = await TempData.findOne({
           user: user,
           sprint: sprint,
@@ -623,7 +623,7 @@ const ratingResolvers: any = {
     },
 
     rejectRating: authenticated(
-      validateRole('admin')(async (root, { user, sprint }) => {
+      validateRole(RoleOfUser.ADMIN)(async (root, { user, sprint }) => {
         const updatedData: any = await TempData.findOne({
           user: user,
           sprint: sprint,

@@ -1,6 +1,8 @@
+import { capitalizeStrings } from '../capitalizeRoleName'
 export default function updateInvitationTemplate(
   orgName: string,
-  link: string
+  link: string,
+  role: string
 ) {
   return `
     <table style="border: 1px solid #ddd; padding: 16px; border-radius: 8px; background-color: #f9f9f9; max-width: 600px; margin: 0 auto; font-family: 'Rubik', sans-serif;">
@@ -21,7 +23,9 @@ export default function updateInvitationTemplate(
           <tr>
               <td style="padding: 16px; color: black; text-align: left;">
                   <p>Hello,</p>
-                  <p>Your invitation to join <strong>${orgName}</strong> has been updated.</p>
+                  <p>Your invitation to join <strong>${orgName}</strong> as <strong>${capitalizeStrings(
+    role
+  )}</strong>  has been updated.</p>
                   <p>We invite you to review the updated invitation and accept it by clicking the button below:</p>
                   <!-- Button -->
                   <table style="width: 100%; text-align: center; margin-top: 20px;">

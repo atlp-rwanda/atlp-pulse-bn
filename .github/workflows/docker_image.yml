@@ -18,7 +18,8 @@ jobs:
       ADMIN_PASS: ${{ secrets.ADMIN_PASS }} 
       COORDINATOR_EMAIL: ${{ secrets.COORDINATOR_EMAIL }} 
       COORDINATOR_PASS: ${{ secrets.COORDINATOR_PASS }} 
-      GH_TOKEN: ${{ secrets.GH_TOKEN }} 
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      Org_Repo_Access: ${{ secrets.Org_Repo_Access }} 
     steps:
       - uses: actions/checkout@v3
       - name: Build and push Docker Image
@@ -37,7 +38,7 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_KEY }}
           port: ${{ secrets.DO_PORT }}
-          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN;
+          envs: MONGO_PROD_DB, REGISTER_FRONTEND_URL, REGISTER_ORG_FRONTEND_URL, NODE_ENV, FRONTEND_LINK, ADMIN_EMAIL, ADMIN_PASS, COORDINATOR_EMAIL, COORDINATOR_PASS, GH_TOKEN, Org_Repo_Access;
           script: |
             rm -f env
             echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} >> env
@@ -48,6 +49,7 @@ jobs:
             echo REGISTER_FRONTEND_URL=${{ secrets.REGISTER_FRONTEND_URL }} >> env
             echo REGISTER_ORG_FRONTEND_URL=${{ secrets.REGISTER_ORG_FRONTEND_URL }} >> env
             echo GH_TOKEN=${{ secrets.GH_TOKEN }} >> env
+            echo Org_Repo_Access=${{ secrets.Org_Repo_Access }} >> env
             echo MONGO_PROD_DB=${{ secrets.MONGO_PROD_DB }} >> env
             echo NODE_ENV=${{ secrets.NODE_ENV }} >> env
             cat env
@@ -59,7 +61,7 @@ jobs:
             else
               echo "No existing container found"
             fi
-            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV  devpulse/atlp-pulse-bn:latest)
+            docker_ps_out=$(docker run -p 4000:4000 -d -e ADMIN_EMAIL -e ADMIN_PASS -e COORDINATOR_EMAIL -e COORDINATOR_PASS -e FRONTEND_LINK -e REGISTER_FRONTEND_URL -e REGISTER_ORG_FRONTEND_URL -e GH_TOKEN -e MONGO_PROD_DB -e NODE_ENV -e Org_Repo_Access  devpulse/atlp-pulse-bn:latest)
             if [ $? -eq 0 ]; then
               echo "New container spinned up successfully"
             else

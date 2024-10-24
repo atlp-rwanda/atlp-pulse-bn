@@ -1,5 +1,5 @@
 import { hashSync } from 'bcryptjs'
-import { User } from '../models/user'
+import { RoleOfUser, User } from '../models/user'
 import { Profile } from '../models/profile.model'
 
 const organizations: any = {
@@ -36,7 +36,7 @@ const seedUsers = async () => {
       {
         firstName: 'Muheto',
         lastName: 'Darius',
-        email: 'muhedarius96@gmail.com',
+        email: 'muhedarius@gmail.com',
         githubUserName: '',
       },
       {
@@ -101,14 +101,14 @@ const seedUsers = async () => {
         if (
           registerUsers.filter(
             (user) =>
-              user.organizations.includes(orgName) && user.role === 'admin'
+              user.organizations.includes(orgName) && user.role === RoleOfUser.ADMIN
           ).length === usersTypes.admin
         )
           break
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: 'admin',
+          role: RoleOfUser.ADMIN,
           organizations: [orgName],
         })
       }
@@ -118,14 +118,14 @@ const seedUsers = async () => {
         if (
           registerUsers.filter(
             (user) =>
-              user.organizations.includes(orgName) && user.role === 'manager'
+              user.organizations.includes(orgName) && user.role === RoleOfUser.MANAGER
           ).length === usersTypes.manager
         )
           break
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: 'manager',
+          role: RoleOfUser.MANAGER,
           organizations: [orgName],
         })
       }
@@ -137,14 +137,14 @@ const seedUsers = async () => {
           registerUsers.filter(
             (user) =>
               user.organizations.includes(orgName) &&
-              user.role === 'coordinator'
+              user.role === RoleOfUser.COORDINATOR
           ).length === usersTypes.coordinators
         )
           break
         registerUsers.push({
           email: element.email,
           password: hashSync('Test@12345'),
-          role: 'coordinator',
+          role: RoleOfUser.COORDINATOR,
           organizations: [orgName],
         })
       }
@@ -190,7 +190,7 @@ const seedUsers = async () => {
     registerUsers.unshift({
       email: 'samuel.nishimwe@andela.com',
       password: hashSync('Test@12345'),
-      role: 'superAdmin',
+      role: RoleOfUser.SUPER_ADMIN,
       organizations: ['Andela'],
     })
 

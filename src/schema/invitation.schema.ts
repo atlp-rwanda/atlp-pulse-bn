@@ -53,11 +53,11 @@ const invitationSchema = gql`
   }
 
   type Query {
-    getAllInvitations(orgToken: String!,limit: Int, offset: Int): PaginatedInvitations!
+    getAllInvitations(orgToken: String!,limit: Int, offset: Int,sortBy:Int): PaginatedInvitations!
   }
 
     type Query {
-    filterInvitations(limit: Int, offset: Int, role: String, status: String): PaginatedInvitations!
+    filterInvitations(limit: Int, offset: Int, role: String, status: String, orgToken: String!,sortBy:Int): PaginatedInvitations!
   }
 
   type InvitationResult {
@@ -76,6 +76,10 @@ const invitationSchema = gql`
   type DeleteMessage {
     message: String!
   }
+    type InvitationResendResponse{
+    success:Boolean!
+    message:String!
+    }
 
   type Mutation {
     sendInvitation(invitees: [InviteeInput!]!,orgName: String!, orgToken: String!): Invitation!
@@ -83,6 +87,7 @@ const invitationSchema = gql`
     uploadInvitationFile(file: Upload!,orgName: String!, orgToken: String!): FileData!
     deleteInvitation(invitationId: ID!): DeleteMessage
     cancelInvitation(orgToken: String!, id: ID!): Invitation!
+    resendInvitation(orgToken:String!,invitationId:ID!):InvitationResendResponse!
   }
 `;
 

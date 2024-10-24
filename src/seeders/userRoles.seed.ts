@@ -1,25 +1,25 @@
 import mongoose from 'mongoose'
-import { UserRole } from '../models/user'
+import { RoleOfUser, UserRole } from '../models/user'
 
 // Create seed data for user roles with explicit IDs
 const userRolesSeed = [
   {
-    name: 'superAdmin',
+    name: RoleOfUser.SUPER_ADMIN,
   },
   {
-    name: 'admin',
+    name: RoleOfUser.ADMIN,
   },
   {
-    name: 'coordinator',
+    name: RoleOfUser.COORDINATOR,
   },
   {
-    name: 'ttl',
+    name: RoleOfUser.TTL,
   },
   {
-    name: 'manager',
+    name: RoleOfUser.MANAGER,
   },
   {
-    name: 'trainee',
+    name: RoleOfUser.TRAINEE,
   },
 ]
 
