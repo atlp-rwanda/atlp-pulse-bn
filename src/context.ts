@@ -44,7 +44,10 @@ export const context = async ({ req }: { req: Request }): Promise<Context> => {
   if (
     !token &&
     !req.body.variables.organisationInput &&
-    !req.body.variables.loginInput
+    !req.body.variables.organizationInput &&
+    !req.body.variables.loginInput &&
+    !req.body.variables.orgToken &&
+    !req.body.variables.orgInput
   ) {
     return {}
   } else {
