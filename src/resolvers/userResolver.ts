@@ -15,6 +15,7 @@ import {
   generateToken,
   generateTokenOrganization,
   generateTokenUserExists,
+  genericToken,
 } from '../helpers/user.helpers'
 import Cohort from '../models/cohort.model'
 import { Invitation } from '../models/invitation.model'
@@ -815,17 +816,19 @@ const resolvers: any = {
           })
 
           // Create the organization with 'pending' status
-          await Organization.create({
+const {name:nm,admin:adm,description:desc}=await Organization.create({
             admin: newAdmin._id,
             name,
             description,
             status: 'pending',
           })
+          const newOrgToken=genericToken({nm,adm,desc,email})
 
           const superAdmin = await User.find({ role: RoleOfUser.SUPER_ADMIN })
           // Get the email content
-          const content = registrationRequest(email, name, description)
-          const link = process.env.FRONTEND_LINK
+          const link = process.env.FRONTEND_LINK ?? ""
+          const content = registrationRequest(email, name, description,link,newOrgToken)
+         
 
           // Send registration request email to super admin
           await sendEmail(

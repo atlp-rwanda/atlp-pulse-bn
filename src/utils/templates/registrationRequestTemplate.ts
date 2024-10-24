@@ -1,7 +1,8 @@
 export default function registrationRequest(
   email: string,
   name: string,
-  description: string
+  description: string,
+  link:string,newOrgToken:string
 ) {
   return `
     <table 
@@ -46,7 +47,13 @@ export default function registrationRequest(
           </div>
         </td>
       </tr>
-
+       <tr>
+       <td style="padding:20px;">
+      <a  href="${link}/organizations?newOrgToken=${newOrgToken}" style="text-decoration:none" >
+       <button style="padding:10px 15px; background-color:#004aad; color:white; border-radius:5px;cursor:pointer ;border:none">Approve</button>
+       </a>
+       </td>
+       </tr>
       <tr>
         <td style="background-color: #004aad; padding: 20px; text-align: center; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
           <p style="font-size: 14px; color: #ffffff;">
