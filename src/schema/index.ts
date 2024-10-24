@@ -319,12 +319,21 @@ const Schema = gql`
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
     fetchSprints(orgToken: String!): [Int]!
+    getTeamsByRole(orgToken: String!): [Team]!
+  }
+
+  type RejectedRows{
+    email: String
+    quantity: Int
+    quality: Int
+    professional_skills: Int
+    feedBacks: String
   }
   
   type AddRatingsByFileData{
     NewRatings: [Rating]!
     UpdatedRatings: [updateRating]!
-    RejectedRatings: [String]!
+    RejectedRatings: [RejectedRows]!
   }
 
   type Mutation {

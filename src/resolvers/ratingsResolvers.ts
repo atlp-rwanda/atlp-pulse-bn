@@ -411,7 +411,7 @@ const ratingResolvers: any = {
       const { validRows, invalidRows } = await extractSheetRatings(file)
       const NewRatings: any =[]
       const UpdatedRatings: any =[]
-      const RejectedRatings: any =[...invalidRows.map(rating=>rating.email)]
+      const RejectedRatings: any =[...invalidRows]
 
       for(const row of validRows){
         //check if user exists
@@ -495,7 +495,7 @@ const ratingResolvers: any = {
             ratingEmailContent
           )
         }else{
-          RejectedRatings.push(row.email)
+          RejectedRatings.push(row)
         }
       }
       return { 

@@ -255,6 +255,65 @@ const resolvers = {
         })
       }
     },
+    getTeamsByRole: async(_:any, {orgToken}:{orgToken: string}, context: Context)=>{
+      const {userId, role} = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, RoleOfUser.TTL, RoleOfUser.TRAINEE])
+      const user = await User.findById(userId)
+      if(!user){
+        throw new GraphQLError("No such user found",{
+          extensions: {
+            code: 'USER_NOT_FOUND'
+          }
+        })
+      }
+      const org = await checkLoggedInOrganization(orgToken)
+      if(!org){
+        throw new GraphQLError("No organization found",{
+          extensions: {
+            code: 'ORGANIZATION_NOT_FOUND'
+          }
+        })
+      }
+      switch(role){
+        case RoleOfUser.COORDINATOR:
+          const coordinatorCohort = await Cohort.findOne({
+            coordinator: user._id,
+            organization: org._id
+          })
+          if(!coordinatorCohort){
+            throw new GraphQLError("This coordinator account is not associated with any cohort",{
+              extensions: {
+                code: "COHORT_NOT_FOUND"
+              }
+            })
+          }
+          const coordinatorTeams = await Team.find({
+            cohort: coordinatorCohort._id,
+            organization: org._id
+          }).populate('members')
+          return coordinatorTeams
+
+        case RoleOfUser.TTL:
+          const ttlTeam  = await Team.findOne({
+            ttl: user._id,
+            organization: org._id
+          }).populate('members')
+          return [ttlTeam]
+        
+        case RoleOfUser.TRAINEE:
+          const traineeTeam  = await Team.findOne({
+            _id: user.team,
+            organization: org._id
+          }).populate('members')
+          return [traineeTeam]
+
+        default:
+          throw new GraphQLError("Invalid user role",{
+            extensions: {
+              code: "FORBIDDEN"
+            }
+          })
+      }
+    }
   },
   Mutation: {
     addTeam: async (
