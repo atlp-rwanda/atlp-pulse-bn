@@ -197,6 +197,8 @@ const Schema = gql`
     cohort: Cohort!
     average: String
     feedbacks: [RatingMessageTemp]
+    createdAt:String
+    updatedAt:Strings
   }
 
   type AddRating {
