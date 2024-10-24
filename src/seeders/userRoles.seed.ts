@@ -1,35 +1,37 @@
 import mongoose from 'mongoose'
-import { UserRole } from '../models/user'
+import UserRole from '../models/userRoles'
 
 // Create seed data for user roles with explicit IDs
 const userRolesSeed = [
   {
-    name: 'superAdmin',
+    title: 'superAdmin',
   },
   {
-    name: 'admin',
+    title: 'admin',
   },
   {
-    name: 'coordinator',
+    title: 'coordinator',
   },
   {
-    name: 'ttl',
+    title: 'ttl',
   },
   {
-    name: 'manager',
+    title: 'manager',
   },
   {
-    name: 'trainee',
+    title: 'trainee',
   },
 ]
 
-async function seedUserRoles() {
+async function seedUserRoles(): Promise<any[]> {
   try {
     //Clear Existing data in the collection before seeding (Optional)
     await UserRole.deleteMany({})
     const roles = await UserRole.insertMany(userRolesSeed)
+    return roles
   } catch (err) {
     console.error('Error seeding user Roles:', err)
+    return []
   }
 }
 export default seedUserRoles

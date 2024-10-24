@@ -8,7 +8,7 @@ import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import Cohort from '../models/cohort.model'
 import Program from '../models/program.model'
-import { User, UserRole } from '../models/user'
+import { User } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
@@ -27,6 +27,8 @@ import { checkloginAttepmts } from '../helpers/logintracker'
 import { Rating } from '../models/ratings'
 import { Invitation } from '../models/invitation.model'
 import isAssigned from '../helpers/isAssignedToProgramOrCohort'
+import { Roles } from '../types/roles'
+import UserRole from '../models/userRoles'
 const octokit = new Octokit({ auth: `${process.env.GH_TOKEN}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -97,18 +99,18 @@ const resolvers: any = {
       context: Context
     ) {
       ;(await checkUserLoggedIn(context))([
-        'admin',
-        'coordinator',
-        'trainee',
-        'manager',
-        'ttl',
+        Roles.Admin.toString(),
+        Roles.Coordinator.toString(),
+        Roles.Trainee.toString(),
+        Roles.Manager,
+        Roles.TTL,
       ])
 
       const organisationExists = await Organization.findOne({
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -516,9 +518,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
-      const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+      if (!roleExists) throw new Error('This role doesn\'t exist')
+      const userExists = await User.findById(id).populate('userroles')
+      if (!userExists) throw new Error('User doesn\'t exist')
 
       const getAllUsers = await User.find({
         role: 'admin',
@@ -532,14 +534,25 @@ const resolvers: any = {
         }
       })
 
-      if (checkUserOrganization == 1 && userExists.role == 'admin') {
+      const isExistingUserAdmin = userExists.role == Roles.Admin.toString();
+
+      if (checkUserOrganization == 1 && isExistingUserAdmin) {
         throw new Error('There must be at least one admin in the organization')
       }
 
-      if (userExists.role == 'coordinator') {
+      // if (checkUserOrganization == 1 && userExists.role == 'admin') {
+      //   throw new Error('There must be at least one admin in the organization')
+      // }
+
+      if (userExists.role == Roles.Coordinator.toString()) {
         const userCohort: any = await Cohort.find({
           coordinator: userExists?.id,
         })
+
+        // if (userExists.role == 'coordinator') {
+        //   const userCohort: any = await Cohort.find({
+        //     coordinator: userExists?.id,
+        //   })
         if (userCohort) {
           await Cohort.updateMany(
             { coordinator: userExists?.id },
@@ -550,7 +563,8 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'manager') {
+      } else if (userExists.role == Roles.Manager.toString()) {
+        // else if (userExists.role == 'manager') {
         const userProgram: any = await Program.find({ manager: userExists?.id })
         if (userProgram) {
           await Program.updateMany(
@@ -562,7 +576,7 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'ttl') {
+      } else if (userExists.role == Roles.TTL.toString()) {
         let teamttl: any = await Team.find({ ttl: userExists?.id })
         if (teamttl) {
           await Team.updateMany(
@@ -574,7 +588,7 @@ const resolvers: any = {
             }
           )
         }
-      } else if (userExists.role == 'admin') {
+      } else if (userExists.role == Roles.Admin.toString()) {
         const userOrg: any = await Organization.find({ admin: userExists?.id })
         if (userOrg) {
           await Organization.findByIdAndUpdate(userOrg.id, {
@@ -603,7 +617,7 @@ const resolvers: any = {
     },
 
     async createUserRole(_: any, { name }: any) {
-      const newRole = await UserRole.create({ name })
+      const newRole = await UserRole.create({ title: name })
       return newRole
     },
 
@@ -974,7 +988,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -1049,7 +1063,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()

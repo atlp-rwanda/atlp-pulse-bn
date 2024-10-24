@@ -1,9 +1,10 @@
 import { Context } from '../context'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
-import { User, UserRole } from '../models/user'
+import { User } from '../models/user'
 import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
+import UserRole from '../models/userRoles'
 
 const profileResolvers: any = {
   Query: {
