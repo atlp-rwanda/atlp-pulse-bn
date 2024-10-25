@@ -4,7 +4,7 @@ import { JwtPayload, verify } from 'jsonwebtoken'
 import { Organization } from '../models/organization.model'
 
 export async function checkLoggedInOrganization(token?: string) {
-  const SECRET = process.env.SECRET as string
+  const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 
   if (!token) {
     throw new GraphQLError('Not logged in an organization', {

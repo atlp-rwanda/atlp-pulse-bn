@@ -11,7 +11,7 @@ interface Payload {
   orgToken: string
 }
 
-const SECRET: string = process.env.SECRET as string
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 export default async function sendInvitationEmail(
   email: string,
   orgName: string,

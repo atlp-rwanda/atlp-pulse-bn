@@ -19,7 +19,7 @@ import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 import { Context } from './../context'
 import { Document, ObjectId } from 'mongoose'
 
-const SECRET: string = process.env.SECRET as string
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 
 interface TraineeStatus {
   days: string

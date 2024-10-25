@@ -13,7 +13,7 @@ import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import { extractFileData } from '../utils/extractFileData'
 import generateInvitationTokenAndLink from '../helpers/generateInvitationToken.helper'
 
-const SECRET: string = process.env.SECRET as string
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 
 const ROLE = {
   TRAINEE: RoleOfUser.TRAINEE,

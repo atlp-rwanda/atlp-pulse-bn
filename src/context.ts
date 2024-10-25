@@ -4,7 +4,7 @@ import { Request } from 'express'
 import * as jwt from 'jsonwebtoken'
 import requestIp from 'request-ip'
 
-const SECRET = process.env.SECRET
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 
 export interface AuthTokenPayload {
   userId: string

@@ -61,7 +61,10 @@ const validateTime = (
 
 const decodeEventResponseToken = (token: string) => {
   try {
-    return jwt.verify(token, process.env.SECRET!) as EventResponse
+    return jwt.verify(
+      token,
+      (process.env.SECRET as string) || 'mysq_unique_secret'
+    ) as EventResponse
   } catch (err: any) {
     throw new GraphQLError('Invalid Token', {
       extensions: {
