@@ -282,15 +282,11 @@ const resolvers = {
 
       if (
         endDate &&
-        (isAfter(
-          new Date(startDate.toString()),
-          new Date(endDate.toString())
-        ) ||
-          isAfter(
-            new Date(cohort?.startDate?.toString() || ''),
-            new Date(endDate)
-          ))
-      ) {
+        (isAfter(new Date(startDate.toString()),
+         new Date(endDate.toString())) ||
+        isAfter(new Date(cohort?.startDate?.toString() || ''),
+         new Date(endDate)))
+     ) {
         throw new GraphQLError("End Date can't be before Start Date", {
           extensions: {
             code: 'VALIDATION_ERROR',
@@ -301,7 +297,7 @@ const resolvers = {
       if (role !== RoleOfUser.SUPER_ADMIN) {
         const org = await checkLoggedInOrganization(orgToken)
 
-        if (cohortOrg.id.toString() !== org.id.toString()) {
+        if (cohortOrg?.id?.toString() !== org?.id?.toString()) {
           throw new GraphQLError(
             `Cohort with id "${cohort?.id}" doesn't exist in this organization`,
             {
@@ -349,7 +345,7 @@ const resolvers = {
       const senderId = new Types.ObjectId(context.userId)
 
       if (coordinatorEmail) {
-        if (coordinator.id.toString() !== cohort.coordinator.toString()) {
+        if (coordinator?.id?.toString() !== cohort?.coordinator?.toString()) {
           pushNotification(
             coordinator.id,
             `You\'ve been assigned a new cohort "${cohort.name}"`,
@@ -370,9 +366,9 @@ const resolvers = {
         cohort.name = name
         notificationChanges.push('Name')
       }
-      if (phaseName && cohort.phase.toString() !== phase.id.toString()) {
-        cohort.phase = phase.id
-        notificationChanges.push('Phase')
+      if (phaseName && cohort?.phase?.toString() !== phase?.id?.toString()) {
+        cohort.phase = phase.id;
+        notificationChanges.push('Phase');
       }
 
       if (
@@ -390,7 +386,7 @@ const resolvers = {
 
       if (
         programName &&
-        cohortProgram._id.toString() !== program.id.toString()
+        cohortProgram?._id?.toString() !== program?.id?.toString()
       ) {
         programName && (cohort.program = program.id)
         notificationChanges.push('Program')
@@ -398,7 +394,7 @@ const resolvers = {
 
       if (notificationChanges.length) {
         pushNotification(
-          coordinator.id,
+          coordinator?.id,
           `${
             role[0].toUpperCase() + role.slice(1)
           } has made the following changes to "${
