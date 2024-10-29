@@ -30,7 +30,7 @@ const Schema = gql`
     updateCohort(
       id: ID!
       orgToken: String
-      coordinatorEmail: String!
+      coordinatorEmail: String
       programName: String!
       name: String
       phaseName: String
