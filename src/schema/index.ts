@@ -6,14 +6,15 @@ const Schema = gql`
     phase: Phase
     coordinator: User
   }
-  type Phase{
-    name:String
-    description:String
+  type Phase {
+    _id: ID
+    name: String
+    description: String
   }
-  type Program{
-    name:String
-    description:String
-    manager:User
+  type Program {
+    name: String
+    description: String
+    manager: User
   }
 
   type Subscription {
@@ -59,9 +60,9 @@ const Schema = gql`
     active: Boolean
     isJobActive: Boolean
     organization: Organization
-    phase:Phase
-    manager:User
-    program:Program
+    phase: Phase
+    manager: User
+    program: Program
   }
   type User {
     id: ID!
@@ -532,9 +533,9 @@ const Schema = gql`
       name: String
       cohort: String
       TTL: String
-      phase:String
-      program:String
-      manager:String
+      phase: String
+      program: String
+      manager: String
     ): Team
     deleteReply: String!
   }
@@ -552,6 +553,22 @@ const Schema = gql`
     subDocuments: [Doc]!
   }
 
+  type traineeAttendanceWeek {
+    week: Int!
+    daysStatus: AttendanceDates!
+  }
+
+  type traineeAttendancePhase {
+    phase: Phase!
+    weeks: [traineeAttendanceWeek]!
+  }
+
+  type traineeAttendance {
+    traineeId: String!
+    teamName: String!
+    phases: [traineeAttendancePhase]!
+  }
+
   type DocumentationInput {
     title: String!
     for: String!
@@ -559,6 +576,7 @@ const Schema = gql`
   }
   type Query {
     getDocumentations: [Documentation]
+    getTraineeAttendance: traineeAttendance
   }
 
   type Mutation {
@@ -638,6 +656,7 @@ const Schema = gql`
   type AttendanceDatesData {
     date: String!
     isValid: Boolean!
+    score: String
   }
   type AttendanceDates {
     mon: AttendanceDatesData!
@@ -709,10 +728,10 @@ const Schema = gql`
     ): SanitizedAttendance
 
     deleteAttendance(
-      week: Int!,
-      team: String!,
+      week: Int!
+      team: String!
       day: String!
-      ): SanitizedAttendance
+    ): SanitizedAttendance
   }
 
   input TraineeInput {
