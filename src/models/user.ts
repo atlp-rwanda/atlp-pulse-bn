@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import mongoose, { model, Schema } from 'mongoose'
 import { Profile } from './profile.model'
 
+
 export interface UserStatus {
   status: 'active' | 'drop' | 'suspended'
   reason?: string
@@ -44,6 +45,23 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      twoFactorAuth: {
+        type: Boolean,
+        default: false,
+      },
+      twoFactorSecret: {
+        type: String,
+  
+      },
+      oneTimeCode: {
+        type: String,
+        code: String,
+        required: false
+      },
+      oneTimeCodeExpiresAt: {
+        type: Date,
+        required: false
+      },
     },
     password: {
       type: String,
@@ -129,10 +147,14 @@ userSchema.virtual('ratings', {
   ref: 'Rating',
 })
 
-userSchema.methods.checkPass = async function (password: string) {
+userSchema.methods.ass = async function (password: string) {
   const pass = await bcrypt.compare(password, this.password)
   return pass
 }
+
+userSchema.methods.checkPass = async function(password: string): Promise<boolean> {
+  return bcrypt.compare(password, this.password);
+};
 
 userSchema.pre(
   'deleteOne',

@@ -76,6 +76,7 @@ const Schema = gql`
     emailNotifications: Boolean!
     status: StatusType
     ratings: [Rating]
+    twoFactorAuth:Boolean!
   }
   input RegisterInput {
     email: String!
@@ -86,6 +87,7 @@ const Schema = gql`
     email: String
     password: String
     orgToken: String
+  
   }
   input OrgInput {
     name: String
@@ -145,6 +147,9 @@ const Schema = gql`
   type Login {
     token: String
     user: User
+    message:String
+    otpRequired:Boolean
+    TwoWayVerificationToken:String
   }
   type OrgLogin {
     token: String
@@ -280,6 +285,11 @@ const Schema = gql`
     content: String
     createdAt: String
   }
+  type LoginResponse {
+  token: String!
+  user: User!
+  message: String!
+}
 
   type Query {
     getAllUsers(orgToken: String): [User]
@@ -305,9 +315,17 @@ const Schema = gql`
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
   }
-
+ 
   type Mutation {
     createUserRole(name: String!): UserRole!
+    
+    enableTwoFactorAuth(email: String!): String  
+    oneTimeCode: String!
+    disableTwoFactorAuth(email: String!): String  
+    loginWithTwoFactorAuthentication(email: String!, otp: String!, TwoWayVerificationToken: String!): LoginResponse!
+
+ 
+
     uploadResume(userId: ID!, resume: String!): Profile
     dropTTLUser(email: String!, reason: String!): String!
     createUser(
@@ -434,6 +452,7 @@ const Schema = gql`
       ttlEmail: String!
     ): Team!
   }
+
   type ratingSystem {
     id: ID!
     name: String!

@@ -2,6 +2,8 @@
 import { Octokit } from '@octokit/rest'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql'
+import { AuthenticationError } from 'apollo-server-errors';
+
 // import * as jwt from 'jsonwebtoken'
 import { JwtPayload, verify } from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
@@ -34,6 +36,11 @@ import organizationRejectedTemplate from '../utils/templates/organizationRejecte
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
+import { authenticator } from 'otplib'
+import { encodeOtpToToken, generateOtp } from '../utils/2WayAuthentication'
+import check2FA from '../resolvers/check2fa.resolvers';
+import jwt from 'jsonwebtoken'
+
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET: string = process.env.SECRET ?? 'test_secret'
@@ -46,7 +53,7 @@ enum Status {
   rejected = 'rejected',
 }
 
-async function logGeoActivity(user: any) {
+export async function logGeoActivity(user: any) {
   const ipResponse = await fetch('https://api.ipify.org?format=json')
   const { ip: realIp } = await ipResponse.json()
 
@@ -336,10 +343,13 @@ const resolvers: any = {
       _: any,
       { loginInput: { email, password, orgToken } }: any
     ) {
-      // get the organization if someone  logs in
-      const org: InstanceType<typeof Organization> =
-        await checkLoggedInOrganization(orgToken)
-
+      // Check organization validity
+      const org = await checkLoggedInOrganization(orgToken);
+      if (!org) {
+        throw new GraphQLError('Organization not found', { extensions: { code: 'InvalidOrganization' } });
+      }
+    
+      // Find user with populated fields
       const user: any = await User.findOne({ email }).populate({
         path: 'cohort',
         model: Cohort,
@@ -348,197 +358,66 @@ const resolvers: any = {
           path: 'program',
           model: Program,
           strictPopulate: false,
-          populate: {
-            path: 'organization',
-            model: Organization,
-            strictPopulate: false,
-          },
-        },
-      })
-
+          populate: { path: 'organization', model: Organization, strictPopulate: false }
+        }
+      });
+    
+      // Check if user exists
       if (!user) {
-        throw new GraphQLError('invalid credential', {
-          extensions: {
-            code: 'AccountNotFound',
-          },
-        })
-      } else if (user?.status?.status !== 'active') {
-        throw new GraphQLError(
-          `Your account have been ${
-            user?.status?.status ?? user?.status
-          }, please contact your organization admin for assistance`,
-          {
-            extensions: {
-              code: 'AccountInactive',
-            },
-          }
-        )
+        throw new GraphQLError('Invalid credentials', { extensions: { code: 'AccountNotFound' } });
       }
-      let attempts = await checkloginAttepmts(Profile, user)
-
-      if (await user?.checkPass(password)) {
-        if (
-          user?.role === RoleOfUser.TRAINEE &&
-          user?.organizations?.includes(org?.name)
-        ) {
-          if (
-            !user.cohort ||
-            user.cohort === null ||
-            !user.team ||
-            user.team === null
-          ) {
-            throw new Error('Please wait to be added to a program or cohort')
-          }
-          if (await isAssigned(org?.name, user._id)) {
-            const token = generateToken(user._id, user._doc?.role || 'user')
-
-            const geoData = await logGeoActivity(user)
-
-            const data = {
-              token: token,
-              user: user.toJSON(),
-              geoData,
-            }
-            return data
-          } else {
-            throw new Error(
-              'You are not assigned to any valid program or cohort in this organization.'
-            )
-          }
-        } else if (
-          user?.role === RoleOfUser.TTL &&
-          user?.organizations?.includes(org?.name)
-        ) {
-          if (user.cohort && user.team) {
-            const token = generateToken(user._id, user._doc?.role || 'user')
-
-            const geoData = await logGeoActivity(user)
-
-            const data = {
-              token: token,
-              user: user.toJSON(),
-              geoData,
-            }
-            return data
-          } else {
-            throw new Error('You are not assigned to any cohort ot team yet.')
-          }
-        }
-        const organization: any = await Organization.findOne({
-          name: org?.name,
-          admin: user.id,
-        })
-
-        if (user?.role === RoleOfUser.ADMIN) {
-          if (user?.organizations?.includes(org?.name)) {
-            const token = generateToken(user._id, user._doc?.role || 'user')
-
-            const geoData = await logGeoActivity(user)
-
-            const data = {
-              token: token,
-              user: user.toJSON(),
-              geoData,
-            }
-            return data
-          } else {
-            throw new Error('You do not have access to this organization.')
-          }
-        } else if (user?.role === RoleOfUser.MANAGER) {
-          const program: any = await Program.find({
-            manager: user.id,
-          }).populate({
-            path: 'organization',
-            model: Organization,
-            strictPopulate: false,
-          })
-          let checkProgramOrganization: any = false
-
-          for (const element of program) {
-            if (element.organization.name == org?.name) {
-              checkProgramOrganization = true
-            }
-          }
-          if (checkProgramOrganization) {
-            const managerToken = generateToken(
-              user._id,
-              user._doc?.role || 'user'
-            )
-
-            const geoData = await logGeoActivity(user)
-
-            const managerData = {
-              token: managerToken,
-              user: user.toJSON(),
-              geoData,
-            }
-            return managerData
-          } else {
-            throw new Error('You are not assigned to any program yet.')
-          }
-        } else if (user?.role === RoleOfUser.COORDINATOR) {
-          const cohort: any = await Cohort.find({
-            coordinator: user.id,
-          }).populate({
-            path: 'program',
-            model: Program,
-            strictPopulate: false,
-            populate: {
-              path: 'organization',
-              model: Organization,
-              strictPopulate: false,
-            },
-          })
-          let checkCohortOrganization: any = false
-
-          for (const element of cohort) {
-            if (element.program.organization.name == org?.name) {
-              checkCohortOrganization = true
-            }
-          }
-
-          if (checkCohortOrganization) {
-            const coordinatorToken = generateToken(
-              user._id,
-              user._doc?.role || 'user'
-            )
-
-            const geoData = await logGeoActivity(user)
-
-            const coordinatorData = {
-              token: coordinatorToken,
-              user: user.toJSON(),
-              geoData,
-            }
-            return coordinatorData
-          } else {
-            throw new Error('You are not assigned to any cohort yet.')
-          }
-        } else if (user?.role === RoleOfUser.SUPER_ADMIN) {
-          const superAdminToken = generateToken(
-            user._id,
-            user._doc?.role || 'user'
-          )
-
-          const geoData = await logGeoActivity(user)
-
-          const superAdminData = {
-            token: superAdminToken,
-            user: user.toJSON(),
-            geoData,
-          }
-          return superAdminData
-        } else {
-          throw new Error('Please wait to be added to a program or cohort')
-        }
+    
+      // Check if account is active
+      if (user.status?.status !== 'active') {
+        throw new GraphQLError(`Account is ${user.status?.status}. Contact admin.`, {
+          extensions: { code: 'AccountInactive' }
+        });
+      }
+    
+      // Check if two-factor authentication is enabled
+      if (user.twoFactorAuth) {
+        const otp = generateOtp(); // Generate OTP
+        const TwoWayVerificationToken = encodeOtpToToken(otp, email); // Encode OTP
+    
+        // Send email with OTP
+        await sendEmail(
+          email,
+          'Your One-Time Code for verification on your account',
+          `OTP CODE: ${otp}`,
+          null,
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        );
+    
+        // Return response with encoded OTP token and message
+        return {
+          message: 'Check your email for the OTP code.',
+          otpRequired: true,
+          TwoWayVerificationToken
+        };
       } else {
-        throw new GraphQLError('Invalid credential', {
-          extensions: {
-            code: 'UserInputError',
-          },
-        })
+        // Verify password if 2FA is not enabled
+        const passwordMatch = await user?.checkPass(password);
+        if (!passwordMatch) {
+          throw new GraphQLError('Invalid credentials', { extensions: { code: 'InvalidCredential' } });
+        }
+    
+        // Generate token for authenticated user
+        const token = jwt.sign(
+          { userId: user._id, role: user._doc?.role || 'user' },
+          SECRET,
+          { expiresIn: '2h' }
+        );
+    
+        const geoData = await logGeoActivity(user); // Log activity
+    
+        // Return token and user data
+        return { token, user: user.toJSON(), geoData };
       }
-    },
+    }
+    ,
+    
+    
 
     async deleteUser(_: any, { input }: any, context: { userId: any }) {
       const requester = await User.findById(context.userId)
