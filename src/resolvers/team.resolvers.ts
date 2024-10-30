@@ -308,6 +308,14 @@ const resolvers = {
             },
           })
         }
+        
+        if (ttlExist.team) {
+          throw new GraphQLError(`TTl with ${ttlEmail} already has a team`, {
+            extensions: {
+              code: 'VALIDATION_ERROR',
+            },
+          })
+        }
 
         const org = new Team({
           name,
