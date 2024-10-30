@@ -46,11 +46,9 @@ enum Status {
   rejected = 'rejected',
 }
 
-async function logGeoActivity(user: any) {
-  const ipResponse = await fetch('https://api.ipify.org?format=json')
-  const { ip: realIp } = await ipResponse.json()
+async function logGeoActivity(user: any, clientIpAdress: string) {
+  const response = await fetch(`https://ipapi.co/${clientIpAdress}/json/`)
 
-  const response = await fetch(`https://ipapi.co/${realIp}/json/`)
   const geoData = await response.json()
 
   const profile = await Profile.findOne({ user: user._id })
@@ -62,7 +60,7 @@ async function logGeoActivity(user: any) {
     profile.activity.push({
       country_code: geoData.country_code,
       country_name: geoData.country_name,
-      IPv4: realIp,
+      IPv4: clientIpAdress,
       city: geoData.city,
       state: geoData.region,
       postal: geoData.postal,
@@ -73,7 +71,7 @@ async function logGeoActivity(user: any) {
     })
     await profile.save()
   } else {
-    console.log('skipping activity due to incomplete geo data')
+    console.log('No data found in Geo API')
     profile.activity.push({
       failed: 1,
       date: new Date().toISOString(),
@@ -334,8 +332,11 @@ const resolvers: any = {
 
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken } }: any
+      { loginInput: { email, password, orgToken } }: any,
+      context: any
     ) {
+      const { clientIpAdress } = context
+
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
@@ -392,7 +393,7 @@ const resolvers: any = {
           if (await isAssigned(org?.name, user._id)) {
             const token = generateToken(user._id, user._doc?.role || 'user')
 
-            const geoData = await logGeoActivity(user)
+            const geoData = await logGeoActivity(user, clientIpAdress)
 
             const data = {
               token: token,
@@ -412,7 +413,7 @@ const resolvers: any = {
           if (user.cohort && user.team) {
             const token = generateToken(user._id, user._doc?.role || 'user')
 
-            const geoData = await logGeoActivity(user)
+            const geoData = await logGeoActivity(user, clientIpAdress)
 
             const data = {
               token: token,
@@ -433,7 +434,7 @@ const resolvers: any = {
           if (user?.organizations?.includes(org?.name)) {
             const token = generateToken(user._id, user._doc?.role || 'user')
 
-            const geoData = await logGeoActivity(user)
+            const geoData = await logGeoActivity(user, clientIpAdress)
 
             const data = {
               token: token,
@@ -465,7 +466,7 @@ const resolvers: any = {
               user._doc?.role || 'user'
             )
 
-            const geoData = await logGeoActivity(user)
+            const geoData = await logGeoActivity(user, clientIpAdress)
 
             const managerData = {
               token: managerToken,
@@ -503,7 +504,7 @@ const resolvers: any = {
               user._doc?.role || 'user'
             )
 
-            const geoData = await logGeoActivity(user)
+            const geoData = await logGeoActivity(user, clientIpAdress)
 
             const coordinatorData = {
               token: coordinatorToken,
@@ -520,7 +521,7 @@ const resolvers: any = {
             user._doc?.role || 'user'
           )
 
-          const geoData = await logGeoActivity(user)
+          const geoData = await logGeoActivity(user, clientIpAdress)
 
           const superAdminData = {
             token: superAdminToken,
