@@ -55,7 +55,7 @@ async function logGeoActivity(user: any) {
 
   const profile = await Profile.findOne({ user: user._id })
   if (!profile) {
-    return
+    return;
   }
 
   if (geoData.country_code && geoData.city) {

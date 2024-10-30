@@ -149,7 +149,9 @@ const manageStudentResolvers = {
 
         return trainees.filter((user: any) => {
           if (role === RoleOfUser.ADMIN) {
-            return user.team?.cohort?.program?.organization.name == org?.name
+            return (
+              user.team?.cohort?.program?.organization.name == org?.name
+            )
           }
           if (role === RoleOfUser.MANAGER) {
             return (
