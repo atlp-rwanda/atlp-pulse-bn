@@ -5,6 +5,8 @@ import { RoleOfUser, User, UserRole } from '../models/user'
 import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
 import Cohort from '../models/cohort.model'
+import Team from '../models/team.model'
+import mongoose, { ObjectId } from 'mongoose'
 
 const profileResolvers: any = {
   Query: {
@@ -272,10 +274,17 @@ const profileResolvers: any = {
         throw new Error('TTL user not found')
       }
       if (user.status?.status !== undefined) {
-    user.status.status = 'drop'; 
+        user.status.status = 'drop'; 
+        const team = await Team.findOne({ members: user._id }).exec();
+    if (team) {
+      team.members = team.members.filter(memberId => !(memberId as mongoose.Types.ObjectId).equals(user._id)); // Remove TTL from members
+      await team.save(); // Save the updated team
+    }
   } else {
     throw new Error('User status property does not exist');
-  }
+      } 
+      user.set('team', undefined, { strict: false });
+      user.set('cohort', undefined, { strict: false });
       await user.save();
       await sendEmail(
         user.email,
