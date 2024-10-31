@@ -57,6 +57,29 @@ const seedCohorts = async () => {
       endDate: new Date(),
       organization: andelaOrg[0]._id.toHexString(),
     },
+    {
+      name: 'Ndevu 12',
+      phase: phases[0]._id.toHexString(),
+      coordinator: andelCoord[0]._id.toHexString(),
+      program: andelaPrograms[0]._id.toHexString(),
+      teams: 1,
+      active: true,
+      startDate: new Date(),
+      endDate: new Date(),
+      organization: andelaOrg[0]._id.toHexString(),
+    },
+    {
+      name: 'Ndevu Project',
+      phase: phases[1]._id.toHexString(),
+      coordinator: andelCoord[0]._id.toHexString(),
+      program: andelaPrograms[0]._id.toHexString(),
+      teams: 1,
+      active: true,
+      startDate: new Date(),
+      endDate: new Date(),
+      organization: andelaOrg[0]._id.toHexString(),
+    },
+
 
     // Irembo
     {

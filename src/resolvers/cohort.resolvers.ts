@@ -44,24 +44,24 @@ const resolvers = {
         }
 
         const managerMatch = { organization: org?.id, manager: userId }
-        const adminMatch = { _id: org?.id, admin: userId }
 
         return (
-          await Cohort.find().populate({
-            path: 'program',
-            match: role === RoleOfUser.MANAGER && managerMatch,
-            model: Program,
-            strictPopulate: false,
-            populate: {
-              path: 'organization',
-              match: role === RoleOfUser.ADMIN && adminMatch,
-              model: Organization,
+          await Cohort.find()
+            .sort({ _id: -1 }) // Sort by _id in descending order
+            .populate({
+              path: 'program',
+              match: role === RoleOfUser.MANAGER && managerMatch,
+              model: Program,
               strictPopulate: false,
-            },
-          })
+              populate: {
+                path: 'organization',
+                match: role === RoleOfUser.ADMIN ? { _id: org?.id } : undefined,
+                model: Organization,
+                strictPopulate: false,
+              },
+            })
         ).filter((item) => {
-          const org = (item.program as InstanceType<typeof Program>)
-            ?.organization
+          const org = (item.program as InstanceType<typeof Program>)?.organization
           return item.program !== null && org !== null
         })
       } catch (error) {
@@ -147,7 +147,7 @@ const resolvers = {
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
         ) {
-          throw new GraphQLError("End Date can't be before Start Date", {
+          throw new GraphQLError('End Date can\'t be before Start Date', {
             extensions: {
               code: 'VALIDATION_ERROR',
             },
@@ -283,11 +283,11 @@ const resolvers = {
       if (
         endDate &&
         (isAfter(new Date(startDate.toString()),
-         new Date(endDate.toString())) ||
+          new Date(endDate.toString())) ||
         isAfter(new Date(cohort?.startDate?.toString() || ''),
-         new Date(endDate)))
-     ) {
-        throw new GraphQLError("End Date can't be before Start Date", {
+          new Date(endDate)))
+      ) {
+        throw new GraphQLError('End Date can\'t be before Start Date', {
           extensions: {
             code: 'VALIDATION_ERROR',
           },
