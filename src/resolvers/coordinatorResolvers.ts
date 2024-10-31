@@ -17,6 +17,7 @@ import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
 import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 import { Context } from './../context'
+import { Document, ObjectId } from 'mongoose'
 
 const SECRET: string = process.env.SECRET as string
 
@@ -33,6 +34,14 @@ interface Trainee {
 
 enum UserRoles {
   TTL = 'ttl',
+}
+
+interface Cohort extends Document {
+  _id: ObjectId
+}
+
+interface Team extends Document {
+  cohort: Cohort
 }
 
 const manageStudentResolvers = {
@@ -468,10 +477,20 @@ const manageStudentResolvers = {
                     await attendData.save()
                   }
                 } else {
+                  const teamWithCohort = await Team.findOne({ name: teamName })
+                    .populate('cohort')
+                    .exec()
+
+                  if (!teamWithCohort || !teamWithCohort.cohort) {
+                    throw new Error('Team or cohort information not found')
+                  }
+
                   const newAttendRecord = new Attendance({
                     week: 1,
                     coordinatorId: [userId],
                     trainees: [newTrainee],
+                    cohort: (teamWithCohort.cohort as { _id: ObjectId })._id,
+                    phase: new Types.ObjectId(),
                   })
                   await newAttendRecord.save()
                 }
