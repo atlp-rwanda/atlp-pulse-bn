@@ -3,7 +3,7 @@ import { RoleOfUser, User } from '../models/user'
 import { Context } from './../context'
 import * as jwt from 'jsonwebtoken'
 
-const SECRET: string = process.env.SECRET as string
+const SECRET: string = process.env.SECRET || 'will'
 
 export const generateToken = (userId: string, role: string) => {
   return jwt.sign({ userId, role }, SECRET, { expiresIn: '2h' })
@@ -11,13 +11,14 @@ export const generateToken = (userId: string, role: string) => {
 export const generateTokenUserExists = (email: string) => {
   return jwt.sign({ email }, SECRET, { expiresIn: '2d' })
 }
+// should be in a try .. catch block
 export const generateTokenOrganization = (name: string) => {
   return jwt.sign({ name }, SECRET, { expiresIn: '336h' })
 }
 
- export const genericToken=(playLoad:any)=>{
-   return jwt.sign({...playLoad},SECRET)
- }
+export const genericToken=(playLoad:any)=>{
+  return jwt.sign({...playLoad},SECRET)
+}
 
 
 export const emailExpression =
