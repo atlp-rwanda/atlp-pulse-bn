@@ -1,6 +1,6 @@
 name: Docker Image
 on:
-  pull:
+  pull_request:
     branches:
       - develop
   workflow_dispatch:
