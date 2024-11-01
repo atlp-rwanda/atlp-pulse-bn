@@ -40,6 +40,12 @@ const seedUsers = async () => {
         githubUserName: '',
       },
       {
+        firstName: 'Kagabo',
+        lastName: 'Darius',
+        email: 'kagabodarius@gmail.com',
+        githubUserName: '',
+      },
+      {
         firstName: 'Ndayambaje',
         lastName: 'Virgile',
         email: 'ndayambajevgschooling@gmail.com',
@@ -101,7 +107,8 @@ const seedUsers = async () => {
         if (
           registerUsers.filter(
             (user) =>
-              user.organizations.includes(orgName) && user.role === RoleOfUser.ADMIN
+              user.organizations.includes(orgName) &&
+              user.role === RoleOfUser.ADMIN
           ).length === usersTypes.admin
         )
           break
@@ -118,7 +125,8 @@ const seedUsers = async () => {
         if (
           registerUsers.filter(
             (user) =>
-              user.organizations.includes(orgName) && user.role === RoleOfUser.MANAGER
+              user.organizations.includes(orgName) &&
+              user.role === RoleOfUser.MANAGER
           ).length === usersTypes.manager
         )
           break
