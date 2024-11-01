@@ -16,6 +16,7 @@ const Schema = gql`
 
   type Query {
     getAllCohorts(orgToken: String): [Cohort!]
+    getUserCohorts(orgToken: String): [Cohort]!
   }
   type Mutation {
     addCohort(

@@ -255,6 +255,73 @@ const resolvers = {
         })
       }
     },
+    // get teams by cohortId -- teams are fetched depending on the user's role
+    getTeamsByCohort: async(_:any, {cohortId, orgToken}:{cohortId: string,orgToken: string}, context: Context)=>{
+      const {userId, role} = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN,RoleOfUser.MANAGER,RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+      const user = await User.findById(userId)
+      if(!user){
+        throw new GraphQLError("No such user found",{
+          extensions: {
+            code: 'USER_NOT_FOUND'
+          }
+        })
+      }
+      const org = await checkLoggedInOrganization(orgToken)
+      if(!org){
+        throw new GraphQLError("No organization found",{
+          extensions: {
+            code: 'ORGANIZATION_NOT_FOUND'
+          }
+        })
+      }
+      if(!user.organizations.includes(org.name)){
+        throw new GraphQLError(`User ${user.email} is not part of organization ${org.name}`, {
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      const cohort = await Cohort.findById(cohortId)
+      if(!cohort){
+        throw new GraphQLError("No such cohort found", {
+          extensions: {
+            code: "COHORT_NOT_FOUND"
+          }
+        })
+      }
+      if(cohort.organization.toString() !== org._id.toString()){
+        throw new GraphQLError(`Cohort ${cohort.name} is not part of organization ${org.name}`, {
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      switch(role){
+        case RoleOfUser.ADMIN:
+        case RoleOfUser.MANAGER:
+        case RoleOfUser.COORDINATOR:
+          const coordinatorTeams = await Team.find({
+            cohort: cohort._id,
+            organization: org._id
+          }).populate('members')
+          return coordinatorTeams
+
+        case RoleOfUser.TTL:
+          const ttlTeam  = await Team.findOne({
+            cohort: cohortId,
+            ttl: user._id,
+            organization: org._id
+          }).populate('members')
+          return [ttlTeam]
+
+        default:
+          throw new GraphQLError("Invalid user role",{
+            extensions: {
+              code: "FORBIDDEN"
+            }
+          })
+      }
+    }
   },
   Mutation: {
     addTeam: async (
