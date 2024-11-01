@@ -14,7 +14,7 @@ jobs:
       REGISTER_ORG_FRONTEND_URL: "https://beta.devpulse.org/signup/org"
       FRONTEND_LINK: "https://beta.devpulse.org"
       NODE_ENV: "production"
-      SECRET: ${{ secrets.SECRET }} 
+      SECRET: "re-power"
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }} 
       ADMIN_PASS: ${{ secrets.ADMIN_PASS }} 
       COORDINATOR_EMAIL: ${{ secrets.COORDINATOR_EMAIL }} 
