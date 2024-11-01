@@ -12,6 +12,7 @@ import { ProgramType } from './program.resolvers'
 import { OrganizationType } from './userResolver'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { Types } from 'mongoose'
+import { addNewAttendanceWeek } from '../utils/cron-jobs/team-jobs'
 
 export type CohortType = InstanceType<typeof Cohort>
 
@@ -135,8 +136,8 @@ const resolvers = {
           orgToken,
         } = args
 
-        // some validations
-        ;(await checkUserLoggedIn(context))([
+          // some validations
+          ; (await checkUserLoggedIn(context))([
           RoleOfUser.SUPER_ADMIN,
           RoleOfUser.ADMIN,
           RoleOfUser.MANAGER,
@@ -215,7 +216,7 @@ const resolvers = {
           `You\'ve been assigned a new cohort "${name}"`,
           senderId
         )
-
+        addNewAttendanceWeek()
         return newCohort
       } catch (error) {
         const { message } = error as { message: any }
@@ -401,9 +402,10 @@ const resolvers = {
         cohort.name = name
         notificationChanges.push('Name')
       }
-      if (phaseName && cohort?.phase?.toString() !== phase?.id?.toString()) {
+      if (phaseName && cohort.phase.toString() !== phase.id.toString()) {
         cohort.phase = phase.id;
-        notificationChanges.push('Phase');
+        addNewAttendanceWeek();
+        notificationChanges.push('Phase')
       }
 
       if (

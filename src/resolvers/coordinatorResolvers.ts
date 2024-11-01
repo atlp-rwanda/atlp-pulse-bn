@@ -439,64 +439,6 @@ const manageStudentResolvers = {
           }
 
           if (!user.team) {
-            // add trainee to attendance
-
-            if (role === RoleOfUser.COORDINATOR) {
-              const attendanceRecords: any = Attendance.find({
-                coordinatorId: userId,
-              })
-
-              const traineeArray = (await attendanceRecords).map(
-                (data: any) => data.trainees
-              )
-
-              let traineeEmailExists = false
-              for (const weekTrainees of traineeArray) {
-                for (const trainee of weekTrainees) {
-                  if (trainee.traineeEmail === email) {
-                    traineeEmailExists = true
-                    break
-                  }
-                }
-              }
-              if (!traineeEmailExists) {
-                // create new trainee
-                const newTrainee: Trainee = {
-                  traineeId: user.id,
-                  traineeEmail: email,
-                  status: [],
-                }
-
-                const attendanceLength: any = await Attendance.find({
-                  coordinatorId: userId,
-                })
-
-                if (attendanceLength.length > 0) {
-                  for (const attendData of attendanceLength) {
-                    attendData.trainees.push(newTrainee)
-                    await attendData.save()
-                  }
-                } else {
-                  const teamWithCohort = await Team.findOne({ name: teamName })
-                    .populate('cohort')
-                    .exec()
-
-                  if (!teamWithCohort || !teamWithCohort.cohort) {
-                    throw new Error('Team or cohort information not found')
-                  }
-
-                  const newAttendRecord = new Attendance({
-                    week: 1,
-                    coordinatorId: [userId],
-                    trainees: [newTrainee],
-                    cohort: (teamWithCohort.cohort as { _id: ObjectId })._id,
-                    phase: new Types.ObjectId(),
-                  })
-                  await newAttendRecord.save()
-                }
-              }
-            }
-
             user.team = team.id
             user.cohort = team.cohort.id
             user.role = 'trainee'

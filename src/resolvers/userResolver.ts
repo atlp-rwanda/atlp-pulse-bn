@@ -34,6 +34,7 @@ import organizationRejectedTemplate from '../utils/templates/organizationRejecte
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
+import { UserInputError } from 'apollo-server'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET: string = process.env.SECRET as string
@@ -85,7 +86,7 @@ async function logGeoActivity(user: any, clientIpAdress: string) {
 const resolvers: any = {
   Query: {
     async getOrganizations(_: any, __: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
 
       return Organization.find()
     },
@@ -139,7 +140,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.COORDINATOR,
         'trainee',
@@ -151,7 +152,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -231,6 +232,12 @@ const resolvers: any = {
         },
       }
     },
+  },
+  Login: {
+    user: async (parent: any) => {
+      const user = await User.findById(parent.user.id)
+      return user;
+    }
   },
   Mutation: {
     async createUser(
@@ -365,8 +372,7 @@ const resolvers: any = {
         })
       } else if (user?.status?.status !== 'active') {
         throw new GraphQLError(
-          `Your account have been ${
-            user?.status?.status ?? user?.status
+          `Your account have been ${user?.status?.status ?? user?.status
           }, please contact your organization admin for assistance`,
           {
             extensions: {
@@ -623,9 +629,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
+      if (!roleExists) throw new Error('This role doesn\'t exist')
       const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+      if (!userExists) throw new Error('User doesn\'t exist')
 
       const getAllUsers = await User.find({
         role: RoleOfUser.ADMIN,
@@ -851,7 +857,7 @@ const resolvers: any = {
       context: Context
     ) {
       // check if requester is super admin
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
@@ -921,7 +927,7 @@ const resolvers: any = {
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
@@ -986,7 +992,7 @@ const resolvers: any = {
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1079,7 +1085,7 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1087,7 +1093,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -1165,7 +1171,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()
