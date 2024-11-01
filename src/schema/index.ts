@@ -305,6 +305,7 @@ const Schema = gql`
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
     dropTTLUser(email: String!, reason: String!): String!
+    undropTTLUser(email: String!): String!
     createUser(
       firstName: String!
       lastName: String!

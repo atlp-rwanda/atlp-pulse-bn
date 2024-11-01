@@ -5,6 +5,8 @@ import { RoleOfUser, User, UserRole } from '../models/user'
 import { Profile } from '../models/profile.model'
 import { sendEmail } from '../utils/sendEmail'
 import Cohort from '../models/cohort.model'
+import Team from '../models/team.model'
+import mongoose, { ObjectId } from 'mongoose'
 
 const profileResolvers: any = {
   Query: {
@@ -271,7 +273,19 @@ const profileResolvers: any = {
       if (!user) {
         throw new Error('TTL user not found')
       }
-      await user.remove()
+      if (user.status?.status !== undefined) {
+        user.status.status = 'drop'; 
+        const team = await Team.findOne({ members: user._id }).exec();
+    if (team) {
+      team.members = team.members.filter(memberId => !(memberId as mongoose.Types.ObjectId).equals(user._id)); // Remove TTL from members
+      await team.save(); // Save the updated team
+    }
+  } else {
+    throw new Error('User status property does not exist');
+      } 
+      user.set('team', undefined, { strict: false });
+      user.set('cohort', undefined, { strict: false });
+      await user.save();
       await sendEmail(
         user.email,
         'Dropped',
@@ -282,6 +296,34 @@ const profileResolvers: any = {
       )
       return `TTL user with email ${email} has been deleted. with Reason :${reason} `
     },
+    
+      undropTTLUser: async (
+      _: any,
+      { email }: { email: string },
+      context: Context
+    ) => {
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
+      const user = await User.findOne({ email, role: 'ttl' }).exec()
+      if (!user) {
+        throw new Error('TTL user not found')
+      }
+      if (user.status?.status !== undefined) {
+    user.status.status = 'active'; 
+  } else {
+    throw new Error('User status property does not exist');
+  }
+      await user.save();
+      await sendEmail(
+        user.email,
+        'Undropped',
+        'welcome back',
+        'To our Organisation',
+        process.env.COORDINATOR_EMAIL,
+        process.env.COORDINATOR_PASS
+      )
+      return `TTL user with email ${email} has Returned to our organisation. `
+    },
+
     updateCoverImage: async (parent: any, args: any, context: any) => {
       try {
         const { cover }: any = args
