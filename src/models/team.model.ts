@@ -77,6 +77,7 @@ const teamSchema = new Schema(
         return team
       },
     },
+    timestamps: true,
   }
 )
 

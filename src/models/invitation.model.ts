@@ -49,13 +49,8 @@ const InvitationSchema = new Schema({
   invitationToken:{
     type: String,
     maxlength: 2048,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-    required: true,
-  },
-})
+  }
+}, { timestamps: true })
 
 const Invitation = mongoose.model('Invitation', InvitationSchema)
 export { Invitation }

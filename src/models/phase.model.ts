@@ -22,7 +22,7 @@ const phaseSchema = new Schema({
     ref: 'Organization',
     required: true,
   },
-});
+}, {timestamps: true});
 
 const Phase = mongoose.model('Phase', phaseSchema);
 export default Phase;

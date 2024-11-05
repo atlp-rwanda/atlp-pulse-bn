@@ -33,7 +33,7 @@ const systemRating = mongoose.model(
       ref: 'Organization',
       required: true,
     },
-  })
+  }, {timestamps: true})
 )
 
 export { systemRating }
