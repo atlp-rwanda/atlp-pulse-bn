@@ -69,18 +69,16 @@ const Schema = gql`
   }
   type User {
     id: ID!
-    role: String!
     email: String!
     password: String!
-    profile: Profile
-    team: Team
-    cohort: Cohort
-    program: Program
-    organizations: [String!]!
-    pushNotifications: Boolean!
-    emailNotifications: Boolean!
-    status: StatusType
-    ratings: [Rating]
+    organizations: [OrgUserData!]!
+    firstName: String
+    lastName: String
+    name: String
+    address: String
+    city: String
+    country: String
+    phoneNumber: String
   }
   input RegisterInput {
     email: String!
@@ -112,13 +110,6 @@ const Schema = gql`
     id: ID!
     user: User!
     activity: [Activity]
-    firstName: String
-    lastName: String
-    name: String
-    address: String
-    city: String
-    country: String
-    phoneNumber: String
     biography: String
     avatar: String
     cover: String
@@ -164,6 +155,21 @@ const Schema = gql`
     status: String
     gitHubOrganisation: String
     activeRepos: [String]
+  }
+
+  type OrgUserData {
+    id: ID!
+    orgId: Organization!
+    role: String!
+    profile: Profile
+    program: Program
+    phase: Phase
+    cohort: Cohort
+    team: Team
+    status: StatusType
+    ratings: [Rating]
+    pushNotifications: Boolean!
+    emailNotifications: Boolean!
   }
 
   type GitHubActivity {
