@@ -671,6 +671,7 @@ const manageStudentResolvers = {
             const Attendances: any[] = await Attendance.find({
               coordinatorId: userId,
             })
+            if(traineeAttendance?.trainees){
             const traineeExist = traineeAttendance.trainees.findIndex(
               (data: any) => data.traineeEmail === email
             )
@@ -685,6 +686,7 @@ const manageStudentResolvers = {
                 }
               }
             }
+          }
           }
 
           checkMember.team.members = checkMember.team?.members.filter(
