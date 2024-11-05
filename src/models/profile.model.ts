@@ -15,24 +15,6 @@ const ActivitySchema = new mongoose.Schema({
 
 const profileSchema = new Schema(
   {
-    firstName: {
-      type: String,
-    },
-    lastName: {
-      type: String,
-    },
-    address: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
-    phoneNumber: {
-      type: String,
-    },
     biography: {
       type: String,
     },
@@ -41,12 +23,6 @@ const profileSchema = new Schema(
     },
     cover: {
       type: String,
-    },
-    gender: {
-      type: String,
-    },
-    dateOfBirth: {
-      type: Date,
     },
     activity: [ActivitySchema],
     user: {
@@ -67,10 +43,6 @@ const profileSchema = new Schema(
     toObject: { virtuals: true },
   }
 )
-
-profileSchema.virtual('name').get(function () {
-  return this.firstName + ' ' + this.lastName
-})
 
 const Profile = mongoose.model('Profile', profileSchema)
 export { Profile }
