@@ -1,5 +1,5 @@
 import Ticket from '../models/ticket.model'
-import { RoleOfUser, User } from '../models/user'
+import User, { RoleOfUser } from '../models/user'
 
 const generateSubject = (userId: string): string => {
   const subjects = [
@@ -30,12 +30,22 @@ const generateMessage = (userId: string): string => {
 const seedTickets = async (): Promise<void> => {
   try {
     await Ticket.deleteMany({})
-    const assignees = await User.find({ role: 'user' }).select('_id')
+    const assignees = await User.find({
+      organizations: {
+        $elemMatch: {
+          role: 'user',
+        }
+      },
+    }).select('_id')
     if (assignees.length === 0) {
       throw new Error('No assignees found with the role "user".')
     }
     const user = await User.findOne({
-      role: { $in: [RoleOfUser.ADMIN, RoleOfUser.COORDINATOR] },
+      organizations: {
+        $elemMatch: {
+          role: {$in: [RoleOfUser.ADMIN, RoleOfUser.COORDINATOR]},
+        }
+      },
     }).select('_id')
     if (!user) {
       throw new Error('No user found with the role "admin" or "coordinator".')

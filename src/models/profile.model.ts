@@ -1,4 +1,31 @@
-import mongoose, { model, Schema } from 'mongoose'
+import mongoose, { model, Schema, Document } from 'mongoose'
+
+interface IActivity extends mongoose.Types.Subdocument{
+  id?: string,
+  country_code?: string ,
+  country_name?: string,
+  IPv4?: string,
+  city?: string,
+  state?: string,
+  postal?: string,
+  latitude?: number,
+  longitude?: number,
+  failed?: number, 
+  date?: Date,
+}
+
+export interface IProfile extends Document{
+  id?: string,
+  orgId: mongoose.Types.ObjectId,
+  biography?: string,
+  avatar?: string,
+  cover?: string,
+  activity: IActivity[],
+  user: mongoose.Types.ObjectId,
+  githubUsername?: string,
+  resume?: string,
+  isDeleted?: Boolean;
+}
 
 const ActivitySchema = new mongoose.Schema({
   country_code: { type: String },
@@ -15,6 +42,11 @@ const ActivitySchema = new mongoose.Schema({
 
 const profileSchema = new Schema(
   {
+    orgId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
+    },
     biography: {
       type: String,
     },
@@ -26,17 +58,16 @@ const profileSchema = new Schema(
     },
     activity: [ActivitySchema],
     user: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      unique: true,
     },
     githubUsername: {
       type: String,
     },
     resume: {
       type: String,
-    },
+    }
   },
   {
     toJSON: { virtuals: true },

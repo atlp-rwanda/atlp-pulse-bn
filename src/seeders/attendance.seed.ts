@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { RoleOfUser, User } from '../models/user'
+import User, { RoleOfUser } from '../models/user'
 import { Attendance } from '../models/attendance.model'
 
 const seedAttendance = async () => {

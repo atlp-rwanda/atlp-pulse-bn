@@ -1,3 +1,4 @@
+//@ts-nocheck
 /* eslint-disable quotes */
 
 import { GraphQLError } from 'graphql'

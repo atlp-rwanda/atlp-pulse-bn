@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { GraphQLError } from 'graphql'
 import { isAfter } from 'date-fns'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'

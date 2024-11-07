@@ -35,8 +35,8 @@ export const addNewAttendanceWeek = async () => {
     const teams = await Team.find({ active: true, isJobActive: true }).populate('cohort');
 
     for (const team of teams) {
-      const phase = team.phase || (team.cohort as CohortInterface).phase
-      const attendances = await Attendance.find({ cohort: (team.cohort as CohortInterface)._id, phase: phase });
+      const phase = team.phase || (team.cohort as unknown as CohortInterface).phase
+      const attendances = await Attendance.find({ cohort: (team.cohort as unknown as CohortInterface)._id, phase: phase });
 
       let lastWeek = 0;
       let attendanceIndex: number | undefined;
@@ -64,7 +64,7 @@ export const addNewAttendanceWeek = async () => {
           }
         );
         if (!isInSameWeek && (new Date().getTime() > new Date(teamAttendanceDate).getTime())) {
-          const attendanceExist = await Attendance.findOne({ week: (lastWeek + 1), phase: phase, cohort: (team.cohort as CohortInterface)._id })
+          const attendanceExist = await Attendance.findOne({ week: (lastWeek + 1), phase: phase, cohort: (team.cohort as unknown as CohortInterface)._id })
           if (attendanceExist) {
             completedTeamsId.push(team._id.toString());
             attendanceExist.teams.push({
@@ -73,11 +73,11 @@ export const addNewAttendanceWeek = async () => {
             })
             await attendanceExist.save()
           } else {
-            const tempTeams = await Team.find({ active: true, isJobActive: true, cohort: (team.cohort as CohortInterface)._id }).populate('cohort')
+            const tempTeams = await Team.find({ active: true, isJobActive: true, cohort: (team.cohort as unknown as CohortInterface)._id }).populate('cohort')
             await Attendance.create({
               week: (lastWeek + 1),
               phase,
-              cohort: (team.cohort as CohortInterface)._id,
+              cohort: (team.cohort as unknown as CohortInterface)._id,
               teams: tempTeams.map(team => {
                 if (!completedTeamsId.includes(team._id.toString()) && team.phase && (team.phase as mongoose.Types.ObjectId).equals(phase.toString())) {
                   return { team, trainees: [] };
@@ -91,7 +91,7 @@ export const addNewAttendanceWeek = async () => {
         }
       }
       if (attendances.length && attendanceIndex === undefined) {
-        const tempAttendance = await Attendance.findOne({ week: (lastWeek + 1), phase, cohort: (team.cohort as CohortInterface)._id }).populate('cohort')
+        const tempAttendance = await Attendance.findOne({ week: (lastWeek + 1), phase, cohort: (team.cohort as unknown as CohortInterface)._id }).populate('cohort')
         tempAttendance?.teams.push({
           team: team._id,
           trainees: []
@@ -99,13 +99,13 @@ export const addNewAttendanceWeek = async () => {
         await tempAttendance?.save();
       }
       if (!attendances.length) {
-        const tempTeams = await Team.find({ active: true, isJobActive: true, cohort: (team.cohort as CohortInterface)._id }).populate('cohort')
+        const tempTeams = await Team.find({ active: true, isJobActive: true, cohort: (team.cohort as unknown as CohortInterface)._id }).populate('cohort')
         await Attendance.create({
           week: (lastWeek + 1),
           phase,
-          cohort: (team.cohort as CohortInterface)._id,
+          cohort: (team.cohort as unknown as CohortInterface)._id,
           teams: tempTeams.map(team => {
-            const isPhaseTrue = (team.phase && (team.phase as mongoose.Types.ObjectId).equals(phase.toString())) || ((team.cohort as CohortInterface).phase as unknown as mongoose.Types.ObjectId).equals(phase.toString())
+            const isPhaseTrue = (team.phase && (team.phase as mongoose.Types.ObjectId).equals(phase.toString())) || ((team.cohort  as unknown as CohortInterface).phase as unknown as mongoose.Types.ObjectId).equals(phase.toString())
             if (!completedTeamsId.includes(team._id.toString()) && isPhaseTrue) {
               return { team, trainees: [] };
             }

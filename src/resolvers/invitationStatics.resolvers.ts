@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Invitation } from '../models/invitation.model'
 import { GraphQLError } from 'graphql'

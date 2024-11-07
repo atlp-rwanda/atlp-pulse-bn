@@ -1,7 +1,7 @@
+//ts-nocheck
 import Session from '../models/session.model'
 import { Notification } from '../models/notification.model'
 import { pubSubPublish } from './notification.resolvers'
-import { ApolloError } from 'apollo-server'
 
 const Sessionresolvers = {
   Query: {

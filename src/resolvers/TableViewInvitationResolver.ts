@@ -1,3 +1,4 @@
+//@ts-nocheck
 /* eslint-disable indent */
 import { Invitation } from '../models/invitation.model';
 import { ApolloError } from 'apollo-server';

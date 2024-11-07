@@ -3,12 +3,12 @@ import mongoose, { Schema } from 'mongoose'
 const ticketSchema = new Schema(
   {
     user: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
     assignee: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: false,
     },
@@ -28,12 +28,12 @@ const ticketSchema = new Schema(
     replies: [
       {
         sender: {
-          type: mongoose.Types.ObjectId,
+          type: Schema.Types.ObjectId,
           ref: 'User',
           required: true,
         },
         receiver: {
-          type: mongoose.Types.ObjectId,
+          type: Schema.Types.ObjectId,
           ref: 'User',
           required: true,
         },

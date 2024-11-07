@@ -6,12 +6,12 @@ const AttendanceSchema = new Schema({
     required: true,
   },
   phase: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Phase',
     required: true,
   },
   cohort: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Cohort',
     required: true,
   },
@@ -31,14 +31,14 @@ const AttendanceSchema = new Schema({
         },
       },
       team: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Team',
         required: true
       },
       trainees: [
         {
           trainee: {
-            type: mongoose.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'User',
           },
           status: [

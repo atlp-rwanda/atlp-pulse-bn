@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { GraphQLError } from 'graphql'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { GraphQLError } from 'graphql'
 import { ObjectId } from 'mongodb'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'

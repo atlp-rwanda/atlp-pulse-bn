@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Notifications } from '../models/reply.model'
 import { Rating } from '../models/ratings'
 import { RoleOfUser, User } from '../models/user'

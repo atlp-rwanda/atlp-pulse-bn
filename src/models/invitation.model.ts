@@ -16,7 +16,7 @@ const ROLE = {
 }
 const InvitationSchema = new Schema({
   inviterId: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },

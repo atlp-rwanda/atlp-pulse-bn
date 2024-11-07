@@ -1,11 +1,10 @@
-import mongoose, { Schema } from 'mongoose'
-import { User } from './user'
-import { PhaseInterface } from './phase.model';
+import mongoose, { Schema, Document } from 'mongoose'
+import User from './user'
 
-export interface CohortInterface {
-  _id: mongoose.Types.ObjectId;
+export interface CohortInterface extends Document {
+  id?: string;
   name: string;
-  phase: PhaseInterface;
+  phase: mongoose.Types.ObjectId;
   coordinator: mongoose.Types.ObjectId;
   members: mongoose.Types.ObjectId[];
   program: mongoose.Types.ObjectId;
@@ -14,6 +13,7 @@ export interface CohortInterface {
   startDate: Date;
   endDate?: Date; // Optional
   organization: mongoose.Types.ObjectId;
+  isDeleted?: Boolean;
 }
 
 const cohortSchema = new Schema(
@@ -24,21 +24,20 @@ const cohortSchema = new Schema(
       required: true,
     },
     phase: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: 'Phase',
     },
     coordinator: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     members: {
-      type: [mongoose.Types.ObjectId],
+      type: [Schema.Types.ObjectId],
       ref: 'User',
     },
     program: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: 'Program',
     },
@@ -59,7 +58,7 @@ const cohortSchema = new Schema(
       type: Date,
     },
     organization: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Organization',
       required: true,
     },

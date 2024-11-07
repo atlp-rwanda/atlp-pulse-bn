@@ -1,39 +1,57 @@
 import bcrypt from 'bcryptjs'
-import mongoose, { model, Schema } from 'mongoose'
+import mongoose, { model, Types, Schema, Model } from 'mongoose'
 import { Profile } from './profile.model'
+import { Rating } from './ratings';
+
+export enum USER_STATUS_ENUM{
+  ACTIVE="active",
+  DROP="drop",
+  SUSPENDED="suspended"
+}
 
 export interface UserStatus {
-  status: 'active' | 'drop' | 'suspended'
-  reason?: string
-  date?: Date
+  status: USER_STATUS_ENUM,
+  reason?: string,
+  date?: Date,
 }
-export interface OrgUserDataInterface{
-  _id: mongoose.Types.ObjectId;
-  orgId: mongoose.Types.ObjectId;
+export interface IOrgUserData{
+  _id: Types.ObjectId,
+  id?: string;
+  orgId: Types.ObjectId;
   role: string;
-  team?: mongoose.Types.ObjectId;
-  status: UserStatus;
-  cohort?: mongoose.Types.ObjectId;
-  program?: mongoose.Types.ObjectId;
-  phase?: mongoose.Types.ObjectId;
+  team?: Types.ObjectId;
+  status?: UserStatus;
+  cohort?: Types.ObjectId;
+  program?: Types.ObjectId;
+  phase?: Types.ObjectId;
+  profile?: Types.ObjectId;
   pushNotifications: boolean;
   emailNotifications: boolean;
-  ratings?: mongoose.Types.ObjectId[];
+  isDeleted: boolean;
 }
 
-export interface UserInterface {
-  _id: mongoose.Types.ObjectId;
+export interface IUser{
+  id?: string;
   email: string;
   password: string;
-  organizations: mongoose.Types.ObjectId[];
-  firstName: String;
-  lastName: String;
-  name: String;
-  address: String;
-  city: String;
-  country: String;
-  phoneNumber: String;
+  organizations: Types.DocumentArray<IOrgUserData>;
+  firstName?: string;
+  lastName?: string;
+  gender?: string;
+  name?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  phoneNumber?: string;
+  dateOfBirth?: Date;
+  isDeleted: boolean
 }
+
+export interface IUserMethods {
+  checkPass(password: string): Promise<boolean>
+}
+
+type UserModel = Model<IUser,{},IUserMethods>
 
 export enum RoleOfUser {
   TRAINEE = 'trainee',
@@ -51,9 +69,9 @@ mongoose.set('toJSON', {
   },
 })
 
-const orgUserDataSchema = new Schema({
+const orgUserDataSchema = new Schema<IOrgUserData>({
   orgId: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: true,
     ref: 'Organization',
   },
@@ -62,15 +80,15 @@ const orgUserDataSchema = new Schema({
     default: 'user',
   },
   team: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: false,
     ref: 'Team',
   },
   status: {
     status: {
       type: String,
-      enum: ['active', 'drop', 'suspended'],
-      default: 'active',
+      enum: Object.values(USER_STATUS_ENUM),
+      default: USER_STATUS_ENUM.ACTIVE,
     },
     reason: String,
     date: {
@@ -78,19 +96,24 @@ const orgUserDataSchema = new Schema({
     },
   },
   cohort: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: false,
     ref: 'Cohort',
   },
   program: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: false,
     ref: 'Program',
   },
   phase: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: false,
     ref: 'Phase',
+  },
+  profile: {
+    type: Schema.Types.ObjectId,
+    required: false,
+    ref: 'Profile',
   },
   pushNotifications: {
     type: Boolean,
@@ -101,7 +124,7 @@ const orgUserDataSchema = new Schema({
     default: true,
   },
 })
-const userSchema = new Schema(
+const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
     email: {
       type: String,
@@ -170,15 +193,18 @@ userSchema.methods.checkPass = async function (password: string) {
   return pass
 }
 
-userSchema.pre(
-  'deleteOne',
-  { document: true, query: false },
-  async function (next) {
-    const prof = await Profile.findOne({ user: this._id })
-    if (prof) await prof.remove()
-    return next()
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('isDeleted')) return next()
+  if(this.isDeleted){
+    await Profile.updateMany({user: this._id},{
+      $set: {isDeleted: true}
+    })
+    await Rating.updateMany({user: this._id},{
+      $set: {isDeleted: true}
+    })
   }
-)
+  next()
+})
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next()
@@ -187,19 +213,6 @@ userSchema.pre('save', async function (next) {
   return next()
 })
 
-const UserRole = mongoose.model(
-  'UserRole',
-  new Schema({
-    name: {
-      type: String,
-      ref: 'User',
-      required: true,
-      unique: true,
-    },
-  })
-)
+const User = model<IUser, UserModel>('User', userSchema)
 
-const User = model('User', userSchema)
-const OrgUserData = model('OrgUserData', orgUserDataSchema)
-
-export { User, UserRole, OrgUserData }
+export default User

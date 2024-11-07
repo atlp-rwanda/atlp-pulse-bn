@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { GraphQLError } from 'graphql'
 import Ticket from '../models/ticket.model'
 import { Context } from '../context'

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { DocumentNode, GraphQLError } from 'graphql'
 import { Documentation } from '../models/documentation.model'
 

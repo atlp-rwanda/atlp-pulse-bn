@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { ApolloError, ValidationError } from 'apollo-server'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'

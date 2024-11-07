@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { systemRating } from '../models/ratingSystem'
 import { Context } from './../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'

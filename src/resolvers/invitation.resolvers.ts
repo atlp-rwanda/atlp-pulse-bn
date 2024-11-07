@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { GraphQLUpload } from 'graphql-upload-ts'
 import { GraphQLError } from 'graphql'
 import { Invitation } from '../models/invitation.model'

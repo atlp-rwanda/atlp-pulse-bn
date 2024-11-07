@@ -13,12 +13,11 @@ const programSchema = new Schema(
       default: '',
     },
     manager: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     organization: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Organization',
       required: true,
     },

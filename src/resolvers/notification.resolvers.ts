@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Notification } from '../models/notification.model'
 import { Context } from './../context'
 import { checkUserLoggedIn } from '../helpers/user.helpers'

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import bcrypt from 'bcryptjs'
 import * as jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'

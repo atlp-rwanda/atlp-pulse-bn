@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import gql from 'graphql-tag'
 
 const statisticsSchema = gql`
   type Statistics {

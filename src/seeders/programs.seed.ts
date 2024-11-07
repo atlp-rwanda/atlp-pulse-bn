@@ -1,33 +1,41 @@
 import Program from '../models/program.model'
-import { RoleOfUser, User } from '../models/user'
+import User, { RoleOfUser } from '../models/user'
 import { Organization } from '../models/organization.model'
 
 const seedPrograms = async () => {
+  const andelaOrg = await Organization.findOne({ name: 'Andela' })
+  const iremboOrg = await Organization.findOne({ name: 'Irembo' })
   const andelaManagers = await User.find({
-    role: RoleOfUser.MANAGER,
-    organizations: { $in: ['Andela'] },
+    organizations: {
+      $elemMatch: {
+        orgId: andelaOrg?._id,
+        role: RoleOfUser.MANAGER,
+      }
+    },
   })
 
   const IremboManagers = await User.find({
-    role: RoleOfUser.MANAGER,
-    organizations: { $in: ['Irembo'] },
+    organizations: {
+      $elemMatch: {
+        orgId: iremboOrg?._id,
+        role: RoleOfUser.MANAGER,
+      }
+    },
   })
 
-  const andelaOrg = await Organization.find({ name: 'Andela' })
-  const iremboOrg = await Organization.find({ name: 'Irembo' })
   const programs = [
     // Andela
     {
       name: 'Atlp 1',
       description: 'none',
       manager: andelaManagers[0]._id.toHexString(),
-      organization: andelaOrg[0]._id.toHexString(),
+      organization: andelaOrg?._id.toHexString(),
     },
     {
       name: 'Atlp 2',
       description: 'none',
       manager: andelaManagers[0]._id.toHexString(),
-      organization: andelaOrg[0]._id.toHexString(),
+      organization: andelaOrg?._id.toHexString(),
     },
 
     // Irembo
@@ -35,14 +43,14 @@ const seedPrograms = async () => {
       name: 'Brainly Developers Program',
       description: 'This belong to cohort 7',
       manager: IremboManagers[0]._id.toHexString(),
-      organization: iremboOrg[0]._id.toHexString(),
+      organization: iremboOrg?._id.toHexString(),
     },
 
     {
       name: 'Rwema',
       description: 'none',
       manager: IremboManagers[0]._id.toHexString(),
-      organization: iremboOrg[0]._id.toHexString(),
+      organization: iremboOrg?._id.toHexString(),
     },
   ]
 

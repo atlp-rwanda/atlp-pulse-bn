@@ -1,18 +1,17 @@
 import mongoose, { Schema } from 'mongoose'
-import { User } from './user'
-import { CohortInterface } from './cohort.model';
-import { PhaseInterface } from './phase.model';
+import User from './user'
 
 export interface TeamInterface {
-  _id: mongoose.Types.ObjectId;
+  id?: string;
   name: string;
-  cohort?: CohortInterface;
-  phase?: PhaseInterface;
+  cohort?: mongoose.Types.ObjectId;
+  phase?: mongoose.Types.ObjectId;
   ttl?: mongoose.Types.ObjectId;
   members: mongoose.Types.ObjectId[];
   startingPhase: Date;
   active: boolean;
   organization: mongoose.Types.ObjectId;
+  isDeleted?: Boolean;
 }
 
 const teamSchema = new Schema(
@@ -23,15 +22,15 @@ const teamSchema = new Schema(
       required: true,
     },
     cohort: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Cohort',
     },
     ttl: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
     },
     members: {
-      type: [mongoose.Types.ObjectId],
+      type: [Schema.Types.ObjectId],
       ref: 'User',
     },
     startingPhase: {
@@ -44,20 +43,20 @@ const teamSchema = new Schema(
       default: true,
     },
     organization: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Organization',
       required: true,
     },
     manager: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
     },
     phase: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Phase',
     },
     program: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Program',
     },
     isJobActive: {

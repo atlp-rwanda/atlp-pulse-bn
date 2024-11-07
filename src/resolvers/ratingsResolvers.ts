@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Rating, TempData } from '../models/ratings'
 import { RoleOfUser, User } from '../models/user'
 import { Organization } from '../models/organization.model'

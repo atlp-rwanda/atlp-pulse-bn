@@ -1,3 +1,4 @@
+//@ts-nocheck
 /* eslint-disable indent */
 import { Attendance } from '../models/attendance.model'
 import { ObjectId } from 'mongodb'

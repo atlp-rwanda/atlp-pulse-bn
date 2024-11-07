@@ -1,7 +1,9 @@
 import { GraphQLError } from 'graphql'
 import 'dotenv/config'
 import { JwtPayload, verify } from 'jsonwebtoken'
-import { Organization } from '../models/organization.model'
+import { IOrganization, Organization } from '../models/organization.model'
+import { IOrgUserData, IUser, IUserMethods} from '../models/user'
+import { HydratedDocument } from 'mongoose'
 
 export async function checkLoggedInOrganization(token?: string) {
   const SECRET = process.env.SECRET as string
@@ -21,6 +23,14 @@ export async function checkLoggedInOrganization(token?: string) {
 
     if (!org) {
       throw new GraphQLError(`No organization with name ${name} exists`, {
+        extensions: {
+          code: 'AUTHENTICATION_ERROR',
+        },
+      })
+    }
+
+    if(org.isDeleted){
+      throw new GraphQLError(`Organization named ${name} was deleted`, {
         extensions: {
           code: 'AUTHENTICATION_ERROR',
         },
@@ -49,4 +59,16 @@ export async function checkLoggedInOrganization(token?: string) {
       })
     }
   }
+}
+
+export function isPartOfOrganization(user: HydratedDocument<IUser, IUserMethods>, org: HydratedDocument<IOrganization>): HydratedDocument<IOrgUserData>{
+  const orgUserData = user.organizations.find(data=>data.orgId.toString()===org._id.toString())
+  if(!orgUserData){
+    throw new GraphQLError(`User ${user.email} is not part of ${org.name}`,{
+      extensions: {
+        code: "FORBIDDEN"
+      }
+    })
+  }
+  return orgUserData
 }

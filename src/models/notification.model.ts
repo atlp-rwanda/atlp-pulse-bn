@@ -5,7 +5,7 @@ const Notification = mongoose.model(
   new Schema(
     {
       receiver: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
       },
@@ -14,7 +14,7 @@ const Notification = mongoose.model(
         required: true,
       },
       sender: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
       },

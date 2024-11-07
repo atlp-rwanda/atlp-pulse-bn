@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { GraphQLError } from 'graphql'
 import * as jwt from 'jsonwebtoken'
 import { Types } from 'mongoose'

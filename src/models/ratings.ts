@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose'
 const RatingSchema = new Schema(
   {
     user: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
@@ -22,7 +22,7 @@ const RatingSchema = new Schema(
     feedbacks: [
       {
         sender: {
-          type: mongoose.Types.ObjectId,
+          type: Schema.Types.ObjectId,
           ref: 'User',
         },
         content: {
@@ -47,12 +47,12 @@ const RatingSchema = new Schema(
       default: true,
     },
     coordinator: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
     cohort: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Cohort',
       required: true,
     },
@@ -61,7 +61,7 @@ const RatingSchema = new Schema(
       required: false,
     },
     organization: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Organization',
       required: true,
     },
@@ -76,7 +76,7 @@ const TempData = mongoose.model(
   new Schema(
     {
       user: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
       },
@@ -99,7 +99,7 @@ const TempData = mongoose.model(
       feedbacks: [
         {
           sender: {
-            type: mongoose.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'User',
           },
           content: {
@@ -116,12 +116,12 @@ const TempData = mongoose.model(
         default: [],
       },
       coordinator: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Cohort',
         required: true,
       },
       cohort: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Cohort',
         required: true,
       },
@@ -134,7 +134,7 @@ const TempData = mongoose.model(
         required: false,
       },
       organization: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Organization',
         required: true,
       },

@@ -85,26 +85,6 @@ const Schema = gql`
     password: String!
     role: String
   }
-  input LoginInput {
-    email: String
-    password: String
-    orgToken: String
-  }
-  input OrgInput {
-    name: String
-  }
-
-  input DeleteUserInput {
-    id: ID!
-  }
-
-  type DeleteUserPayload {
-    message: String!
-  }
-
-  type Mutation {
-    deleteUser(input: DeleteUserInput!): DeleteUserPayload!
-  }
 
   type Profile {
     id: ID!
@@ -134,24 +114,12 @@ const Schema = gql`
     id: ID!
     name: String!
   }
-  type RegisteredUser {
-    token: String
-    user: User
-  }
-  type Login {
-    token: String
-    user: User
-  }
-  type OrgLogin {
-    token: String
-    organization: Organization
-  }
 
   type Organization {
     id: ID!
     name: String!
     description: String
-    admin: User
+    admin: [User]!
     status: String
     gitHubOrganisation: String
     activeRepos: [String]
@@ -170,23 +138,6 @@ const Schema = gql`
     ratings: [Rating]
     pushNotifications: Boolean!
     emailNotifications: Boolean!
-  }
-
-  type GitHubActivity {
-    totalCommits: String!
-    pullRequest: pullRequest!
-  }
-
-  type pullRequest {
-    merged: String!
-    closed: String!
-    opened: String!
-  }
-
-  input OrganizationInput {
-    email: String!
-    name: String!
-    description: String
   }
 
   type Rating {
@@ -275,9 +226,6 @@ const Schema = gql`
     getProfile: Profile
     getAllRoles: [UserRole]
     getRole(id: ID!): UserRole
-    getOrganizations: [Organization]!
-    getOrganization(name: String!): Organization
-    getSignupOrganization(orgToken: String!): Organization
     fetchRatings(orgToken: String): [Rating]
     fetchTrainees: [Cohort]
     fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
@@ -289,7 +237,7 @@ const Schema = gql`
     getTTLTeams(orgToken: String): [Team!]!
     getAllTeams(orgToken: String): [Team!]!
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
-    gitHubActivity(organisation: String!, username: String!): GitHubActivity!
+    gitHubActivity(orgToken: String!): GitHubActivity!
     getRatingsByCohort(cohortId: String!, orgToken: String!): [Rating]!
     getTeamsByCohort(cohortId: String!,orgToken: String!): [Team]!
   }
@@ -308,45 +256,15 @@ const Schema = gql`
     RejectedRatings: [RejectedRows]!
   }
 
+  type Message{
+    message: String!
+  }
+
   type Mutation {
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
     dropTTLUser(email: String!, reason: String!): String!
     undropTTLUser(email: String!): String!
-    createUser(
-      firstName: String!
-      lastName: String!
-      dateOfBirth: DateTime!
-      gender: String!
-      email: String!
-      password: String!
-      orgToken: String!
-      role: String
-    ): RegisteredUser!
-    loginUser(loginInput: LoginInput): Login!
-    loginOrg(orgInput: OrgInput): OrgLogin!
-    requestOrganization(organizationInput: OrganizationInput!): String!
-    addOrganization(
-      organizationInput: OrganizationInput
-      action: String
-    ): Organization!
-    RegisterNewOrganization(
-      organizationInput: OrganizationInput
-      action: String
-    ): Organization!
-    updateProfile(
-      lastName: String
-      firstName: String
-      address: String
-      city: String
-      country: String
-      phoneNumber: String
-      biography: String
-      fileName: String
-      cover: String
-      githubUsername: String
-    ): Profile
-
     createProfile(
       lastName: String
       firstName: String
@@ -361,12 +279,6 @@ const Schema = gql`
     ): Profile
     updateAvatar(avatar: String): Profile
     updateCoverImage(cover: String): Profile
-    updateUserRole(id: ID!, name: String, orgToken: String): User!
-    deleteOrganization(id: ID!): Organization
-    updateGithubOrganisation(
-      name: String!
-      gitHubOrganisation: String!
-    ): Organization
     addRatings(
       user: String!
       sprint: Int!
@@ -404,28 +316,8 @@ const Schema = gql`
       user: String
       content: String
     ): RatingMessageTemp
-
     approveRating(user: String!, sprint: Int!): ApproveRating
     rejectRating(user: String!, sprint: Int!): String!
-    forgotPassword(email: String!): String!
-    resetUserPassword(
-      password: String!
-      confirmPassword: String!
-      token: String!
-    ): String!
-    changeUserPassword(
-      currentPassword: String!
-      newPassword: String!
-      confirmPassword: String!
-      token: String!
-    ): String!
-
-    addActiveRepostoOrganization(name: String!, repoUrl: String!): Organization!
-
-    deleteActiveRepostoOrganization(
-      name: String!
-      repoUrl: String!
-    ): Organization!
     addTeam(
       name: String!
       cohortName: String!
@@ -563,10 +455,6 @@ const Schema = gql`
       title: String!
       description: String!
     ): Documentation!
-  }
-  type Mutation {
-    updatePushNotifications(id: ID!): String
-    updateEmailNotifications(id: ID!): String
   }
   type Query {
     getUpdatedEmailNotifications(id: ID!): Boolean!

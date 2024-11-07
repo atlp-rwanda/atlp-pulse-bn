@@ -1,31 +1,28 @@
 /* eslint-disable prefer-const */
 import { Octokit } from '@octokit/rest'
-import bcrypt from 'bcryptjs'
+import  { compareSync, hashSync } from 'bcryptjs'
 import { GraphQLError } from 'graphql'
 // import * as jwt from 'jsonwebtoken'
 import { JwtPayload, verify } from 'jsonwebtoken'
-import mongoose, { Error } from 'mongoose'
+import { HydratedDocument } from 'mongoose'
 import generateRandomPassword from '../helpers/generateRandomPassword'
-import isAssigned from '../helpers/isAssignedToProgramOrCohort'
-import { checkloginAttepmts } from '../helpers/logintracker'
-import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { checkLoggedInOrganization, isPartOfOrganization } from '../helpers/organization.helper'
 import {
   checkUserLoggedIn,
   emailExpression,
   generateToken,
-  generateTokenOrganization,
-  generateTokenUserExists,
-  genericToken,
+  verifyToken,
+  isAssignedToAnEntity,
+  checkloginAttempts,
+  checkUserAccountStatus
 } from '../helpers/user.helpers'
 import Cohort from '../models/cohort.model'
 import { Invitation } from '../models/invitation.model'
-import { Organization } from '../models/organization.model'
-import Phase from '../models/phase.model'
+import { IOrganization, ORG_STATUS, Organization } from '../models/organization.model'
 import { Profile } from '../models/profile.model'
 import Program from '../models/program.model'
-import { Rating } from '../models/ratings'
 import Team from '../models/team.model'
-import { RoleOfUser, User, UserRole } from '../models/user'
+import User, { IUser, IUserMethods, RoleOfUser, USER_STATUS_ENUM} from '../models/user'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { sendEmail } from '../utils/sendEmail'
 import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
@@ -33,27 +30,30 @@ import organizationApprovedTemplate from '../utils/templates/organizationApprove
 import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
 import organizationRejectedTemplate from '../utils/templates/organizationRejectedTemplate'
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
-import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
-import { UserInputError } from 'apollo-server'
+import { validateEmail, validatePasswordField, validateStringField, validateURLField } from '../validations'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
-const SECRET: string = process.env.SECRET as string
-export type OrganizationType = InstanceType<typeof Organization>
-export type UserType = InstanceType<typeof User>
+const SECRET: string = process.env.SECRET || "secret"
+// export type OrganizationType = InstanceType<typeof Organization>
+// export type UserType = InstanceType<typeof User>
 
-enum Status {
-  pending = 'pending',
-  approved = 'approved',
-  rejected = 'rejected',
+enum ACTION_ENUM{
+  APPROVE='approve',
+  REJECT='reject'
 }
 
-async function logGeoActivity(user: any, clientIpAdress: string) {
+interface InvitationToken{
+  email: string
+  role: string
+  orgName: string
+  userExists: boolean
+}
+
+async function logGeoActivity(user: HydratedDocument<IUser, IUserMethods>,org: HydratedDocument<IOrganization>,clientIpAdress?: string) {
   const response = await fetch(`https://ipapi.co/${clientIpAdress}/json/`)
-
   const geoData = await response.json()
-
-  const profile = await Profile.findOne({ user: user._id })
+  const profile = await Profile.findOne({user: user._id, orgId: org._id})
   if (!profile) {
     return
   }
@@ -85,144 +85,129 @@ async function logGeoActivity(user: any, clientIpAdress: string) {
 }
 
 const resolvers: any = {
-  Query: {
-    async getOrganizations(_: any, __: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
-
-      return Organization.find()
+   Query: {
+    async getOrganizations(_: any, {orgToken}: {orgToken: string}, context: Context) {
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org, context))([RoleOfUser.SUPER_ADMIN])
+      const organizations = await Organization.find()
+      return organizations
     },
-    async getUpdatedEmailNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id })
-      if (!user) {
-        throw new Error('User not found')
-      }
-      return user.emailNotifications
-    },
-    async getUpdatedPushNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id })
-      if (!user) {
-        throw new Error('User not found')
-      }
-      return user.pushNotifications
-    },
-    async getOrganization(_: any, { name }: any, context: Context) {
-      const { userId, role } = (await checkUserLoggedIn(context))([
+//     async getUpdatedEmailNotifications(_: any, { id }: any, context: Context) {
+//       const user: any = await User.findOne({ _id: id })
+//       if (!user) {
+//         throw new Error('User not found')
+//       }
+//       return user.emailNotifications
+//     },
+//     async getUpdatedPushNotifications(_: any, { id }: any, context: Context) {
+//       const user: any = await User.findOne({ _id: id })
+//       if (!user) {
+//         throw new Error('User not found')
+//       }
+//       return user.pushNotifications
+//     },
+    async getOrganization(_: any, { name, orgToken }: {name: string, orgToken: string}, context: Context) {
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org, context))([
         RoleOfUser.SUPER_ADMIN,
-        RoleOfUser.ADMIN,
-        'trainee',
       ])
 
-      const organization = await Organization.findOne({ name })
+      const organization = await Organization.findOne({ name }).populate('admin')
 
       if (!organization) {
-        throw new Error('Organization not found')
+        throw new GraphQLError('Organization not found',{
+          extensions: {
+            code: "ORG_NOT_FOUND"
+          }
+        })
       }
-
-      const org = organization.toObject()
-      const orgAdmin = await User.findById(org.admin)
-      return { ...org, admin: orgAdmin }
+      return organization
     },
 
-    async getSignupOrganization(_: any, { orgToken }: any) {
+    async getCurrentOrganization(_: any, { orgToken }: {orgToken: string}, context: Context) {
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
-      return Organization.findOne({ name: org.name })
+      ;(await checkUserLoggedIn(org, context))(Object.values(RoleOfUser))
+
+      return org
     },
-    async verifyResetPasswordToken(_: any, { token }: any) {
-      const { email } = verify(token, SECRET) as JwtPayload
-      const user: any = await User.findOne({ email })
-      if (!user) {
-        throw new Error('Unauthorized to access the page! ')
-      }
-    },
+//     async verifyResetPasswordToken(_: any, { token }: any) {
+//       const { email } = verify(token, SECRET) as JwtPayload
+//       const user: any = await User.findOne({ email })
+//       if (!user) {
+//         throw new Error('Unauthorized to access the page! ')
+//       }
+//     },
 
     async gitHubActivity(
       _: any,
-      { organisation, username }: any,
+      { orgToken}: { orgToken: string},
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user, orgUserData} = (await checkUserLoggedIn(org, context))([
         RoleOfUser.ADMIN,
         RoleOfUser.COORDINATOR,
-        'trainee',
         RoleOfUser.MANAGER,
-        'ttl',
+        RoleOfUser.TTL,
+        RoleOfUser.TRAINEE,
       ])
 
-      const organisationExists = await Organization.findOne({
-        name: organisation,
-      })
-      if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+      await orgUserData.populate('profile')
 
-      organisation = organisationExists.gitHubOrganisation
-
-      const { data: checkOrg } = await octokit.orgs.get({ org: organisation })
+      const { data: checkOrg } = await octokit.orgs.get({ org: org.gitHubOrganisation || "" })
       if (!checkOrg) {
         throw new GraphQLError('Organization Not found On GitHub', {
           extensions: {
-            code: 'UserInputError',
+            code: 'ORG_NOT_FOUND',
           },
         })
       }
       const { data: checkUser } = await octokit.users.getByUsername({
-        username: username,
+        username: (orgUserData.profile as any).githubUsername || "",
       })
       if (!checkUser) {
         throw new GraphQLError('User Not found On Github', {
           extensions: {
-            code: 'UserInputError',
+            code: 'USER_NOT_FOUND',
           },
         })
       }
-
-      let allRepos: any = []
-
-      allRepos = organisationExists.activeRepos
 
       let pullRequestOpen = 0
       let pullRequestClosed = 0
       let pullRequestMerged = 0
       let pullRequestTotal = 0
-      let allCommits = 0
-
       try {
-        for (const repo of allRepos) {
-          try {
-            const response = await octokit.pulls.list({
-              owner: organisation,
-              repo: repo,
-              state: 'all',
-              sort: 'created',
-              direction: 'desc',
-              per_page: 200,
-            })
-
-            const pullRequests = response.data.filter(
-              (pullRequest: any) => pullRequest.user.login === username
-            )
-            pullRequestTotal += pullRequests.length
-            pullRequestOpen += pullRequests.filter(
-              (pullRequest: any) => pullRequest.state === 'open'
-            ).length
-            pullRequestClosed += pullRequests.filter(
-              (pullRequest: any) => pullRequest.state === 'closed'
-            ).length
-            pullRequestMerged += pullRequests.filter(
-              (pullRequest: any) => pullRequest.merged_at != null
-            ).length
-          } catch (error) {
-            console.error(
-              `Error retrieving commits for repository ${repo.name}:`,
-              error
-            )
-            throw new GraphQLError(
-              'Error retrieving commits for repository ${repo.name}:'
-            )
-          }
+        for (const repo of org.activeRepos) {
+          const response = await octokit.pulls.list({
+            owner: org.gitHubOrganisation || "",
+            repo: repo,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 200,
+          })
+          const pullRequests = response.data.filter(
+            (pullRequest: any) => pullRequest.user.login === (orgUserData.profile as any).githubUsername
+          )
+          pullRequestTotal += pullRequests.length
+          pullRequestOpen += pullRequests.filter(
+            (pullRequest: any) => pullRequest.state === 'open'
+          ).length
+          pullRequestClosed += pullRequests.filter(
+            (pullRequest: any) => pullRequest.state === 'closed'
+          ).length
+          pullRequestMerged += pullRequests.filter(
+            (pullRequest: any) => pullRequest.merged_at != null
+          ).length
         }
       } catch (error) {
-        console.error('Error retrieving repositories:', error)
+        throw new GraphQLError("Error retrieving repository information", {
+          extensions: {
+            code: "SERVER_ERROR"
+          }
+        })
       }
       return {
         totalCommits: pullRequestMerged,
@@ -233,12 +218,11 @@ const resolvers: any = {
         },
       }
     },
-  },
-  Login: {
-    user: async (parent: any) => {
-      const user = await User.findById(parent.user.id)
-      return user
-    },
+//   Login: {
+//     user: async (parent: any) => {
+//       const user = await User.findById(parent.user.id)
+//       return user
+//     },
   },
   Mutation: {
     async createUser(
@@ -246,675 +230,542 @@ const resolvers: any = {
       {
         email,
         password,
-        role,
+        verifyPassword,
         firstName,
         lastName,
         dateOfBirth,
         gender,
         orgToken,
-      }: any
+      }: {
+        email: string,
+        password: string,
+        verifyPassword: string,
+        firstName: string,
+        lastName: string,
+        dateOfBirth: string,
+        gender: string,
+        orgToken: string
+      }
     ) {
       // checkLoggedInOrganization checks if the organization token passed was valid
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
 
-      const userExists = await User.findOne({ email: email })
+      const userExists = await User.findOne({ email: email, organizations: {
+        $elemMatch: {
+          orgId: org._id
+        }
+      } })
       if (userExists)
-        throw new GraphQLError('User with a such email already exists', {
+        throw new GraphQLError(`User already exists in ${org.name}`, {
           extensions: {
-            code: 'UserInputError',
+            code: 'USER_INPUT_ERROR',
           },
-        })
+      })
 
       const isValidEmail = emailExpression.test(String(email).toLowerCase())
       if (!isValidEmail)
         throw new GraphQLError('invalid email format', {
           extensions: {
-            code: 'ValidationError',
+            code: 'VALIDATION_ERROR',
           },
         })
+      // use regular expression to validate password
       if (password.length < 6)
         throw new GraphQLError('password should be minimum 6 characters', {
           extensions: {
-            code: 'ValidationError',
+            code: 'VALIDATION_ERROR',
           },
-        })
-      let invitee
+      })
+      if (password !== verifyPassword)
+        throw new GraphQLError('passwords do not match', {
+          extensions: {
+            code: 'VALIDATION_ERROR',
+          },
+      })
       const invitation = await Invitation.findOne({ 'invitees.email': email })
         .sort({ createdAt: -1 })
         .exec()
-
-      if (invitation) {
-        invitee = invitation.invitees.find((invitee) => invitee.email === email)
+      if (!invitation) {
+        throw new GraphQLError("User was not invitated",{
+          extensions: {
+            code: 'INVITATION_NOT_FOUND'
+          }
+        })
       }
-
+      const invitee = invitation.invitees.find((invitee) => invitee.email === email)
+      if(!invitee){
+        throw new GraphQLError("User is not an invitee",{
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
+      }
       const user = await User.create({
-        role: role || invitee?.role || 'user',
-        email: email,
+        email,
         password,
-        organizations: org.name,
+        firstName,
+        lastName,
+        gender,
+        dateOfBirth,
+        organizations: [
+          {
+            orgId: org._id,
+            role: invitee.role
+          }
+        ]
       })
-      const token = generateToken(user._id.toString(), user?.role)
+      const token = generateToken({
+        userId: user._id.toString(),
+        role:user.organizations[0].role
+      }, 7200)
 
       if (user && invitation) {
         invitation.status = 'accepted'
         await invitation.save()
       }
-
       const newProfile = await Profile.create({
-        user,
-        firstName,
-        lastName,
-        dateOfBirth,
-        gender,
+        user: user._id,
+        orgId: org._id,
       })
-
-      const newUser: string | null = await User.findByIdAndUpdate(
-        user.id,
-        {
-          profile: newProfile,
-        },
-        { new: true }
-      )
-
-      return { token, user: newUser }
+      user.organizations[0].profile = newProfile._id
+      await user.save()
+      return { token, user }
     },
 
-    async createProfile(_: any, args: any, context: { userId: any }) {
-      if (!context.userId) throw new Error('Unauthorized')
-      if (!mongoose.isValidObjectId(context.userId))
-        throw new Error('Invalid user id')
-      const userExists = await User.findOne({ _id: context.userId })
-      if (!userExists) throw new Error('This user does not exists')
+    addUserToOrganization: async(_: any, {invitationToken}: {invitationToken: string})=>{
+      const {email, role, orgName, userExists} = verifyToken(invitationToken) as InvitationToken
+      if(typeof email !=="string" || !email || typeof role!=="string" || !role || typeof orgName !=="string" || !orgName || typeof userExists !== "boolean"){
+        throw new GraphQLError("Invalid token payload",{
+          extensions:{
+            code: "USER_INPUT_ERROR"
+          }
+        })
+      }
+      const user = await User.findOne({
+        email
+      })
+      if(!user){
+        throw new GraphQLError("No such user was found",{
+          extensions: {
+            code: "USER_NOT_FOUND"
+          }
+        })
+      }
+      const organization = await Organization.findOne({
+        name: orgName
+      })
+      if(!organization){
+        throw new GraphQLError("No such organization was found",{
+          extensions: {
+            code: "ORG_NOT_FOUND"
+          }
+        })
+      }
+      const invitation = await Invitation.findOne({
+        invitees: {
+          $elemMatch:{
+            email: user.email,
+            exists: true,
+          }
+        }
+      })
+      if(!invitation){
+        throw new GraphQLError("No such invitation was found",{
+          extensions: {
+            code: "INVITATION_NOT_FOUND"
+          }
+        })
+      }
+      user.organizations.push({
+        orgId: organization._id,
+        role: role
+      })
+      await user.save()
+    },
+
+    async updateProfile(_: any, {biography, cover, avatar, githubUsername, resume, orgToken}:
+      { 
+        biography: string,
+        cover: string,
+        avatar: string,
+        githubUsername: string,
+        resume: string,
+        orgToken: string
+      },
+        context: Context)
+      {
+      validateStringField(biography, "Please enter a valid biography")
+      validateURLField(cover, "Please enter a valid cover url")
+      validateURLField(avatar, "Please enter a valid avatar url")
+      validateStringField(githubUsername, "please enter a valid githubUsername")
+      validateURLField(resume, "Please enter a valid resume url")
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user} = (await checkUserLoggedIn(org, context))(Object.values(RoleOfUser))
+
       const profile = await Profile.findOneAndUpdate(
-        { user: context.userId },
-        args,
+        { user: user._id },
+        {
+          biography,
+          cover,
+          avatar,
+          githubUsername,
+          resume,
+        },
         {
           upsert: true,
           new: true,
         }
       )
 
-      return profile.toJSON()
+      return profile
     },
 
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken } }: any,
-      context: any
+      { email, password, orgToken }: {email: string, password: string, orgToken: string},
+      context: Context
     ) {
+      validateEmail(email, "Please enter a valid email address")
       const { clientIpAdress } = context
-
       // get the organization if someone  logs in
       const org: InstanceType<typeof Organization> =
         await checkLoggedInOrganization(orgToken)
-
-      const user: any = await User.findOne({ email }).populate({
-        path: 'cohort',
-        model: Cohort,
-        strictPopulate: false,
-        populate: {
-          path: 'program',
-          model: Program,
-          strictPopulate: false,
-          populate: {
-            path: 'organization',
-            model: Organization,
-            strictPopulate: false,
-          },
-        },
-      })
-
+      const user: any = await User.findOne({ email })
       if (!user) {
-        throw new GraphQLError('invalid credential', {
+        throw new GraphQLError(`User ${email} does not exist`, {
           extensions: {
-            code: 'AccountNotFound',
+            code: 'USER_NOT_FOUND',
           },
         })
-      } else if (user?.status?.status !== 'active') {
+      }
+      const orgUserData = user.organizations.find((data: any)=>data.orgId.toString()===org._id.toString())
+      if(!orgUserData){
+        throw new GraphQLError(`User ${user.email} is not part of ${org.name}`,{
+            extensions: {
+                code: "FORBIDDEN"
+            }
+        })
+      }
+      if (orgUserData.status?.status !== 'active') {
         throw new GraphQLError(
           `Your account have been ${
-            user?.status?.status ?? user?.status
+            orgUserData.status?.status
           }, please contact your organization admin for assistance`,
           {
             extensions: {
-              code: 'AccountInactive',
+              code: 'ACCOUNT_INACTIVE',
             },
           }
         )
       }
-      let attempts = await checkloginAttepmts(Profile, user)
+      await checkloginAttempts(user, org)
+      const geoData = await logGeoActivity(user,org,clientIpAdress)
 
-      if (await user?.checkPass(password)) {
-        if (
-          user?.role === RoleOfUser.TRAINEE &&
-          user?.organizations?.includes(org?.name)
-        ) {
-          if (
-            !user.cohort ||
-            user.cohort === null ||
-            !user.team ||
-            user.team === null
-          ) {
-            throw new Error('Please wait to be added to a program or cohort')
-          }
-          if (await isAssigned(org?.name, user._id)) {
-            const token = generateToken(user._id, user._doc?.role || 'user')
-
-            const geoData = await logGeoActivity(user, clientIpAdress)
-
-            const data = {
-              token: token,
-              user: user.toJSON(),
-              geoData,
-            }
-            return data
-          } else {
-            throw new Error(
-              'You are not assigned to any valid program or cohort in this organization.'
-            )
-          }
-        } else if (
-          user?.role === RoleOfUser.TTL &&
-          user?.organizations?.includes(org?.name)
-        ) {
-          if (user.cohort && user.team) {
-            const token = generateToken(user._id, user._doc?.role || 'user')
-
-            const geoData = await logGeoActivity(user, clientIpAdress)
-
-            const data = {
-              token: token,
-              user: user.toJSON(),
-              geoData,
-            }
-            return data
-          } else {
-            throw new Error('You are not assigned to any cohort ot team yet.')
-          }
-        }
-        const organization: any = await Organization.findOne({
-          name: org?.name,
-          admin: user.id,
-        })
-
-        if (user?.role === RoleOfUser.ADMIN) {
-          if (user?.organizations?.includes(org?.name)) {
-            const token = generateToken(user._id, user._doc?.role || 'user')
-
-            const geoData = await logGeoActivity(user, clientIpAdress)
-
-            const data = {
-              token: token,
-              user: user.toJSON(),
-              geoData,
-            }
-            return data
-          } else {
-            throw new Error('You do not have access to this organization.')
-          }
-        } else if (user?.role === RoleOfUser.MANAGER) {
-          const program: any = await Program.find({
-            manager: user.id,
-          }).populate({
-            path: 'organization',
-            model: Organization,
-            strictPopulate: false,
-          })
-          let checkProgramOrganization: any = false
-
-          for (const element of program) {
-            if (element.organization.name == org?.name) {
-              checkProgramOrganization = true
-            }
-          }
-          if (checkProgramOrganization) {
-            const managerToken = generateToken(
-              user._id,
-              user._doc?.role || 'user'
-            )
-
-            const geoData = await logGeoActivity(user, clientIpAdress)
-
-            const managerData = {
-              token: managerToken,
-              user: user.toJSON(),
-              geoData,
-            }
-            return managerData
-          } else {
-            throw new Error('You are not assigned to any program yet.')
-          }
-        } else if (user?.role === RoleOfUser.COORDINATOR) {
-          const cohort: any = await Cohort.find({
-            coordinator: user.id,
-          }).populate({
-            path: 'program',
-            model: Program,
-            strictPopulate: false,
-            populate: {
-              path: 'organization',
-              model: Organization,
-              strictPopulate: false,
+      if(!await user?.checkPass(password)) {
+        throw new GraphQLError('Invalid credential', {
+            extensions: {
+              code: 'UserInputError',
             },
           })
-          let checkCohortOrganization: any = false
+      }
 
-          for (const element of cohort) {
-            if (element.program.organization.name == org?.name) {
-              checkCohortOrganization = true
-            }
-          }
+      await isAssignedToAnEntity(user,org)
 
-          if (checkCohortOrganization) {
-            const coordinatorToken = generateToken(
-              user._id,
-              user._doc?.role || 'user'
-            )
-
-            const geoData = await logGeoActivity(user, clientIpAdress)
-
-            const coordinatorData = {
-              token: coordinatorToken,
-              user: user.toJSON(),
-              geoData,
-            }
-            return coordinatorData
-          } else {
-            throw new Error('You are not assigned to any cohort yet.')
-          }
-        } else if (user?.role === RoleOfUser.SUPER_ADMIN) {
-          const superAdminToken = generateToken(
-            user._id,
-            user._doc?.role || 'user'
-          )
-
-          const geoData = await logGeoActivity(user, clientIpAdress)
-
-          const superAdminData = {
-            token: superAdminToken,
-            user: user.toJSON(),
-            geoData,
-          }
-          return superAdminData
-        } else {
-          throw new Error('Please wait to be added to a program or cohort')
-        }
-      } else {
-        throw new GraphQLError('Invalid credential', {
-          extensions: {
-            code: 'UserInputError',
-          },
-        })
+      return {
+        token: generateToken({ userId: user._id, role: orgUserData.role}, 7200),
+        user: user.toJSON(),
+        geoData,
       }
     },
 
-    async deleteUser(_: any, { input }: any, context: { userId: any }) {
-      const requester = await User.findById(context.userId)
-      if (!requester) {
-        throw new Error('Requester does not exist')
+    async deleteUser(_: any, { userId, reason , orgToken}: {userId: string, reason?: string, orgToken: string}, context: Context) {
+      if(reason){
+        validateStringField(reason, "Please provide a valid reason")
       }
-      if (
-        requester.role !== RoleOfUser.ADMIN &&
-        requester.role !== RoleOfUser.SUPER_ADMIN
-      ) {
-        throw new Error('You do not have permission to delete users')
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user} = (await checkUserLoggedIn(org,context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
+      if (!user) {
+        throw new GraphQLError('Requester does not exist',{
+          extensions: {
+            code: 'USER_NOT_FOUND'
+          }
+        })
       }
 
-      const userToSuspend = await User.findById(input.id)
+      const userToSuspend = await User.findById(userId)
       if (!userToSuspend) {
-        throw new Error('User to be suspended does not exist')
+        throw new GraphQLError('User to be suspended does not exist',{
+          extensions: {
+            code: 'USER_NOT_FOUND'
+          }
+        })
       }
 
-      if (userToSuspend?.status?.status == 'suspended') {
-        throw new Error('User is already suspended')
+      const userData = isPartOfOrganization(userToSuspend, org)
+      if (userData.status?.status == 'suspended') {
+        throw new GraphQLError('User is already suspended',{
+          extensions: {
+            code: 'FORBIDDEN'
+          }
+        })
       }
-
       // Handle coordinator suspension
-      if (userToSuspend.role === RoleOfUser.COORDINATOR) {
-        const hasCohort = await Cohort.findOne({ coordinator: input.id })
-        if (hasCohort) {
-          await Cohort.findOneAndReplace(
-            { coordinator: input.id },
-            { coordinator: null }
-          )
+      if (userData.role === RoleOfUser.COORDINATOR) {
+        const cohorts = await Cohort.find({ coordinator: userToSuspend._id, organization: org._id })
+        for(const cohort of cohorts){
+          cohort.coordinator = undefined
+          await cohort.save()
           await pushNotification(
-            context.userId,
-            `The coordinator of ${hasCohort.name} has been suspended. Please assign a new coordinator.`,
-            context.userId
+            user._id,
+            `The coordinator of ${cohort.name} has been suspended. Please assign a new coordinator.`,
+            user._id,
+            org._id
           )
         }
       }
       // Handle TTL suspension
-      else if (userToSuspend.role === 'ttl') {
-        const hasTeam = await Team.findOne({ ttl: input.id })
+      else if (userData.role === RoleOfUser.TTL) {
+        const hasTeam = await Team.findOne({ ttl: userToSuspend._id, organization: org._id })
         if (hasTeam) {
-          await Team.findOneAndReplace({ ttl: input.id }, { ttl: null })
+          hasTeam.ttl = undefined
+          await hasTeam.save()
           await pushNotification(
-            context.userId,
+            user._id,
             `The TTL of ${hasTeam.name} has been suspended. Please assign a new TTL.`,
-            context.userId
+            user._id,
+            org._id
           )
         }
       }
-
       // Suspend user by updating their status
-      await User.findByIdAndUpdate(input.id, {
-        status: { status: 'suspended' },
-      })
-
+      userData.status={
+        status: USER_STATUS_ENUM.SUSPENDED,
+        reason: reason ? reason : 'Not specified',
+        date: new Date()
+      }
+      await userToSuspend.save()
       // Send suspension notification to the user
       await pushNotification(
-        input.id,
+        userToSuspend._id,
         'Your account has been suspended and  will no longer be able to access the system.',
-        input.id
+        user._id,
+        org._id
       )
-
       // Send confirmation notification to the requester/admin
       await pushNotification(
-        context.userId,
-        `You have successfully suspended the user with ID: ${input.id}.`,
-        context.userId
+        user._id,
+        `You have successfully suspended the user with email: ${userToSuspend.email}.`,
+        user._id,
+        org._id,
       )
 
-      return { message: 'User suspended successfully' }
+      return {
+        message: 'User suspended successfully'
+      }
     },
 
-    async updateUserRole(_: any, { id, name, orgToken }: any) {
-      const allRoles = [
-        RoleOfUser.TRAINEE,
-        RoleOfUser.COORDINATOR,
-        RoleOfUser.MANAGER,
-        RoleOfUser.ADMIN,
-        RoleOfUser.SUPER_ADMIN,
-        RoleOfUser.TTL,
-      ]
+    async updateUserRole(_: any, { userId, role, orgToken }: {userId: string, role: RoleOfUser, orgToken: string}, context: Context) {
       const org = await checkLoggedInOrganization(orgToken)
-      const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
-      const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
-
-      const getAllUsers = await User.find({
-        role: RoleOfUser.ADMIN,
-      })
-
-      let checkUserOrganization = 0
-
-      getAllUsers.forEach((user) => {
-        if (user.organizations.includes(org?.name || '')) {
-          checkUserOrganization++
-        }
-      })
-
-      if (checkUserOrganization == 1 && userExists.role == RoleOfUser.ADMIN) {
-        throw new Error('There must be at least one admin in the organization')
-      }
-
-      if (userExists.role == RoleOfUser.COORDINATOR) {
-        const userCohort: any = await Cohort.find({
-          coordinator: userExists?.id,
+      const { user }= (await checkUserLoggedIn(org, context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
+      if (!Object.values(RoleOfUser).includes(role)) {
+        throw new GraphQLError("This role doesn't exist", {
+          extensions: {
+            code: "FORBIDDEN"
+          }
         })
-        if (userCohort) {
-          await Cohort.updateMany(
-            { coordinator: userExists?.id },
-            {
-              $set: {
-                coordinator: null,
-              },
-            }
-          )
-        }
-      } else if (userExists.role == RoleOfUser.MANAGER) {
-        const userProgram: any = await Program.find({ manager: userExists?.id })
-        if (userProgram) {
-          await Program.updateMany(
-            { manager: userExists?.id },
-            {
-              $set: {
-                manager: null,
-              },
-            }
-          )
-        }
-      } else if (userExists.role == 'ttl') {
-        let teamttl: any = await Team.find({ ttl: userExists?.id })
-        if (teamttl) {
-          await Team.updateMany(
-            { ttl: userExists?.id },
-            {
-              $set: {
-                ttl: null,
-              },
-            }
-          )
-        }
-      } else if (userExists.role == RoleOfUser.ADMIN) {
-        const userOrg: any = await Organization.find({ admin: userExists?.id })
-        if (userOrg) {
-          await Organization.findByIdAndUpdate(userOrg.id, {
-            admin: userOrg[0].admin.filter(
-              (item: any) => item != userExists.id
-            ),
-          })
-        }
       }
-      if (name == RoleOfUser.ADMIN) {
-        org?.admin?.push(id)
-        org.save()
+      const userExists = await User.findById(userId)
+      if (!userExists){
+        throw new GraphQLError("User doesn't exist",{
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
       }
-      const updatedUser = await User.findOneAndUpdate(
-        {
-          _id: id,
-        },
-        {
-          $set: {
-            role: name,
-          },
-        },
-        { new: true }
-      )
-      return updatedUser
-    },
 
-    async createUserRole(_: any, { name }: any) {
-      const newRole = await UserRole.create({ name })
-      return newRole
+      if(user._id.toString()===userExists._id.toString()){
+        throw new GraphQLError("User cannot edit their own role",{
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
+      }
+
+      const userData = isPartOfOrganization(userExists, org)
+
+      if (userData.role == RoleOfUser.COORDINATOR) {
+        const cohorts = await Cohort.find({
+          coordinator: userExists._id,
+          organization: org._id,
+        })
+        for(const cohort of cohorts){
+          cohort.coordinator = undefined
+          await cohort.save()
+        }
+      }
+      if (userData.role == RoleOfUser.MANAGER) {
+        const userPrograms = await Program.find({ manager: userExists._id, organization: org._id })
+        for(const userProgram of userPrograms) {
+          userProgram.manager = undefined
+          await userProgram.save()
+        }
+      } 
+      if (userData.role == RoleOfUser.TTL) {
+        const teamttl = await Team.findOne({ ttl: userExists._id, organization: org._id })
+        if (teamttl) {
+          teamttl.ttl = undefined
+          await teamttl.save()
+        }
+      } 
+      if (userData.role == RoleOfUser.ADMIN) {
+        const admins = org.admin.filter(admin=>admin.toString()!==userExists._id.toString())
+        org.admin = admins
+        await org.save()
+      }
+      userData.role = role
+      userExists.save()
+      return userExists
     },
 
     //This section is to make org name login to be case insensitive
-    async loginOrg(_: any, { orgInput: { name } }: any) {
+    async loginOrg(_: any, { name }: { name: String }) {
       const organization: any = await Organization.findOne({
         name: { $regex: new RegExp('^' + name + '$', 'i') },
       })
-
-      if (organization) {
-        if (
-          organization.status == Status.pending ||
-          organization.status == Status.rejected
-        ) {
-          throw new GraphQLError('Your organization is not approved yet', {
-            extensions: {
-              code: 'UserInputError',
-            },
-          })
-        }
-      }
-
-      if (organization) {
-        const token = generateTokenOrganization(organization.name)
-        const data = {
-          token: token,
-          organization: organization.toJSON(),
-        }
-        return data
-      } else {
+      if (!organization) {
         throw new GraphQLError(
           `We do not recognize this organization ${name}`,
           {
             extensions: {
-              code: 'UserInputError',
+              code: 'FORBIDDEN',
             },
           }
         )
       }
+      if (organization.status == ORG_STATUS.PENDING) {
+        throw new GraphQLError('Your organization is not approved yet', {
+          extensions: {
+            code: 'FORBIDDEN',
+          },
+        })
+      }
+      if (organization.status == ORG_STATUS.REJECTED) {
+        throw new GraphQLError('Your organization was not approved', {
+          extensions: {
+            code: 'FORBIDDEN',
+          },
+        })
+      }
+      const token = generateToken({ name: organization.name }, 7200)
+      const data = {
+        token: token,
+        organization: organization.toJSON(),
+      }
+      return data
     },
 
     // end of making org name to be case insensitive
 
     async requestOrganization(
       _: any,
-      { organizationInput: { name, email, description } }: any
+      { organizationInput: { name, email, description } }: { organizationInput: {name: string, email: string, description: string}}
     ) {
-      try {
+
+      validateEmail(email, "Please enter a valid email address")
+      validateStringField(name, "Please enter a valid organization name")
+      validateStringField(description, "Please enter a valid organization description")
         // Check if organization name already exists
         const orgExists = await Organization.findOne({ name })
         if (orgExists) {
           throw new GraphQLError(`Organization name '${name}' already taken`, {
             extensions: {
-              code: 'UserInputError',
+              code: 'FORBIDDEN',
             },
           })
         }
-
-        // Validate email format
-        const emailExpression = EmailPattern
-        const isValidEmail = emailExpression.test(String(email).toLowerCase())
-        if (!isValidEmail) {
-          throw new GraphQLError('Invalid email format', {
+        // 
+        const existingUser = await User.findOne({email})
+        if(existingUser){
+          throw new GraphQLError(`User ${existingUser.email} already exists, please use another email`,{
             extensions: {
-              code: 'ValidationError',
-            },
+              code: "FORBIDDEN"
+            }
           })
         }
 
-        const existingUser = await User.findOne({
-          email,
-          role: { $ne: RoleOfUser.ADMIN },
+        // Create the organization with 'pending' status
+        const newOrg =await Organization.create({
+          name,
+          description,
+          status: ORG_STATUS.PENDING,
         })
-        const admin = await User.findOne({ email, role: RoleOfUser.ADMIN })
-        if (existingUser) {
-          throw new GraphQLError(
-            `User with email '${email}' exists and is not an admin. Please use another email.`,
-            {
-              extensions: {
-                code: 'UserInputError',
-              },
-            }
-          )
-        }
-        if (admin)
-          throw new GraphQLError(
-            `User with ${email} exists.  Please use another email`,
-            {
-              extensions: {
-                code: 'UserInputError',
-              },
-            }
-          )
 
+        //Create admin and assign them to the requested organization
         const password: any = generateRandomPassword()
-        let newAdmin: any = undefined
-        if (!admin) {
-          newAdmin = await User.create({
+        const admin = await User.create({
             email: email,
             password: password,
-            role: RoleOfUser.ADMIN,
-            organizations: name,
-          })
+            organizations: [{
+              orgId: newOrg._id,
+              role: RoleOfUser.ADMIN
+            }]
+        })
 
-          // Create the organization with 'pending' status
-const {name:nm,admin:adm,description:desc}=await Organization.create({
-            admin: newAdmin._id,
-            name,
-            description,
-            status: 'pending',
-          })
-          const newOrgToken=genericToken({nm,adm,desc,email})
+        const profile = await Profile.create({
+          orgId: newOrg._id,
+          user: admin._id,
+        })
+        admin.organizations[0].profile = profile._id
+        await admin.save()
 
-          const superAdmin = await User.find({ role: RoleOfUser.SUPER_ADMIN })
-          // Get the email content
-          const link = process.env.FRONTEND_LINK ?? ""
-          const content = registrationRequest(email, name, description,link,newOrgToken)
-         
+        // add admin to new organization
+        newOrg.admin = [admin._id]
+        await newOrg.save()
+        await newOrg.populate('admin')
 
-          // Send registration request email to super admin
-          await sendEmail(
-            superAdmin[0].email,
-            'Organization registration request',
-            content,
-            link,
-            process.env.ADMIN_EMAIL,
-            process.env.ADMIN_PASS
-          )
-
-          return 'Organization registration request sent successfully'
+      //add new org to all superAdmins
+      const superAdmins = await User.find({
+        organizations: {
+          $elemMatch: { role: RoleOfUser.SUPER_ADMIN }
         }
-      } catch (error) {
-        throw error
+      })
+      if (!superAdmins.length) {
+        throw new GraphQLError("Server Error", {
+          extensions: {
+            code: "SERVER_ERROR"
+          }
+        })
       }
-    },
-
-    async RegisterNewOrganization(
-      _: any,
-      { organizationInput: { name, email }, action }: any,
-      context: Context
-    ) {
-      // check if requester is super admin
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
-      const orgExists = await Organization.findOne({ name: name })
-      if (action == 'approve') {
-        if (!orgExists) {
-          throw new GraphQLError('Organization Not found ', {
-            extensions: {
-              code: 'UserInputError',
-            },
-          })
-        }
-        const adminUser = await User.findOne({ _id: orgExists.admin[0] })
-        if (!adminUser || adminUser.email !== email) {
-          throw new GraphQLError('Admin email does not match', {
-            extensions: {
-              code: 'UserInputError',
-            },
-          })
-        }
-        if (orgExists) {
-          const password: any = generateRandomPassword()
-          const adminID = orgExists.admin
-          const admin = await User.findOne({ _id: adminID })
-          admin?.organizations.push(name)
-
-          const hash = await bcrypt.hash(password, 10)
-          await User.updateOne({ email: email }, { $set: { password: hash } })
-
-          orgExists.status = 'active'
-          await orgExists.save()
-
-          const content = organizationApprovedTemplate(
-            orgExists?.name as string,
-            email,
-            password
-          )
-          const link: any = process.env.FRONTEND_LINK
-          await sendEmail(
-            email,
-            'Organization Approved and created notice',
-            content,
-            link,
-            process.env.ADMIN_EMAIL,
-            process.env.ADMIN_PASS
-          )
-        }
+      for (const superAdmin of superAdmins) {
+        const profile = await Profile.create({
+          orgId: newOrg._id,
+          user: superAdmin._id,
+        })
+        superAdmin.organizations.push({
+          orgId: newOrg._id,
+          role: RoleOfUser.SUPER_ADMIN,
+          profile: profile._id
+        })
+        await superAdmin.save()
       }
-      if (orgExists && action == 'reject') {
-        orgExists.status = 'rejected'
-        await orgExists.save()
-        const content = organizationRejectedTemplate(name)
-        const link: any = process.env.FRONTEND_LINK
+
+      const newOrgToken = generateToken({
+        name: newOrg.name,
+        admin: newOrg.admin[0],
+        description: newOrg.description,
+        email: admin.email
+      }, 7200)
+
+      // Get the email content
+      const link = process.env.FRONTEND_LINK ?? ""
+      const content = registrationRequest(email, name, description, link, newOrgToken)
+
+      // Send registration request email to super admin
+      for(const superAdmin of superAdmins){
         await sendEmail(
-          email,
-          'Organization Request rejected notice',
+          superAdmin.email,
+          'Organization registration request',
           content,
           link,
           process.env.ADMIN_EMAIL,
@@ -922,58 +773,142 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
         )
       }
 
-      return orgExists
+      return {
+        message: 'Organization registration request sent successfully',
+        org: newOrg.toJSON()
+      }
+    },
+
+    async RegisterNewOrganization(
+      _: any,
+      { name, action , orgToken}: { name: string, action: ACTION_ENUM, orgToken: string},
+      context: Context
+    ) {
+      validateStringField(name, "Please enter a valid organization name")
+      const org = await checkLoggedInOrganization(orgToken)
+      // check if requester is super admin
+      const user = (await checkUserLoggedIn(org, context))([RoleOfUser.SUPER_ADMIN])
+      const orgExists = await Organization.findOne({ name: name }).populate('admin')
+      if(!orgExists){
+        throw new GraphQLError("No such organization found",{
+          extensions: {
+            code: "ORG_NOT_FOUND"
+          }
+        })
+      }
+      if(action === ACTION_ENUM.APPROVE){
+        if(orgExists.status === ORG_STATUS.ACTIVE){
+          throw new GraphQLError("Organization is already  active",{
+            extensions: {
+              code: "FORBIDDEN"
+            }
+          })
+        }
+        const admin = (orgExists as any).admin[0]
+        const password = generateRandomPassword()
+        admin.password = hashSync(password, 10)
+        await admin.save()
+        orgExists.status = ORG_STATUS.ACTIVE
+        await orgExists.save()
+        await sendEmail(
+          admin.email,
+          'Organization Approved and created notice',
+          organizationApprovedTemplate(
+            orgExists.name,
+            admin.email,
+            password,
+          ),
+          process.env.FRONTEND_LINK || "link",
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        )
+      }else if(action === ACTION_ENUM.REJECT){
+        if(orgExists.status === ORG_STATUS.REJECTED){
+          throw new GraphQLError("Organization was already rejected",{
+            extensions: {
+              code: "FORBIDDEN"
+            }
+          })
+        }
+        const admin = (orgExists as any).admin[0]
+        orgExists.status = ORG_STATUS.REJECTED
+        await orgExists.save()
+        await sendEmail(
+          admin.email,
+          'Organization Request rejected notice',
+          organizationRejectedTemplate(orgExists.name),
+          process.env.FRONTEND_LINK || 'link',
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        )
+      }else{
+        throw new GraphQLError("Invalid action, Please approve or reject an organization",{
+          extensions: {
+            code: "USER_INPUT_ERROR"
+          }
+        })
+      }
+      return orgExists.toJSON()
     },
 
     async addOrganization(
       _: any,
-      { organizationInput: { name, email, description }, action: action }: any,
+      { organizationInput: { name, email, description }, orgToken }: {organizationInput: { name: string, email: string, description: string}, orgToken: string},
       context: Context
     ) {
-      // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
-      if (action == 'new') {
-        const orgExists = await Organization.findOne({ name: name })
-        if (orgExists) {
-          throw new GraphQLError('Organization Name already taken ' + name, {
-            extensions: {
-              code: 'UserInputError',
-            },
-          })
-        }
-      }
+      validateEmail(email, "Please enter a valid email address")
+      validateStringField(name, "Please enter a valid organization name")
+      validateStringField(description, "Please enter a valid organization description")
 
-      // check if the requester is already an admin, if not create him
-      const admin = await User.findOne({ email, role: RoleOfUser.ADMIN })
-      // if (!admin) {
-      //   console.log('admin exist')
-      // }
-      const password: any = generateRandomPassword()
-      let newAdmin: any = undefined
-      if (!admin) {
-        newAdmin = await User.create({
-          email,
-          password,
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org, context))([RoleOfUser.SUPER_ADMIN])
+      const orgExists = await Organization.findOne({ name: name })
+      if (orgExists) {
+        throw new GraphQLError(`Organization Name ${orgExists.name} already taken`, {
+          extensions: {
+            code: 'FORBIDDEN',
+          },
+        })
+      }
+      const newOrg = await Organization.create({
+        name,
+        description,
+        status: ORG_STATUS.ACTIVE
+      })
+      const userExists = await User.findOne({email})
+      if (userExists) {
+        const userExistsProfile = await Profile.create({
+          user: userExists._id,
+          org: newOrg._id,
+        })
+        userExists.organizations.push({
+          orgId: org._id,
           role: RoleOfUser.ADMIN,
+          profile: userExistsProfile._id,
         })
+        await userExists.save()
+        return newOrg.toJSON()
       }
+      const password: string = generateRandomPassword()
 
-      let org: any = await Organization.findOne({ admin: admin?._id })
+      const admin = await User.create({
+        email,
+        password: password,
+        organizations: [{
+          orgId: newOrg._id,
+          role: RoleOfUser.ADMIN
+        }]
+      })
+      const profile = await Profile.create({
+        user: admin._id,
+        orgId: newOrg._id
+      })
 
-      if (action == 'new') {
-        // create the organization
-        org = await Organization.create({
-          admin: admin ? admin._id : newAdmin?._id,
-          name,
-          email,
-          description,
-          status: 'active',
-        })
-      }
-      if (action !== 'new') {
-        const hash = await bcrypt.hash(password, 10)
-        await User.updateOne({ email: email }, { $set: { password: hash } })
-      }
+      admin.organizations[0].profile = profile._id
+      await admin.save()
+      newOrg.admin = [admin._id]
+      await newOrg.save()
+      await newOrg.populate('admin')
 
       // send the requester an email with his password
       const content = organizationCreatedTemplate(org.name, email, password)
@@ -988,140 +923,97 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
         process.env.ADMIN_PASS
       )
 
-      return org
+      return org.toJSON()
     },
 
     async updateGithubOrganisation(
       _: any,
-      { name, gitHubOrganisation }: any,
+      { gitHubOrganisation, orgToken }: { gitHubOrganisation: string, orgToken: string},
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      validateStringField(gitHubOrganisation, "Please enter a valid organization githubOrganization")
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org, context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
-
-      const org = await Organization.findOne({ name: name })
-      if (!org) {
-        throw new GraphQLError('Organization Not found', {
-          extensions: {
-            code: 'UserInputError',
-          },
-        })
-      }
-
       org.gitHubOrganisation = gitHubOrganisation
       await org.save()
-
-      return {
-        admin: org.admin,
-        name: org.name,
-        description: org.description,
-        status: org.status,
-        gitHubOrganisation: org.gitHubOrganisation,
-      }
+      await org.populate('admin')
+      return org.toJSON()
     },
 
-    async addActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      const checkOrg = await Organization.findOne({ name: name })
-      if (!checkOrg) {
-        throw new GraphQLError('Organization Not found', {
-          extensions: {
-            code: 'UserInputError',
-          },
-        })
-      }
+    async addActiveRepostoOrganization(_: any, { repoUrl, orgToken}: {repoUrl: string, orgToken: string}, context: Context) {
+      validateURLField(repoUrl, "Please provide a valid repoUrl")
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org, context))([RoleOfUser.ADMIN, RoleOfUser.SUPER_ADMIN])
 
-      const allRepos = checkOrg.activeRepos
+      const allRepos = org.activeRepos
       if (allRepos.includes(repoUrl)) {
         throw new GraphQLError('Repository Already Exists', {
           extensions: {
-            code: 'UserInputError',
+            code: 'FORBIDDEN',
           },
         })
       }
 
-      checkOrg.activeRepos.push(repoUrl)
-      await checkOrg.save()
+      org.activeRepos.push(repoUrl)
+      await org.save()
 
-      return {
-        admin: checkOrg.admin,
-        name: checkOrg.name,
-        activeRepos: checkOrg.activeRepos,
-        description: checkOrg.description,
-        status: checkOrg.status,
-      }
+      return org.toJSON()
     },
 
-    async deleteActiveRepostoOrganization(_: any, { name, repoUrl }: any) {
-      // const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN,RoleOfUser.SUPER_ADMIN]);
-
-      const org = await Organization.findOne({ name: name })
-      if (!org) {
-        throw new GraphQLError('Organization Not found', {
-          extensions: {
-            code: 'UserInputError',
-          },
-        })
-      }
+    async deleteActiveRepostoOrganization(_: any, { repoUrl, orgToken}: {repoUrl: string, orgToken: string}, context: Context) {
+      validateURLField(repoUrl, "Please provide a valid repo URL")
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org,context))([RoleOfUser.ADMIN,RoleOfUser.SUPER_ADMIN]);
 
       const allRepos = org.activeRepos
       if (!allRepos.includes(repoUrl)) {
         throw new GraphQLError('Repository Not Found', {
           extensions: {
-            code: 'UserInputError',
+            code: 'REPO_NOT_FOUND',
           },
         })
       }
 
       const index = allRepos.indexOf(repoUrl)
-
       allRepos.splice(index, 1)
 
       await org.save()
 
-      return {
-        admin: org.admin,
-        name: org.name,
-        description: org.description,
-        status: org.status,
-      }
+      return org.toJSON()
     },
 
-    async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
-        RoleOfUser.ADMIN,
+    async deleteOrganization(_: any, { orgId, orgToken }: {orgId: string, orgToken: string}, context: Context) {
+      const org = await checkLoggedInOrganization(orgToken)
+      ;(await checkUserLoggedIn(org, context))([
         RoleOfUser.SUPER_ADMIN,
       ])
-
-      const organizationExists = await Organization.findOne({ _id: id })
-
-      if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
-      await Cohort.deleteMany({ organization: id })
-      await Team.deleteMany({ organization: id })
-      await Phase.deleteMany({ organization: id })
-      await User.deleteMany({
-        organizations: organizationExists.name,
-        role: { $ne: RoleOfUser.SUPER_ADMIN },
-      })
-      await User.deleteOne({ _id: organizationExists.admin[0] })
-      const deleteOrg = await Organization.findOneAndDelete({
-        _id: id,
-      })
-
-      if (!deleteOrg)
-        throw new Error(
-          'Not deleted, something went wrong, please try again later'
-        )
-      return deleteOrg
+      const organizationExists = await Organization.findById(orgId)
+      if (!organizationExists){
+        throw new GraphQLError("This Organization doesn't exist",{
+          extensions: {
+            code: "ORG_NOT_FOUND"
+          }
+        })
+      }
+      organizationExists.isDeleted = true
+      await organizationExists.save()
+      return organizationExists.toJSON()
     },
 
-    async forgotPassword(_: any, { email }: any) {
+    async forgotPassword(_: any, { email }: { email: string }) {
+      validateEmail(email, "Please provide a valid email")
       const userExists: any = await User.findOne({ email })
-
-      if (userExists) {
-        const token: any = generateTokenUserExists(email)
+      if (!userExists) {
+        throw new GraphQLError("No such user found",{
+          extensions: {
+            code: "USER_NOT_FOUND"
+          }
+        })
+      }
+        const token: any = generateToken({ email }, 7200)
         const newToken: any = token.replaceAll('.', '*')
         const webLink = `${process.env.FRONTEND_LINK}/forgot-password/${newToken}`
         const appLink = `${process.env.FRONTEND_LINK}/redirect?dest=app&path=/auth/reset-password&fallback=${webLink}&token=${newToken}`
@@ -1136,144 +1028,156 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
           process.env.ADMIN_PASS
         )
 
-        return 'Check Your Email To Proceed!'
-      } else {
-        throw new Error('Something went wrong!\nCheck your credentials')
-      }
+        return {
+          message: 'Check Your Email To Proceed!'
+        }
     },
 
-    async updateEmailNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id })
-      if (!user) {
-        throw new Error('User not found')
-      }
-      const updatedEmailNotifications = !user.emailNotifications
-      const updateEmailPreference = await User.updateOne(
-        { _id: id },
-        { emailNotifications: updatedEmailNotifications }
-      )
-      return 'updated successful'
-    },
-
-    async updatePushNotifications(_: any, { id }: any, context: Context) {
-      const user: any = await User.findOne({ _id: id })
-      if (!user) {
-        throw new Error('User not found')
-      }
-      user.pushNotifications = !user.pushNotifications
+    async updateEmailNotifications(_: any, { orgToken }: { orgToken: string}, context: Context) {
+      const org =  await checkLoggedInOrganization(orgToken)
+      const { user, orgUserData } = (await checkUserLoggedIn(org, context))(Object.values(RoleOfUser))
+      orgUserData.emailNotifications = !orgUserData.emailNotifications
       await user.save()
-      const updatedPushNotifications = user.pushNotifications
-      return 'updated successful'
+      
+      return {
+        message: 'updated successfully'
+      }
+    },
+
+    async updatePushNotifications(_: any, { orgToken}: {orgToken: string}, context: Context) {
+      const org =  await checkLoggedInOrganization(orgToken)
+      const { user, orgUserData } = (await checkUserLoggedIn(org, context))(Object.values(RoleOfUser))
+      orgUserData.pushNotifications = !orgUserData.pushNotifications
+      await user.save()
+      return {
+        message: 'updated successfully'
+      }
     },
 
     async resetUserPassword(
       _: any,
-      { password, confirmPassword, token }: any,
-      context: any
+      { password, confirmPassword, resetToken }: { password: string, confirmPassword: string, resetToken: string}
     ) {
-      const { email } = verify(token, SECRET) as JwtPayload
-      if (password === confirmPassword) {
-        const user: any = await User.findOne({ email })
+      validatePasswordField(password, "Please enter a valid new password")
+      validatePasswordField(confirmPassword, "Please enter a valid confirmation password")
+      const { email } = verify(resetToken, SECRET) as JwtPayload
+      if (password !== confirmPassword) {
+        throw new GraphQLError("Passwords do not match",{
+          extensions: {
+            code: "USER_INPUT_ERROR"
+          }
+        })
+      }
+        const user = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new GraphQLError("User doesn't exist! ",{
+            extensions: {
+              code: "USER_NOT_FOUND"
+            }
+          })
         }
         user.password = password
         await user.save()
-        return 'Your password was reset successfully! '
-      } else if (password !== confirmPassword) {
-        throw new Error('Password mismatch! ')
-      } else {
-        throw new Error('Oopps! something went wrong')
-      }
+
+        return {
+          message: 'Your password was reset successfully! '
+        }
     },
     async changeUserPassword(
       _: any,
-      { currentPassword, newPassword, confirmPassword, token }: any,
-      context: any
+      { currentPassword, newPassword, confirmPassword, orgToken }: { currentPassword: string, newPassword: string, confirmPassword: string, orgToken: string},
+      context: Context
     ) {
-      const { userId } = verify(token, SECRET) as JwtPayload
-      if (newPassword === confirmPassword) {
-        const user: any = await User.findById(userId)
-        if (!user) {
-          throw new Error("User doesn't exist! ")
-        }
+      validatePasswordField(currentPassword, "Please enter a valid current password")
+      validatePasswordField(newPassword, "Please enter a valid new password")
+      validatePasswordField(confirmPassword, "Please enter a valid confirmation password")
+      const org = await checkLoggedInOrganization(orgToken)
+      const { user } = (await checkUserLoggedIn(org, context))(Object.values(RoleOfUser))
+      if (newPassword !== confirmPassword) {
+        throw new GraphQLError("Passwords do not match",{
+          extensions: {
+            code: "USER_INPUT_ERROR"
+          }
+        })
+      }
 
-        if (bcrypt.compareSync(currentPassword, user.password)) {
-          user.password = newPassword
-          await user.save()
-          return 'Your password was reset successfully! '
-        } else {
-          throw new Error('Current Password is incorrect')
-        }
-      } else if (newPassword !== confirmPassword) {
-        throw new Error('New password mismatch!')
-      } else {
-        throw new Error('Oopps! something went wrong')
+      if (!compareSync(currentPassword, user.password)) {
+        throw new GraphQLError("Incorrect credentials", {
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
       }
+      user.password = newPassword
+      await user.save()
+      return {
+        message: 'Your password was reset successfully! '
+      }
+    }
     },
-  },
+  }
 
-  User: {
-    async profile(parent: any) {
-      const profile = await Profile.findOne({ user: parent.id.toString() })
-      if (!profile) {
-        return null
-      } else {
-        return profile
-      }
-    },
-    async program(parent: any) {
-      const program = await Program.findOne({ manager: parent.id.toString() })
-      if (!program) {
-        return null
-      } else {
-        return program
-      }
-    },
-    async cohort(parent: any) {
-      const cohort = await Cohort.findById(parent.cohort.toString())
+//   User: {
+//     async profile(parent: any) {
+//       const profile = await Profile.findOne({ user: parent.id.toString() })
+//       if (!profile) {
+//         return null
+//       } else {
+//         return profile
+//       }
+//     },
+//     async program(parent: any) {
+//       const program = await Program.findOne({ manager: parent.id.toString() })
+//       if (!program) {
+//         return null
+//       } else {
+//         return program
+//       }
+//     },
+//     async cohort(parent: any) {
+//       const cohort = await Cohort.findById(parent.cohort.toString())
 
-      if (!cohort) {
-        return null
-      } else {
-        return cohort
-      }
-    },
-    async team(parent: UserType) {
-      const team = await Team.findOne({ members: parent._id })
-      if (!team) {
-        return null
-      } else {
-        return team
-      }
-    },
-    async ratings(parent: UserType) {
-      const ratings = await Rating.find({ user: parent._id }).populate([
-        'user',
-        'cohort',
-        {
-          path: 'feedbacks',
-          populate: 'sender',
-        },
-      ])
-      if (!ratings) {
-        return null
-      } else {
-        return ratings
-      }
-    },
-  },
-  Profile: {
-    async user(parent: any) {
-      const user = await User.findOne({ _id: parent.user.toString() })
-      if (!user) return null
-      return user
-    },
-  },
-  Organization: {
-    async admin(parent: any) {
-      return User.findById(parent.admin)
-    },
-  },
-}
+//       if (!cohort) {
+//         return null
+//       } else {
+//         return cohort
+//       }
+//     },
+//     async team(parent: UserType) {
+//       const team = await Team.findOne({ members: parent._id })
+//       if (!team) {
+//         return null
+//       } else {
+//         return team
+//       }
+//     },
+//     async ratings(parent: UserType) {
+//       const ratings = await Rating.find({ user: parent._id }).populate([
+//         'user',
+//         'cohort',
+//         {
+//           path: 'feedbacks',
+//           populate: 'sender',
+//         },
+//       ])
+//       if (!ratings) {
+//         return null
+//       } else {
+//         return ratings
+//       }
+//     },
+//   },
+//   Profile: {
+//     async user(parent: any) {
+//       const user = await User.findOne({ _id: parent.user.toString() })
+//       if (!user) return null
+//       return user
+//     },
+//   },
+//   Organization: {
+//     async admin(parent: any) {
+//       return User.findById(parent.admin)
+//     },
+//  },
+//}
 export default resolvers

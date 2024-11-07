@@ -29,7 +29,7 @@ const systemRating = mongoose.model(
       default: false,
     },
     organization: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Organization',
       required: true,
     },

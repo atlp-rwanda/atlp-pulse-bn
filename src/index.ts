@@ -11,6 +11,10 @@ import { WebSocketServer } from 'ws'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { graphqlUploadExpress } from 'graphql-upload-ts'
 
+import mongoose from 'mongoose'
+import { mongooseSoftDelete } from './plugins/mongooseSoftDelete'
+mongoose.plugin(mongooseSoftDelete)
+
 // Import resolvers, schemas, utilities
 import { connect } from './database/db.config'
 import { context } from './context'
@@ -44,13 +48,14 @@ import ticketSchema from './schema/ticket.shema'
 import notificationSchema from './schema/notification.schema'
 
 import statisticsSchema from './schema/invitationStatics.schema'
-import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
+// import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
 
 import { IResolvers } from '@graphql-tools/utils'
 import invitationSchema from './schema/invitation.schema'
-import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
+// import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
 import eventSchema from './schema/event.schema'
 import './utils/cron-jobs/team-jobs'
+import userSchema from './schema/user.schema'
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -66,30 +71,31 @@ export const typeDefs = mergeTypeDefs([
   notificationSchema,
   statisticsSchema,
   eventSchema,
+  userSchema
 ])
 
 export const resolvers = mergeResolvers([
   userResolvers,
-  profileResolvers,
-  programResolvers,
-  cohortResolvers,
-  createRatingSystemresolver,
-  manageStudentResolvers,
-  ratingResolvers,
-  replyResolver,
-  phaseResolver,
-  teamResolver,
-  notificationResolver,
-  eventResolvers,
-  ticketResolver,
-  DocumentationResolvers,
-  attendanceResolver,
-  Sessionresolvers,
+  // profileResolvers,
+  // programResolvers,
+  // cohortResolvers,
+  // createRatingSystemresolver,
+  // manageStudentResolvers,
+  // ratingResolvers,
+  // replyResolver,
+  // phaseResolver,
+  // teamResolver,
+  // notificationResolver,
+  // eventResolvers,
+  // ticketResolver,
+  // DocumentationResolvers,
+  // attendanceResolver,
+  // Sessionresolvers,
 
-  StatisticsResolvers,
+  // StatisticsResolvers,
 
-  invitationResolvers,
-  TableViewInvitationResolver,
+  // invitationResolvers,
+  // TableViewInvitationResolver,
 ])
 
 async function startApolloServer(

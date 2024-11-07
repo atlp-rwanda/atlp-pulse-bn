@@ -1,10 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 
 export interface PhaseInterface {
-  _id: mongoose.Types.ObjectId;
   name: string;
   description: string;
   organization: mongoose.Types.ObjectId;
+  isDeleted?: Boolean;
 }
 
 const phaseSchema = new Schema({
@@ -18,10 +18,10 @@ const phaseSchema = new Schema({
     required: true,
   },
   organization: {
-    type: mongoose.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Organization',
     required: true,
-  },
+  }
 });
 
 const Phase = mongoose.model('Phase', phaseSchema);

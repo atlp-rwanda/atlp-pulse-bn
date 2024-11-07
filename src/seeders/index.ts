@@ -1,3 +1,7 @@
+import mongoose from 'mongoose'
+import { mongooseSoftDelete } from '../plugins/mongooseSoftDelete'
+mongoose.plugin(mongooseSoftDelete)
+
 import { connect } from './../database/db.config'
 import logger from '../utils/logger.utils'
 import seedCohorts from './cohorts.seed'
@@ -15,8 +19,8 @@ import seedTickets from './ticket.seed'
 connect().then(async () => {
   try {
     await seedUsers()
-    await seedTickets()
     await seedOrganizations()
+    await seedTickets()
     await seedPrograms()
     await seedPhases()
     await seedCohorts()
@@ -24,7 +28,7 @@ connect().then(async () => {
     await seedNotification()
     await seedsystemRatings()
     await seedRatings()
-    // await seedAttendance()
+    //await seedAttendance()
 
     logger.info('Database seeded Successfully')
     process.exit()
