@@ -62,6 +62,10 @@ const cohortSchema = new Schema(
       ref: 'Organization',
       required: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     statics: {

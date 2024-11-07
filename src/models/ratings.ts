@@ -8,11 +8,13 @@ const RatingSchema = new Schema(
       required: true,
     },
     sprint: {
-      type: Number,
+      type: Schema.Types.ObjectId,
+      ref: 'Sprint',
       required: true,
     },
     phase: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Phase',
       required: true,
     },
     quantity: {
@@ -46,19 +48,10 @@ const RatingSchema = new Schema(
       type: Boolean,
       default: true,
     },
-    coordinator: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
     cohort: {
       type: Schema.Types.ObjectId,
       ref: 'Cohort',
       required: true,
-    },
-    average: {
-      type: String,
-      required: false,
     },
     organization: {
       type: Schema.Types.ObjectId,
@@ -71,76 +64,4 @@ const RatingSchema = new Schema(
 
 const Rating = mongoose.model('Rating', RatingSchema)
 
-const TempData = mongoose.model(
-  'TempData',
-  new Schema(
-    {
-      user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-      sprint: {
-        type: Number,
-        required: true,
-      },
-      quantity: {
-        type: [String],
-        default: [],
-      },
-      quality: {
-        type: [String],
-        default: [],
-      },
-      professional_Skills: {
-        type: [String],
-        default: [],
-      },
-      feedbacks: [
-        {
-          sender: {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-          },
-          content: {
-            type: String,
-          },
-          createdAt: {
-            type: Date,
-            default: new Date(),
-          },
-        },
-      ],
-      oldFeedback: {
-        type: [String],
-        default: [],
-      },
-      coordinator: {
-        type: Schema.Types.ObjectId,
-        ref: 'Cohort',
-        required: true,
-      },
-      cohort: {
-        type: Schema.Types.ObjectId,
-        ref: 'Cohort',
-        required: true,
-      },
-      approved: {
-        type: Boolean,
-        default: false,
-      },
-      average: {
-        type: String,
-        required: false,
-      },
-      organization: {
-        type: Schema.Types.ObjectId,
-        ref: 'Organization',
-        required: true,
-      },
-    },
-    { timestamps: true }
-  )
-)
-
-export { Rating, TempData }
+export default Rating

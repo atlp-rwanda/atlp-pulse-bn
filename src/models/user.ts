@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import mongoose, { model, Types, Schema, Model } from 'mongoose'
 import { Profile } from './profile.model'
-import { Rating } from './ratings';
+import Rating from './ratings';
 
 export enum USER_STATUS_ENUM{
   ACTIVE="active",
@@ -163,6 +163,10 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
     dateOfBirth: {
       type: Date,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
   },
 
   {

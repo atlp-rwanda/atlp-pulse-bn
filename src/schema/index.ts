@@ -212,6 +212,7 @@ const Schema = gql`
   }
 
   type RatingMessageTemp {
+    id: ID!
     sender: User!
     content: String
     createdAt: String
@@ -228,10 +229,6 @@ const Schema = gql`
     getRole(id: ID!): UserRole
     fetchRatings(orgToken: String): [Rating]
     fetchTrainees: [Cohort]
-    fetchRatingsForAdmin(orgToken: String): [FetchRatingForAdmin]
-    fetchRatingsTrainee: [Rating]
-    fetchAllRatings(orgToken: String): [Rating]
-    fetchRatingByCohort(CohortName: String): [Rating]
     fetchCohortsCoordinator(cohortName: ID!): [Cohort]
     verifyResetPasswordToken(token: String!): String
     getTTLTeams(orgToken: String): [Team!]!

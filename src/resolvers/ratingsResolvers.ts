@@ -1,29 +1,21 @@
-//@ts-nocheck
-import { Rating, TempData } from '../models/ratings'
-import { RoleOfUser, User } from '../models/user'
+import Rating from '../models/ratings'
+import User, { RoleOfUser } from '../models/user'
 import { Organization } from '../models/organization.model'
 import { sendEmails } from '../utils/sendEmails'
 import { Context } from './../context'
 import Cohort from '../models/cohort.model'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Notification } from '../models/notification.model'
-import {
-  authenticated,
-  validateRole,
-  validateTtlOrCoordinator,
-} from '../utils/validate-role'
-import { checkLoggedInOrganization } from '../helpers/organization.helper'
+import { checkLoggedInOrganization, isPartOfOrganization } from '../helpers/organization.helper'
 import generalTemplate from '../utils/templates/generalTemplate'
 import { PubSub, withFilter } from 'graphql-subscriptions'
-import { ObjectId } from 'mongodb'
-import phaseSchema from '../schema/phase.schema'
 import { pushNotification } from '../utils/notification/pushNotification'
-import mongoose, { Document, Types } from 'mongoose'
 import { GraphQLError } from 'graphql'
 import { FileUpload, GraphQLUpload } from 'graphql-upload-ts'
 import { extractSheetRatings, FileRating } from '../utils/sheets/extractSheetRatings'
-import Phase from '../models/phase.model'
 import Team from '../models/team.model'
+import Sprint from '../models/sprint.model'
+import { validateNumber, validateObjectId, validateStringField } from '../validations'
 const pubsub = new PubSub()
 
 const ratingEmailContent = generalTemplate({
@@ -37,7 +29,7 @@ const ratingEmailContent = generalTemplate({
 })
 
 let org: InstanceType<typeof Organization>
-const ratingResolvers: any = {
+const ratingResolvers = {
   Upload: GraphQLUpload,
   Subscription: {
     newRating: {
@@ -73,57 +65,81 @@ const ratingResolvers: any = {
     },
   },
   Query: {
-    async fetchRatings(
+    async FetchRatings(
       _: any,
-      { orgToken }: any,
-      context: { role: string; userId: string }
+      { orgToken }: {orgToken: string},
+      context: Context
     ) {
       // get the organization if someone  logs in
       org = await checkLoggedInOrganization(orgToken)
-      const ratings = await Rating.find({
-        coordinator: context.userId,
-        organization: org,
-      })
-        .populate('user')
-        .populate('cohort')
-      return ratings
-    },
-
-    async fetchRatingsForAdmin(_: any, { orgToken }: any) {
-      org = await checkLoggedInOrganization(orgToken)
-
-      const ratingsAdmin = await TempData.find({ organization: org })
-        .populate('user')
-        .populate('cohort')
-      return ratingsAdmin
-    },
-
-    async fetchAllRatings(_: any, { orgToken }: any) {
-      org = await checkLoggedInOrganization(orgToken)
-      const ratingsAdmin = await Rating.find({ organization: org })
-        .populate('user')
-        .populate('cohort')
-      return ratingsAdmin
-    },
-
-    async getRatingsByCohort(_:any, {cohortId, orgToken}: {cohortId: string,orgToken: string}, context: Context){
-      const {userId, role} = (await checkUserLoggedIn(context))([ RoleOfUser.ADMIN, RoleOfUser.MANAGER, RoleOfUser.COORDINATOR, RoleOfUser.TTL])
-      const user = await User.findById(userId)
-      if(!user){
-        throw new GraphQLError("No such user found",{
-          extensions: {
-            code: "USER_NOT_FOUND"
+      const {user, orgUserData} = (await checkUserLoggedIn(org, context))(Object.values(RoleOfUser))
+      switch(orgUserData.role){
+        case RoleOfUser.SUPER_ADMIN:
+        case RoleOfUser.ADMIN:
+        case RoleOfUser.MANAGER:
+          return await Rating.find({
+            organization: org._id,
+            approved: true,
+          }).populate(['user','cohort',{
+            path: 'feedbacks',
+            populate: 'sender'
+          }])
+        case RoleOfUser.COORDINATOR:
+          const cohorts = await Cohort.find({
+            coordinator: user._id,
+            organization: org._id
+          })
+          return await Rating.find({
+            cohort:{
+              $in: cohorts.map(cohort=>cohort._id)
+            },
+            organization: org._id,
+            approved: true,
+          }).populate(['user','cohort',{
+            path: 'feedbacks',
+            populate: 'sender'
+          }])
+        case RoleOfUser.TTL:
+          const ttlTeam = await Team.findOne({
+            ttl: user._id,
+            organization: org._id,
+          })
+          if(!ttlTeam){
+            throw new GraphQLError("You are not assigned to any team as a ttl",{
+              extensions: {
+                code: "TEAM_NOT_FOUND"
+              }
+            })
           }
-        })
+          return await Rating.find({
+            user: {
+              $in: ttlTeam.members
+            },
+            organization: org._id,
+            approved: true,
+          }).populate(['user','cohort',{
+            path: 'feedbacks',
+            populate: 'sender'
+          }])
+        case RoleOfUser.TRAINEE:
+          return await Rating.find({
+            user: user._id,
+            organization: org._id,
+            approved: true,
+          })
+        default:
+          throw new GraphQLError("Invalid User Role",{
+            extensions:{
+              code: "FORBIDDEN"
+            }
+          })
       }
+    },
+
+    async FetchRatingsByCohort(_:any, {cohortId, orgToken}: {cohortId: string,orgToken: string}, context: Context){
       const org = await checkLoggedInOrganization(orgToken)
-      if(!org){
-        throw new GraphQLError("No such organization found",{
-          extensions: {
-            code: "ORGANIZATION_NOT_FOUND"
-          }
-        })
-      }
+      const {user, orgUserData} = (await checkUserLoggedIn(org,context))([ RoleOfUser.ADMIN, RoleOfUser.MANAGER, RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+
       const cohort = await Cohort.findById(cohortId)
       if(!cohort){
         throw new GraphQLError("No cohort is associated with this user",{
@@ -133,287 +149,402 @@ const ratingResolvers: any = {
         })
       }
       if(cohort.organization.toString() !== org._id.toString()){
-        throw new GraphQLError(`Cohort ${cohort.name} is not associated with organization ${org.name}`,{
+        throw new GraphQLError(`Cohort ${cohort.name} is not part of organization ${org.name}`,{
           extensions: {
             code: "FORBIDDEN"
           }
         })
       }
-      // cohort validation
-      // if(user?.cohort?.toString()!==cohort._id.toString()){
-      //   throw new GraphQLError(`User ${user.email} is not part of cohort ${cohort.name}`,{
-      //     extensions: {
-      //       code: "FORBIDDEN"
-      //     }
-      //   })
-      // }
       const ratings = await Rating.find({
         cohort: cohort._id,
         organization: org._id,
+        approved: true,
       }).populate(['user','cohort',{
         path: 'feedbacks',
         populate: 'sender'
-      }]).sort({sprint: 1})
+      }])
       return ratings
     },
 
-    async fetchTrainees(
-      _: any,
-      args: any,
-      context: { role: string; userId: string }
-    ) {
-      const id = context.userId
-      if (!id) throw new Error('it seems you have not logged in')
-      const trainees = await Cohort.find({ coordinator: id }).populate({
-        path: 'members',
-        populate: {
-          path: 'program',
-          match: context.role === RoleOfUser.COORDINATOR,
-          strictPopulate: false,
-          populate: {
-            path: 'organization',
-            strictPopulate: false,
-          },
-        },
-      })
-
-      return trainees
+    FetchRatingUpdates: async(_:any,{orgToken}:{orgToken: string}, context: Context)=>{
+      validateStringField(orgToken, "Please provide a valid organization token")
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user, orgUserData} = (await checkUserLoggedIn(org, context))([RoleOfUser.ADMIN])
+      const ratingUpdates = await Rating.find({
+        organization: org._id,
+        approved: false,
+      }).populate(['user','cohort',{
+        path: 'feedbacks',
+        populate: 'sender'
+      }])
+      return ratingUpdates
     },
 
-    async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
-      ; (await checkUserLoggedIn(context))([
-        RoleOfUser.COORDINATOR,
-        RoleOfUser.ADMIN,
-        RoleOfUser.TRAINEE,
-        RoleOfUser.TTL,
-      ])
-      return (
-        await Rating.find({}).populate([
-          'cohort',
-          'user',
-          {
-            path: 'feedbacks',
-            populate: 'sender',
-          },
-        ])
-      ).filter((rating: any) => {
-        return !!rating.cohort && rating.cohort.name == CohortName
-      })
+    FetchRatingsBySprint: async(_:any,{sprintId, orgToken}:{sprintId: string, orgToken: string},context: Context)=>{
+      validateObjectId(sprintId, "Please enter a valid sprint Id")
+      validateStringField(orgToken, "Please enter a valid organization token")
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user, orgUserData} = (await checkUserLoggedIn(org, context))([RoleOfUser.ADMIN,RoleOfUser.COORDINATOR,RoleOfUser.TTL,RoleOfUser.TRAINEE])
+      const sprint = await Sprint.findById(sprintId)
+      if(!sprint){
+        throw new GraphQLError("No such sprint found",{
+          extensions:{
+            code: "SPRINT_NOT_FOUND"
+          }
+        })
+      }
+      if(sprint.organization.toString() !== org._id.toString()){
+        throw new GraphQLError(`This sprint was not found in organization ${org.name}`,{
+          extensions:{
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      switch(orgUserData.role){
+        case RoleOfUser.ADMIN:
+          return await Rating.find({
+            sprint: sprint._id,
+            organization: org._id,
+            approved: true
+          })
+        case RoleOfUser.COORDINATOR:
+          const cohorts = await Cohort.find({
+            coordinator: user._id,
+            organization: org._id,
+          })
+          if(cohorts.length===0){
+            throw new GraphQLError("No cohorts are assigned to you",{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          return await Rating.find({
+            sprint:sprint._id,
+            cohort:{
+              $in: cohorts.map(cohort=>cohort._id)
+            },
+            organization: org._id
+          })
+        case RoleOfUser.TTL:
+          const ttlTeam = await Team.findOne({
+            ttl: user._id,
+            organization: org._id
+          })
+          if(!ttlTeam){
+            throw new GraphQLError("No team is assigned to you",{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          return await Rating.find({
+            user: {
+              $in: ttlTeam.members,
+            },
+            sprint: sprint._id,
+            organization: org._id,
+          })
+        case RoleOfUser.TRAINEE:
+          return Rating.find({
+            user: user._id,
+            sprint: sprint._id,
+            organization: org._id
+          })
+        default:
+          throw new GraphQLError("Invalid Role",{
+            extensions:{
+              code: "FORBIDDEN"
+            }
+          })
+      }
     },
 
-    async fetchCohortsCoordinator(
-      _: any,
-      args: any,
-      context: { role: string; userId: string }
-    ) {
-      const id = context.userId
-      if (!id) throw new Error('it seems you have not logged in')
-      const trainees = await Cohort.find({
-        coordinator: id,
-        name: args.cohortName,
-      }).populate({
-        path: 'members',
-        populate: {
-          path: 'program',
-          match: context.role === RoleOfUser.COORDINATOR,
-          strictPopulate: false,
-          populate: {
-            path: 'organization',
-            strictPopulate: false,
-          },
-        },
-      })
-      return trainees
-    },
+    // async fetchTrainees(
+    //   _: any,
+    //   args: any,
+    //   context: { role: string; userId: string }
+    // ) {
+    //   const id = context.userId
+    //   if (!id) throw new Error('it seems you have not logged in')
+    //   const trainees = await Cohort.find({ coordinator: id }).populate({
+    //     path: 'members',
+    //     populate: {
+    //       path: 'program',
+    //       match: context.role === RoleOfUser.COORDINATOR,
+    //       strictPopulate: false,
+    //       populate: {
+    //         path: 'organization',
+    //         strictPopulate: false,
+    //       },
+    //     },
+    //   })
 
-    async fetchRatingsTrainee(
-      _: any,
-      args: any,
-      context: { role: string; userId: string }
-    ) {
-      const findRatings = await Rating.find({ user: context.userId })
-        .populate([
-          'user',
-          'cohort',
-          {
-            path: 'feedbacks',
-            populate: 'sender',
-          },
-        ])
-        .sort({ createdAt: -1 })
-      return findRatings
-    },
+    //   return trainees
+    // },
+
+    // async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
+    //   ; (await checkUserLoggedIn(context))([
+    //     RoleOfUser.COORDINATOR,
+    //     RoleOfUser.ADMIN,
+    //     RoleOfUser.TRAINEE,
+    //     RoleOfUser.TTL,
+    //   ])
+    //   return (
+    //     await Rating.find({}).populate([
+    //       'cohort',
+    //       'user',
+    //       {
+    //         path: 'feedbacks',
+    //         populate: 'sender',
+    //       },
+    //     ])
+    //   ).filter((rating: any) => {
+    //     return !!rating.cohort && rating.cohort.name == CohortName
+    //   })
+    // },
+
+    // async fetchCohortsCoordinator(
+    //   _: any,
+    //   args: any,
+    //   context: { role: string; userId: string }
+    // ) {
+    //   const id = context.userId
+    //   if (!id) throw new Error('it seems you have not logged in')
+    //   const trainees = await Cohort.find({
+    //     coordinator: id,
+    //     name: args.cohortName,
+    //   }).populate({
+    //     path: 'members',
+    //     populate: {
+    //       path: 'program',
+    //       match: context.role === RoleOfUser.COORDINATOR,
+    //       strictPopulate: false,
+    //       populate: {
+    //         path: 'organization',
+    //         strictPopulate: false,
+    //       },
+    //     },
+    //   })
+    //   return trainees
+    // },
   },
   Mutation: {
-    addRatings: authenticated(
-      validateTtlOrCoordinator([RoleOfUser.COORDINATOR, RoleOfUser.TTL])(
-        async (
-          root,
-          {
-            user,
-            sprint,
-            quantity,
-            quality,
-            cohort,
-            professional_Skills,
-            average,
-            orgToken,
+    AddRatings: async (
+          _:any,
+          {userId,sprintId,quantity,quality,professional_Skills,feedback,orgToken}:{
+            userId: string,
+            sprintId: string,
+            quantity: number,
+            quality: number,
+            professional_Skills: string,
+            feedback: string
+            orgToken: string
           },
-          context: { userId: string; role: string }
+          context: Context
         ) => {
+      //validation
+      validateObjectId(userId, "Please enter a valid userId")
+      validateObjectId(sprintId, "Please enter a valid sprintId")
+      validateNumber(quantity, 0, 2, "Please enter a quantity value between 0 and 2")
+      validateNumber(quality, 0, 2, "Please enter a quality value between 0 and 2")
+      validateNumber(professional_Skills, 0, 2, "Please enter a professional_skills between 0 and 2")
+      validateStringField(feedback, "Please enter valid feeback")
+      validateStringField(orgToken, "Please enter a valid organization token")
           // get the organization if someone  logs in
           org = await checkLoggedInOrganization(orgToken)
-          const userExists: any = await User.findOne({ _id: user })
+          const { user, orgUserData: loggedInUserData } = (await checkUserLoggedIn(org, context))([RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+          const userExists = await User.findById(userId)
 
-          if (!userExists) throw new Error('User does not exist!')
-
-          if (userExists.status?.status === 'drop') {
-            throw new Error('The trainee is dropped')
+          if (!userExists){
+            throw new GraphQLError('No such user found',{
+              extensions: {
+                code: "USER_NOT_FOUND"
+              }
+            })
           }
-
-          const Kohort = await Cohort.findOne({ _id: cohort })
-          const Phase = await Cohort.findOne({ _id: cohort }).populate(
-            'phase',
-            'name'
-          )
-
-          if (!Kohort) throw new Error('User does not exist!')
-          if (!Phase) throw new Error('Phase does not exist!')
-
-          const phaseName = await (Phase as any).phase.name
-
-          const findSprint = await Rating.find({ sprint: sprint, user: user })
-          if (findSprint.length !== 0)
-            throw new Error('The sprint has recorded ratings')
-
-          //  average generating
-
-          average =
-            (parseInt(quality) +
-              parseInt(quantity) +
-              parseInt(professional_Skills)) /
-            3
-
-          if (!mongoose.isValidObjectId(user))
-            throw new Error('Invalid user id')
-          const saveUserRating = await Rating.create({
-            user: userExists,
-            sprint,
-            quantity,
-            quality,
-            phase: phaseName,
-            cohort: Kohort,
-            feedbacks: [],
-            professional_Skills,
-            average,
-            coordinator: context.userId,
-            organization: org,
+          const userData = isPartOfOrganization(userExists, org)
+          //check if trainee is dropped
+          if (userData.status?.status === 'drop') {
+            throw new GraphQLError('The trainee is dropped',{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          //check if user is a trainee
+          if (userData.role === RoleOfUser.TRAINEE) {
+            throw new GraphQLError('This user is not a trainee',{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          //check if user belongs to coordinator's cohort or ttl's team
+          switch(loggedInUserData.role){
+            case RoleOfUser.COORDINATOR:
+              const coordinatorCohorts = await Cohort.find({
+                coordinator: user._id,
+                organization: org._id
+              })
+              if(userData.cohort && !coordinatorCohorts.map(cohort=>cohort._id.toString()).includes(userData.cohort.toString())){
+                throw new GraphQLError(`User ${userExists.email} is not part of cohorts assigned to you.`,{
+                  extensions: {
+                    code: "FORBIDDEN"
+                  }
+                })
+              }
+              break
+            case RoleOfUser.TTL:
+              const team = await Team.findOne({
+                ttl: user._id,
+                organization: org._id
+              })
+              if(!team){
+                throw new GraphQLError("No team is assigned to you",{
+                  extensions:{
+                    code: "TEAM_NOT_FOUND"
+                  }
+                })
+              }
+              if(userData.team && userData.team.toString() !== team._id.toString()){
+                throw new GraphQLError(`User ${userExists.email} is not part of the team assigned to you`,{
+                  extensions: {
+                    code: "FORBIDDEN"
+                  }
+                })
+              }
+            break
+            default:
+              throw new GraphQLError("Invalid Role", {
+                extensions: {
+                  code: "FORBIDDEN"
+                }
+              })
+          }
+          //check if sprint exists
+          const sprint = await Sprint.findById(sprintId).populate('phase')
+          if (!sprint){
+            throw new GraphQLError('No such sprint found',{
+              extensions: {
+                code: "SPRINT_NOT_FOUND"
+              }
+            })
+          }
+          if(sprint.organization.toString() !== org._id.toString()){
+            throw new GraphQLError(`This sprint is not found in organization ${org.name}`,{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          //check if trainee is not already rated
+          const existingRating = await Rating.findOne({
+            sprint: sprint._id,
+            user: userExists._id,
+            organization: org._id,
+          })
+          if(existingRating){
+            throw new GraphQLError(`User ${userExists.email}'s sprint ${sprint.sprintNbr} is already rated`,{
+              extensions: {
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          const newRating = await Rating.create({
+            user: userExists._id,
+            sprint: sprint._id,
+            phase: sprint.phase,
+            quality: quality,
+            quantity: quantity,
+            professional_Skills: professional_Skills,
+            feedbacks: [{
+              sender: user._id,
+              content: feedback
+            }],
+            cohort: userData.cohort,
+            organization: org._id
           })
 
-          const coordinator = await User.findOne({ _id: context.userId })
-          if (coordinator) {
+          if(userData.pushNotifications){
             pushNotification(
-              user,
-              `Your ${context.role} has rated you, check your scores.`,
-              coordinator!._id,
+              userExists._id,
+              `New ratings for sprint ${sprint.sprintNbr} are ready`,
+              user._id,
+              org._id,
               'rating'
             )
           }
-          // if (userExists.pushNotifications) {
-          //   pubsub.publish('NEW_RATING', {
-          //     newRating: {
-          //       id: addNotifications._id,
-          //       receiver: user,
-          //       message: 'Have rated you; check your scores.',
-          //       sender: coordinator,
-          //       read: false,
-          //       createdAt: addNotifications.createdAt,
-          //     },
-          //   })
-          // }
-          if (userExists.emailNotifications) {
+          if (userData.emailNotifications) {
             await sendEmails(
               process.env.SENDER_EMAIL,
               process.env.ADMIN_PASS,
               userExists.email,
               'New Rating notice',
               ratingEmailContent
-            )
-            return saveUserRating.populate({
-              path: 'feedbacks',
-              populate: 'sender',
-            })
-          }
+          )
+          await newRating.populate({
+            path: 'feedbacks',
+            populate: 'sender'
+          })
         }
-      )
-    ),
-    async addRatingsByFile(_: any, { file, cohortId, sprint, orgToken }: { file: FileUpload, cohortId: string, sprint: number, orgToken: string }, context: Context) {
-      const { userId, role } = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
+    },
+    async AddRatingsByFile(_: any, { file,sprintId, orgToken }: { file: FileUpload, sprintId: string, orgToken: string }, context: Context) {
       const org = await checkLoggedInOrganization(orgToken)
-      if (!org) {
-        throw new GraphQLError("No such organization found", {
+      const { user, orgUserData: loggedInUserData } = (await checkUserLoggedIn(org, context))([RoleOfUser.COORDINATOR,RoleOfUser.MANAGER,RoleOfUser.TTL])
+      const sprint = await Sprint.findById(sprintId)
+      if(!sprint){
+        throw new GraphQLError("No such sprint found",{
           extensions: {
-            code: "ORGANIZATION_NOT_FOUND"
+            code: "SPRINT_NOT_FOUND"
           }
         })
       }
-      const currentCohort = await Cohort.findById(cohortId).populate('phase')
-      if(!currentCohort){
-        throw new GraphQLError("This COORDINATOR account is not associated with any cohort",{
-          extensions: {
-            code: "COHORT_NOT_FOUND"
-          }
-        })
-      }
-      if(currentCohort.organization.toString() !== org._id.toString()){
-        throw new GraphQLError(`This cohort is not part of organization ${org.name}`,{
-          extensions: {
+      if(sprint.organization.toString() !== org._id.toString()){
+        throw new GraphQLError(`This sprint was not found in organization ${org.name}`,{
+          extensions:{
             code: "FORBIDDEN"
           }
         })
       }
 
-      const user = await User.findById(userId)
-      if(!user){
-        throw new GraphQLError("No such user found",{
-          extensions: {
-            code: "USER_NOT_FOUND"
+      let coordinatorCohorts: any[] = []
+      let ttlTeam = null
+
+      switch(loggedInUserData.role){
+        case RoleOfUser.COORDINATOR:
+          const cohorts = await Cohort.find({
+            coordinator: user._id,
+            organization: org._id
+          })
+          if(cohorts.length===0){
+            throw new GraphQLError("You not assigned as coordinator to any cohort",{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
           }
-        })
-      }
-
-      let userList: string[] = []
-
-      //get user's cohort depending on role
-      if(role === RoleOfUser.COORDINATOR){
-        if(user._id.toString() !== currentCohort.coordinator.toString()){
-          throw new GraphQLError(`This Coordinator user is not assigned to cohort ${currentCohort.name}`,{
+          coordinatorCohorts= cohorts.map(cohort=>cohort._id.toString())
+          break
+        case RoleOfUser.TTL:
+          ttlTeam = await Team.findOne({
+            ttl: user._id,
+            organization: org._id
+          })
+          if(!ttlTeam){
+            throw new GraphQLError("You not assigned as ttl to any team",{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          break
+        default:
+          throw new GraphQLError(`User ${user.email} has invalid user role`,{
             extensions: {
-              code: "FORBIDDEN"
+              code: "FORBIDDEn"
             }
           })
-        }
-        const cohortTrainees = await User.find({cohort: currentCohort._id})
-        userList = cohortTrainees.map(trainee=>trainee.email)
-      }
-
-      if(role === RoleOfUser.TTL){
-        if(user.cohort?.toString() !== currentCohort._id.toString()){
-          throw new GraphQLError(`This TTL user is not assigned to cohort ${currentCohort.name}`,{
-            extensions: {
-              code: "FORBIDDEN"
-            }
-          })
-        }
-        const team = await Team.findById(user?.team).populate('members')
-        if(!team){
-          throw new GraphQLError("This TTL account is not associated with any team",{
-            extensions: {
-              code: "TEAM_NOT_FOUND"
-            }
-          })
-        }
-        userList = team.members.map(trainee=>(trainee as any)?.email)
       }
 
       if(!file){
@@ -430,55 +561,67 @@ const ratingResolvers: any = {
 
       for(const row of validRows){
         //check if user exists
-        const user = await User.findOne({email: row.email,})
-        if(user && userList.includes(row.email)){
+        const existingUser = await User.findOne({
+          email: row.email,
+        })
+        if(!existingUser){
+          RejectedRatings.push(existingUser)
+          continue
+        }
+        const userData = existingUser.organizations.find(data=>data.orgId.toString()===org._id.toString())
+        if(!userData){
+          RejectedRatings.push(row)
+          continue
+        }
+        //check if the logged in user has permission to rate this user
+        if (loggedInUserData.role === RoleOfUser.COORDINATOR && !coordinatorCohorts.includes(userData.cohort?.toString())) {
+          RejectedRatings.push(row)
+          continue
+        }
+        if(loggedInUserData.role === RoleOfUser.TTL && ttlTeam && ttlTeam._id.toString() === userData.team?.toString()){
+          RejectedRatings.push(row)
+          continue
+        }
           //check if user is already rated
           const existingRating = await Rating.findOne({
             user: user._id,
-            cohort: currentCohort._id,
-            sprint,
+            sprint: sprint._id,
+            organization: org._id,
           })
 
           //if rating exists, update it
           if(existingRating){
-            const tempRating = await TempData.create({
-              user: user._id,
-              sprint: existingRating.sprint,
-              quantity: existingRating.quantity === row.quantity.toString() ? [existingRating.quantity] : [`${existingRating.quantity}->`,row.quantity],
-              quality: existingRating.quality === row.quality.toString() ? [existingRating.quality] : [`${existingRating.quality}->`,row.quality],
-              professional_Skills: existingRating.professional_Skills === row.professional_skills.toString() ? [existingRating.professional_Skills] : [`${existingRating.professional_Skills}->`,row.professional_skills],
-              feedbacks: [...existingRating.feedbacks.map(rating=>{
-                if(rating.sender?.toString() === user._id.toString()){
-                  return {...rating, content: row.feedBacks}
-                }
-                return rating
-              })],
-              oldFeedback: existingRating.feedbacks.map(feedback=>feedback.content),
-              coordinator: existingRating.coordinator,
+            const temporaryRating = await Sprint.create({
+              user: existingUser._id,
+              sprint: sprint._id,
+              quantity: row.quantity,
+              quality: row.quality,
+              professional_Skills: row.professional_skills,
+              feedbacks: [{
+                sender: user._id,
+                content: row.feedBacks,
+              }],
               cohort: existingRating.cohort,
               approved: false,
-              average: (row.quantity + row.quality + row.professional_skills)/3,
               organization: existingRating.organization,
             })
-            UpdatedRatings.push(tempRating)
+            UpdatedRatings.push(temporaryRating)
             continue
           }
 
           const rating = await Rating.create({
-            user: user._id,
-            sprint: sprint,
-            phase: (currentCohort.phase as any).name,
+            user: existingUser._id,
+            sprint: sprint._id,
+            phase: sprint.phase,
             quantity: row.quantity,
             feedbacks: [{
-              sender: userId,
+              sender: user._id,
               content: row.feedBacks
             }],
             quality: row.quality,
             professional_Skills: row.professional_skills,
             approved: true,
-            coordinator: currentCohort?.coordinator,
-            cohort: currentCohort._id,
-            average: (row.quality+row.quantity+row.professional_skills)/3,
+            cohort: userData.cohort,
             organization: org._id,
           })
 
@@ -502,16 +645,24 @@ const ratingResolvers: any = {
 
           NewRatings.push(populatedRating)
 
-          await sendEmails(
-            process.env.SENDER_EMAIL,
-            process.env.ADMIN_PASS,
-            user.email,
-            'New Rating notice',
-            ratingEmailContent
-          )
-        }else{
-          RejectedRatings.push(row)
-        }
+          if(userData.pushNotifications){
+            pushNotification(
+              existingUser._id,
+              `New ratings for sprint ${sprint.sprintNbr} are ready`,
+              user._id,
+              org._id,
+              'rating'
+            )
+          }
+          if(userData.emailNotifications){
+            await sendEmails(
+              process.env.SENDER_EMAIL,
+              process.env.ADMIN_PASS,
+              existingUser.email,
+              'New Rating notice',
+              ratingEmailContent
+            )
+          }
       }
       return { 
         NewRatings,
@@ -519,313 +670,358 @@ const ratingResolvers: any = {
         RejectedRatings
       }
     },
-    async deleteReply() {
-      await Rating.deleteMany({})
-      return 'The rating table has been deleted successfully'
-    },
-    updateRating: authenticated(
-      validateTtlOrCoordinator([RoleOfUser.COORDINATOR, RoleOfUser.TTL])(
-        async (
-          root,
-          {
-            user,
-            sprint,
+    UpdateRating:
+        async (_: any,{userId,sprintId,quantity,quality,professional_Skills,feedback,orgToken}:{
+            userId:string,
+            sprintId: string,
+            quantity: number,
+            quality: number,
+            professional_Skills: number,
+            feedback: string,
+            orgToken: string
+          },
+          context: Context
+        ) => {
+          //validation
+          validateObjectId(userId,"Please enter a valid userId")
+          validateObjectId(sprintId,"Please enter a valid sprintId")
+          validateNumber(quantity,0,2,"Please enter a quantity value between 0 and 2")
+          validateNumber(quality,0,2,"Please enter a quality value between 0 and 2")
+          validateNumber(professional_Skills,0,2, "Please enter a professional_skills between 0 and 2")
+          validateStringField(feedback,"Please enter valid feeback")
+          validateStringField(orgToken, "Please enter a valid organization token")
+
+          const org = await checkLoggedInOrganization(orgToken)
+          const {user, orgUserData: loggedInUserData} = (await checkUserLoggedIn(org, context))([RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+          const userExists = await User.findById(userId)
+          if (!userExists){
+            throw new GraphQLError('User does not exist!',{
+              extensions: {
+                code: "USER_NOT_FOUND"
+              }
+            }) 
+          } 
+          const userData = isPartOfOrganization(userExists, org)
+          if(loggedInUserData.role === RoleOfUser.COORDINATOR){
+            const cohorts = await Cohort.find({
+              coordinator: user._id,
+              organization: org._id,
+            })
+            if(!cohorts.map(cohort=>cohort._id.toString()).includes(userData.cohort?.toString() || "")){
+              throw new GraphQLError("This user is not part of the cohorts assined to you",{
+                extensions: {
+                  code: "FORBIDDEN"
+                }
+              })
+            }
+          }
+          if(loggedInUserData.role === RoleOfUser.TTL){
+            const ttlTeam = await Team.findOne({
+              ttl: user._id,
+              organization: org._id,
+            })
+            if(!ttlTeam){
+              throw new GraphQLError("Tou have not been assigned to a team",{
+                extensions: {
+                  code: "FORBIDDEN"
+                }
+              })
+            }
+            if(ttlTeam._id.toString() === userData.team?.toString()){
+              throw new GraphQLError("This user is not part of the team assigned to you",{
+                extensions: {
+                  code: "FORBIDDEN"
+                }
+              })
+            }
+          }
+          const sprint = await Sprint.findById(sprintId)
+          if(!sprint){
+            throw new GraphQLError("Sprint not found",{
+              extensions:{
+                code: "SPRINT_NOT_FOUND"
+              }
+            })
+          }
+          if(sprint.organization.toString() !== org._id.toString()){
+            throw new GraphQLError(`his sprint was not found in organization ${org.name}`,{
+              extensions:{
+                code: "FORBIDDEN"
+              }
+            })
+          }
+          const existingRating = await Rating.findOne({
+            user: userExists._id,
+            sprint: sprint._id,
+            approved: true
+          })
+          if(!existingRating){
+            throw new GraphQLError(`Sprint ${sprint.sprintNbr} is not yet rated`,{
+              extensions: {
+                code: "FROBIDDEN"
+              }
+            })
+          }
+          
+          const updatedRating = await Rating.create({
+            user: userExists._id,
+            sprint: sprint._id,
             quantity,
             quality,
             professional_Skills,
-            feedbacks,
-            orgToken,
-          },
-          context: { userId: string }
-        ) => {
-          const org = await checkLoggedInOrganization(orgToken)
-
-          const userExists = await User.findById(user)
-          if (!userExists) throw new Error('User does not exist!')
-
-          const oldData = await Rating.findOne({
-            user: user,
-            sprint: sprint,
+            feedbacks: [{
+              sender: user._id,
+              content: feedback
+            }],
+            cohort: userData.cohort,
+            organization: org._id,
+            approved: false,
           })
-          const currentUpdated = await TempData.find({
-            sprint: sprint,
-            user: user,
-          })
-          if (currentUpdated.length !== 0)
-            await TempData.deleteMany({ sprint: sprint, user: user })
-          const feedbackContent = oldData?.feedbacks[0].content
-
-          if (
-            oldData?.quantity == quantity[0].toString() &&
-            oldData?.quality == quality[0].toString() &&
-            oldData?.professional_Skills == professional_Skills[0].toString() &&
-            (oldData?.feedbacks?.[0]?.content ?? '') ==
-            (feedbackContent ?? '') &&
-            (feedbacks[0]?.toString() ?? '') == (feedbackContent ?? '')
-          ) {
-            throw new Error('No changes to update!')
-          } else {
-            const updateRating = await TempData.create({
-              user,
-              sprint,
-              quantity:
-                oldData?.quantity == quantity[0].toString()
-                  ? oldData?.quantity
-                  : [`${oldData?.quantity} ->`, quantity?.toString()],
-              quality:
-                oldData?.quality == quality[0].toString()
-                  ? oldData?.quality
-                  : [`${oldData?.quality} ->`, quality?.toString()],
-              professional_Skills:
-                oldData?.professional_Skills ==
-                  professional_Skills[0].toString()
-                  ? oldData?.professional_Skills
-                  : [
-                      `${oldData?.professional_Skills} ->`,
-                      professional_Skills?.toString(),
-                    ],
-
-              feedbacks: oldData?.feedbacks.map((feedback) => {
-                feedbackContent === feedback.content
-                  ? feedback.content
-                  : [`${feedbackContent} -> `, feedbacks[0]?.toString()]
-
-                return {
-                  content: feedbacks[0]?.toString(),
-                  sender: context.userId,
-                  createdAt: new Date(),
-                }
-              }),
-              oldFeedback: oldData?.feedbacks[0].content,
-              coordinator: context.userId,
-              cohort: oldData?.cohort,
-              average: oldData?.average,
-              approved: false,
-              organization: org,
-            })
-            await Rating.findOneAndUpdate(
-              { user: user, sprint: sprint }
-            )
-
-            // Send a notification to the admin
-            const admin = await User.findOne({ role: RoleOfUser.ADMIN })
-            if (admin) {
+            for(const adminId of org.admin){
               await pushNotification(
-                admin._id,
+                adminId,
                 `The rating for user ${userExists.email} was edited, you need to approve it`,
-                new Types.ObjectId(context.userId),
+                user._id,
+                org._id,
                 'rating'
               )
             }
-
-            return updateRating
+            return updatedRating
           }
-        }
-      )
-    ),
+        },
 
-    approveRating: authenticated(
-      validateRole(RoleOfUser.ADMIN)(async (root, { user, sprint }) => {
-        const updatedData = await TempData.findOne({
-          user: user,
-          sprint: sprint,
+    ApproveOrRejectRating: async (_:any, { ratingId, action, orgToken }: {ratingId: string, action: string, orgToken: string}, context: Context) => {
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user, orgUserData: loggedInUserData} = (await checkUserLoggedIn(org, context))([RoleOfUser.ADMIN])
+      //check if the rating update exists
+      const ratingUpdate = await Rating.findById(ratingId)
+      if(!ratingUpdate){
+        throw new GraphQLError("No such rating found",{
+          extensions:{
+            code: "RATING_NOT_FOUND"
+          }
         })
-        const userToNotify = await User.findById(updatedData?.user)
-        if (!userToNotify) throw new Error('User does not exist!')
-
-        const updates = {
-          quantity: updatedData?.quantity[1] ?? updatedData?.quantity[0],
-          quality: updatedData?.quality[1] ?? updatedData?.quality[0],
-          professional_Skills:
-            updatedData?.professional_Skills[1] ??
-            updatedData?.professional_Skills[0],
-          feedbacks: updatedData?.feedbacks ?? [],
-        }
-
-        const update = await Rating.findOneAndUpdate(
-          { user: user, sprint: sprint },
-          {
-            quantity: updates.quantity,
-            quality: updates.quality,
-            professional_Skills: updates.professional_Skills,
-            feedbacks: updates.feedbacks,
-            approved: true,
-            average:
-              (Number(updates.quality) +
-                Number(updates.quantity) +
-                Number(updates.professional_Skills)) /
-              3,
-          },
-          { new: true }
-        )
-        await TempData.deleteOne({ sprint: sprint, user: user })
-        if (userToNotify.emailNotifications) {
-          const content = generalTemplate({
-            message:
-              'We would like to inform you that your ratings have been updated. use the button below to check out your new ratings.',
-            buttonText: 'View Ratings',
-            link: `${process.env.FRONTEND_LINK}/performance`,
-            closingText:
-              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
-          })
-
-          await sendEmails(
-            process.env.ADMIN_EMAIL,
-            process.env.ADMIN_PASS,
-            userToNotify?.email,
-            'Ratings notice',
-            content
-          )
-        }
-
-        return update
-      })
-    ),
-    updateToReply: authenticated(
-      validateRole('trainee')(
-        async (
-          root,
-          {
-            user,
-            sprint,
-            orgToken,
-          },
-          context: { userId: string }
-        ) => {
-          org = await checkLoggedInOrganization(orgToken)
-          const updateReply = await Rating.findOneAndUpdate(
-            { user: user, sprint: sprint },
-            { new: true }
-          )
-
-          const traineee = await User.findOne({ _id: context.userId })
-          const rate = await Rating.findOne({
-            user: user,
-            sprint: sprint,
-          })
-          if (!traineee) {
-            throw new Error('Traineee not found')
+      }
+      if(ratingUpdate.organization.toString() !== org._id.toString()){
+        throw new GraphQLError(`This rating update was not found in organization ${org.name}`,{
+          extensions:{
+            code: "FORBIDDEN"
           }
-          const addNotifications = await Notification.create({
-            receiver: rate?.coordinator
-              ?.toString()
-              ?.replace(/ObjectId\("(.*)"\)/, '$1'),
-            message: 'Have replied you on your remark',
-            sender: traineee,
-            read: false,
-            createdAt: new Date(),
-          })
-
-          if (traineee.pushNotifications) {
-            pubsub.publish('NEW_RATING', {
-              newRating: {
-                id: addNotifications._id,
-                receiver: rate?.coordinator
-                  ?.toString()
-                  ?.replace(/ObjectId\("(.*)"\)/, '$1'),
-                message: addNotifications.message,
-                sender: traineee,
-                read: false,
-                createdAt: addNotifications.createdAt,
-              },
+        })
+      }
+      if(ratingUpdate.approved){
+        throw new GraphQLError("This rating is already approved",{
+          extensions:{
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      const realRating = await Rating.findOne({
+        user: ratingUpdate.user,
+        sprint: ratingUpdate.sprint,
+        organization: org._id,
+        approved: true
+      })
+      if(!realRating){
+        throw new GraphQLError("This rating you are trying to update does not exist",{
+          extensions:{
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      const ratedUser = await User.findById(realRating.user)
+      if(!ratedUser){
+        throw new GraphQLError("The user your are trying to rate no longer exists",{
+          extensions:{
+            code: "USER_NOT_FOUND"
+          }
+        })
+      }
+      const userData = isPartOfOrganization(ratedUser, org)
+      switch(action){
+        case "approve":
+          realRating.quality = ratingUpdate.quality,
+          realRating.quantity = ratingUpdate.quantity,
+          realRating.professional_Skills = ratingUpdate.professional_Skills
+          const previousfeedback = realRating.feedbacks.find(feedback=> feedback.sender?.toString() === ratingUpdate.feedbacks[0].sender?.toString())
+          if(previousfeedback){
+            previousfeedback.content=ratingUpdate.feedbacks[0].content
+          }else{
+            realRating.feedbacks.push({
+              sender: ratingUpdate.feedbacks[0].sender,
+              content: ratingUpdate.feedbacks[0].content,
+              createdAt: ratingUpdate.feedbacks[0].createdAt
             })
           }
-          return [updateReply]
-        }
-      )
-    ),
+          await realRating.save()
+          if (userData.emailNotifications) {
+            const content = generalTemplate({
+              message:
+                'We would like to inform you that your ratings have been updated. use the button below to check out your new ratings.',
+              buttonText: 'View Ratings',
+              link: `${process.env.FRONTEND_LINK}/performance`,
+              closingText:
+                "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+            })
+
+            await sendEmails(
+              process.env.ADMIN_EMAIL,
+              process.env.ADMIN_PASS,
+              ratedUser.email,
+              'Ratings notice',
+              content
+            )
+          }
+          break
+        case "reject":
+          await Rating.findByIdAndDelete(ratingId)
+          if (loggedInUserData.emailNotifications) {
+            const content = generalTemplate({
+              message: `We would like to inform you that the updates you made to the Trainee with email "${ratedUser.email}" have been rejected.`,
+              closingText:
+                'If you have any questions or require additional information on the action, please reach out to your admin.',
+            })
+
+            await sendEmails(
+              process.env.ADMIN_EMAIL,
+              process.env.ADMIN_PASS,
+              user.email,
+              'Ratings notice',
+              content
+            )
+          }
+          break
+        default:
+          throw new GraphQLError("Invalid Action, please approve or reject this rating update",{
+            extensions:{
+              code: "USER_INPUT_ERROR"
+            }
+          })
+      }
+      return realRating
+    },
+    // updateToReply: authenticated(
+    //   validateRole('trainee')(
+    //     async (
+    //       root,
+    //       {
+    //         user,
+    //         sprint,
+    //         orgToken,
+    //       },
+    //       context: { userId: string }
+    //     ) => {
+    //       org = await checkLoggedInOrganization(orgToken)
+    //       const updateReply = await Rating.findOneAndUpdate(
+    //         { user: user, sprint: sprint },
+    //         { new: true }
+    //       )
+
+    //       const traineee = await User.findOne({ _id: context.userId })
+    //       const rate = await Rating.findOne({
+    //         user: user,
+    //         sprint: sprint,
+    //       })
+    //       if (!traineee) {
+    //         throw new Error('Traineee not found')
+    //       }
+    //       const addNotifications = await Notification.create({
+    //         receiver: rate?.coordinator
+    //           ?.toString()
+    //           ?.replace(/ObjectId\("(.*)"\)/, '$1'),
+    //         message: 'Have replied you on your remark',
+    //         sender: traineee,
+    //         read: false,
+    //         createdAt: new Date(),
+    //       })
+
+    //       if (traineee.pushNotifications) {
+    //         pubsub.publish('NEW_RATING', {
+    //           newRating: {
+    //             id: addNotifications._id,
+    //             receiver: rate?.coordinator
+    //               ?.toString()
+    //               ?.replace(/ObjectId\("(.*)"\)/, '$1'),
+    //             message: addNotifications.message,
+    //             sender: traineee,
+    //             read: false,
+    //             createdAt: addNotifications.createdAt,
+    //           },
+    //         })
+    //       }
+    //       return [updateReply]
+    //     }
+    //   )
+    // ),
     AddRatingFeedback: async (
-      _: unknown,
-      { sprint, user, content }: any,
-      context: { userId: string }
+      _: any,
+      { ratingId, feedback, orgToken }: { ratingId: string, feedback: string, orgToken: string},
+      context: Context
     ) => {
-      if (!content.trim()) throw new Error('feedback must not be empty')
-
-      const rate = await Rating.findOne({
-        user: new ObjectId(user),
-        sprint: sprint,
-      })
-
-      if (!rate) throw new Error(`rating in sprint ${sprint} does not found`)
-
-      const sender = await User.findOne({ _id: context.userId })
-
-      rate?.feedbacks?.push({
-        content,
-        sender: sender?.id,
+      validateObjectId(ratingId, "Please provide a valid rating Id")
+      validateStringField(feedback, "Please provide valid feedback")
+      const org = await checkLoggedInOrganization(orgToken)
+      const {user, orgUserData} = (await checkUserLoggedIn(org, context))([RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+      const rating = await Rating.findById(ratingId)
+      if (!rating){
+        throw new GraphQLError(`No such rating found`,{
+          extensions: {
+            code: "RATING_NOT_FOUND"
+          }
+        })
+      }
+      if(rating.organization.toString()!==org._id.toString()){
+        throw new GraphQLError(`This rating was not found in organization ${org.name}`,{
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      if(!rating.approved){
+        throw new GraphQLError("This rating update is not yet approved",{
+          extensions: {
+            code: "FORBIDDEN"
+          }
+        })
+      }
+      rating.feedbacks.push({
+        content: feedback,
+        sender: user._id,
         createdAt: new Date(),
       })
-      await rate?.save()
+      await rating.save()
 
-      pubsub.publish('NEW_FEEDBACK', {
-        sprint,
-        user,
-        newfeedback: {
-          content,
-          createdAt: new Date(),
-          sender,
-        },
-      })
-      pubsub.publish('NEW_FEEDBACKS', {
-        sprint,
-        user,
-        newfeedbacks: {
-          sprint,
-          user,
-          data: {
-            content,
-            createdAt: new Date(),
-            sender,
-          },
-        },
-      })
+      // pubsub.publish('NEW_FEEDBACK', {
+      //   sprint,
+      //   user,
+      //   newfeedback: {
+      //     content,
+      //     createdAt: new Date(),
+      //     sender,
+      //   },
+      // })
+      // pubsub.publish('NEW_FEEDBACKS', {
+      //   sprint,
+      //   user,
+      //   newfeedbacks: {
+      //     sprint,
+      //     user,
+      //     data: {
+      //       content,
+      //       createdAt: new Date(),
+      //       sender,
+      //     },
+      //   },
+      // })
 
       pushNotification(
-        sender?.id == rate?.coordinator ? user : rate?.coordinator,
-        `Rating feedback: ${content}`,
-        sender?.id,
+        rating.user,
+        `Rating feedback: ${feedback}`,
+        user._id,
+        org._id,
         'rating'
       )
-      return {
-        content,
-        createdAt: new Date(),
-        sender,
-      }
+      return rating
     },
-
-    rejectRating: authenticated(
-      validateRole(RoleOfUser.ADMIN)(async (root, { user, sprint }) => {
-        const updatedData: any = await TempData.findOne({
-          user: user,
-          sprint: sprint,
-        })
-        const userX = await User.findById(updatedData?.user)
-        const findCoordinatorEmail = await User.findById(
-          updatedData?.coordinator
-        )
-        if (!findCoordinatorEmail) {
-          throw new Error('Traineee not found')
-        }
-        if (!userX) throw new Error('User does not exist!')
-        await TempData.deleteOne({ user: user, sprint: sprint })
-        if (findCoordinatorEmail.emailNotifications) {
-          const content = generalTemplate({
-            message: `We would like to inform you that the updates you made to the Trainee with email "${userX?.email}" have been rejected.`,
-            closingText:
-              'If you have any questions or require additional information on the action, please reach out to your admin.',
-          })
-
-          await sendEmails(
-            process.env.ADMIN_EMAIL,
-            process.env.ADMIN_PASS,
-            findCoordinatorEmail?.email,
-            'Ratings notice',
-            content
-          )
-        }
-        return `user ${userX?.email} deleted successfully`
-      })
-    ),
-  },
 }
 export default ratingResolvers

@@ -26,6 +26,10 @@ const programSchema = new Schema(
       required: true,
       default: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     toObject: { virtuals: true },

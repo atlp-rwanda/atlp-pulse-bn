@@ -64,6 +64,10 @@ const teamSchema = new Schema(
       default: true,
       required: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     statics: {
