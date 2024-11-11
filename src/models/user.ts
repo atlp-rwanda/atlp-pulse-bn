@@ -22,6 +22,8 @@ export interface UserInterface {
   emailNotifications: boolean;
   profile?: mongoose.Types.ObjectId;
   ratings?: mongoose.Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export enum RoleOfUser {
@@ -96,9 +98,9 @@ const userSchema = new Schema(
   },
 
   {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 )
 

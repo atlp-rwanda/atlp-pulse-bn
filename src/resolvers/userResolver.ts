@@ -84,10 +84,36 @@ async function logGeoActivity(user: any, clientIpAdress: string) {
   return geoData
 }
 
+async function loginscount(organizationName: any, recentLocation: any) {
+  if (!organizationName) return;
+
+
+  const organization = await Organization.findOne({ name: organizationName });
+  if (!organization) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const loginEntry = organization.logins.find(
+    (login) => login.date.toISOString().split('T')[0] === today
+  );
+
+  if (loginEntry) {
+    loginEntry.loginsCount += 1;
+    loginEntry.recentLocation = recentLocation;
+  } else {
+
+    organization.logins.push({ date: new Date(), loginsCount: 1, recentLocation});
+  }
+
+
+  await organization.save();
+}
+
+
 const resolvers: any = {
   Query: {
+
     async getOrganizations(_: any, __: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
 
       return Organization.find()
     },
@@ -141,7 +167,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.COORDINATOR,
         'trainee',
@@ -153,7 +179,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -373,8 +399,7 @@ const resolvers: any = {
         })
       } else if (user?.status?.status !== 'active') {
         throw new GraphQLError(
-          `Your account have been ${
-            user?.status?.status ?? user?.status
+          `Your account have been ${user?.status?.status ?? user?.status
           }, please contact your organization admin for assistance`,
           {
             extensions: {
@@ -386,6 +411,7 @@ const resolvers: any = {
       let attempts = await checkloginAttepmts(Profile, user)
 
       if (await user?.checkPass(password)) {
+        const organizationName = user.organizations[0]
         if (
           user?.role === RoleOfUser.TRAINEE &&
           user?.organizations?.includes(org?.name)
@@ -407,6 +433,10 @@ const resolvers: any = {
               token: token,
               user: user.toJSON(),
               geoData,
+            }
+            if (organizationName) {
+              const location = geoData.city && geoData.country_code ? `${geoData.city}-${geoData.country_code}` : null;
+              await loginscount(organizationName, location);
             }
             return data
           } else {
@@ -449,6 +479,10 @@ const resolvers: any = {
               user: user.toJSON(),
               geoData,
             }
+            if (organizationName) {
+              const location = geoData.city && geoData.country_code ? `${geoData.city}-${geoData.country_code}` : null;
+              await loginscount(organizationName, location);
+            }
             return data
           } else {
             throw new Error('You do not have access to this organization.')
@@ -480,6 +514,10 @@ const resolvers: any = {
               token: managerToken,
               user: user.toJSON(),
               geoData,
+            }
+            if (organizationName) {
+              const location = geoData.city && geoData.country_code ? `${geoData.city}-${geoData.country_code}` : null;
+              await loginscount(organizationName, location);
             }
             return managerData
           } else {
@@ -519,6 +557,11 @@ const resolvers: any = {
               user: user.toJSON(),
               geoData,
             }
+            if (organizationName) {
+              const location = geoData.city && geoData.country_code ? `${geoData.city}-${geoData.country_code}` : null;
+              await loginscount(organizationName, location);
+            }
+
             return coordinatorData
           } else {
             throw new Error('You are not assigned to any cohort yet.')
@@ -631,9 +674,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
+      if (!roleExists) throw new Error('This role doesn\'t exist')
       const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+      if (!userExists) throw new Error('User doesn\'t exist')
 
       const getAllUsers = await User.find({
         role: RoleOfUser.ADMIN,
@@ -824,19 +867,19 @@ const resolvers: any = {
           })
 
           // Create the organization with 'pending' status
-const {name:nm,admin:adm,description:desc}=await Organization.create({
+          const { name: nm, admin: adm, description: desc } = await Organization.create({
             admin: newAdmin._id,
             name,
             description,
             status: 'pending',
           })
-          const newOrgToken=genericToken({nm,adm,desc,email})
+          const newOrgToken = genericToken({ nm, adm, desc, email })
 
           const superAdmin = await User.find({ role: RoleOfUser.SUPER_ADMIN })
           // Get the email content
-          const link = process.env.FRONTEND_LINK ?? ""
-          const content = registrationRequest(email, name, description,link,newOrgToken)
-         
+          const link = process.env.FRONTEND_LINK ?? ''
+          const content = registrationRequest(email, name, description, link, newOrgToken)
+
 
           // Send registration request email to super admin
           await sendEmail(
@@ -861,7 +904,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
       context: Context
     ) {
       // check if requester is super admin
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
@@ -931,7 +974,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
@@ -996,7 +1039,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1089,7 +1132,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1097,7 +1140,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -1175,7 +1218,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()
@@ -1195,7 +1238,7 @@ const {name:nm,admin:adm,description:desc}=await Organization.create({
       if (newPassword === confirmPassword) {
         const user: any = await User.findById(userId)
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
 
         if (bcrypt.compareSync(currentPassword, user.password)) {

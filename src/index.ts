@@ -35,6 +35,7 @@ import DocumentationResolvers from './resolvers/DocumentationResolvers'
 import attendanceResolver from './resolvers/attendance.resolvers'
 import Sessionresolvers from './resolvers/session.resolver'
 import invitationResolvers from './resolvers/invitation.resolvers'
+import organizationResolvers from './resolvers/organization.resolvers'
 import schemas from './schema/index'
 import cohortSchema from './schema/cohort.schema'
 import programSchema from './schema/program.schema'
@@ -42,6 +43,7 @@ import coordinatorSchema from './schema/coordinator.schema'
 import phaseSchema from './schema/phase.schema'
 import ticketSchema from './schema/ticket.shema'
 import notificationSchema from './schema/notification.schema'
+import organizationSchema from './schema/organization.schema'
 
 import statisticsSchema from './schema/invitationStatics.schema'
 import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
@@ -66,6 +68,7 @@ export const typeDefs = mergeTypeDefs([
   notificationSchema,
   statisticsSchema,
   eventSchema,
+  organizationSchema
 ])
 
 export const resolvers = mergeResolvers([
@@ -85,7 +88,7 @@ export const resolvers = mergeResolvers([
   DocumentationResolvers,
   attendanceResolver,
   Sessionresolvers,
-
+  organizationResolvers,
   StatisticsResolvers,
 
   invitationResolvers,

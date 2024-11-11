@@ -72,6 +72,7 @@ export const addNewAttendanceWeek = async () => {
               trainees: []
             })
             await attendanceExist.save()
+            continue;
           } else {
             const tempTeams = await Team.find({ active: true, isJobActive: true, cohort: (team.cohort as CohortInterface)._id }).populate('cohort')
             await Attendance.create({
@@ -87,6 +88,7 @@ export const addNewAttendanceWeek = async () => {
                 }
               }).filter(team => team)
             })
+            continue;
           }
         }
       }
@@ -97,6 +99,7 @@ export const addNewAttendanceWeek = async () => {
           trainees: []
         })
         await tempAttendance?.save();
+        continue;
       }
       if (!attendances.length) {
         const tempTeams = await Team.find({ active: true, isJobActive: true, cohort: (team.cohort as CohortInterface)._id }).populate('cohort')
@@ -110,7 +113,8 @@ export const addNewAttendanceWeek = async () => {
               return { team, trainees: [] };
             }
           }).filter(team => team)
-        })
+        });
+        continue;
       }
     }
   } catch (error) {
