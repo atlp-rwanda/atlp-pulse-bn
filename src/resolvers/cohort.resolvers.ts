@@ -318,12 +318,16 @@ const resolvers = {
 
       if (
         endDate &&
-        (isAfter(new Date(startDate.toString()),
-          new Date(endDate.toString())) ||
-        isAfter(new Date(cohort?.startDate?.toString() || ''),
-          new Date(endDate)))
+        (isAfter(
+          new Date(startDate.toString()),
+          new Date(endDate.toString())
+        ) ||
+          isAfter(
+            new Date(cohort?.startDate?.toString() || ''),
+            new Date(endDate)
+          ))
       ) {
-        throw new GraphQLError('End Date can\'t be before Start Date', {
+        throw new GraphQLError("End Date can't be before Start Date", {
           extensions: {
             code: 'VALIDATION_ERROR',
           },
@@ -402,9 +406,8 @@ const resolvers = {
         cohort.name = name
         notificationChanges.push('Name')
       }
-      if (phaseName && cohort.phase.toString() !== phase.id.toString()) {
-        cohort.phase = phase.id;
-        addNewAttendanceWeek();
+      if (phaseName && cohort?.phase?.toString() !== phase?.id?.toString()) {
+        cohort.phase = phase.id
         notificationChanges.push('Phase')
       }
 

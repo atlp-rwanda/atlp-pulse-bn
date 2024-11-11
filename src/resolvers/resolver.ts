@@ -7,7 +7,7 @@ import { emailExpression, generateToken } from '../helpers/user.helpers'
 import { checkloginAttepmts } from '../helpers/logintracker'
 import { GraphQLError } from 'graphql/error'
 
-const SECRET = process.env.SECRET as string
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 
 const resolvers = {
   Query: {

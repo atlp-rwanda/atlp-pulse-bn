@@ -38,7 +38,7 @@ import { Context } from './../context'
 import { UserInputError } from 'apollo-server'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
-const SECRET: string = process.env.SECRET as string
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 export type OrganizationType = InstanceType<typeof Organization>
 export type UserType = InstanceType<typeof User>
 

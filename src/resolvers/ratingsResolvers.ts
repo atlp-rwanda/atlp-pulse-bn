@@ -602,9 +602,7 @@ const ratingResolvers: any = {
               approved: false,
               organization: org,
             })
-            await Rating.findOneAndUpdate(
-              { user: user, sprint: sprint }
-            )
+            await Rating.findOneAndUpdate({ user: user, sprint: sprint })
 
             // Send a notification to the admin
             const admin = await User.findOne({ role: RoleOfUser.ADMIN })
@@ -684,11 +682,7 @@ const ratingResolvers: any = {
       validateRole('trainee')(
         async (
           root,
-          {
-            user,
-            sprint,
-            orgToken,
-          },
+          { user, sprint, orgToken },
           context: { userId: string }
         ) => {
           org = await checkLoggedInOrganization(orgToken)

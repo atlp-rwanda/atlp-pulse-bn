@@ -18,7 +18,7 @@ export async function sendEventInvitations(
   eventTimeToEnd: string
 ) {
   try {
-    const secret = process.env.SECRET!
+    const secret = (process.env.SECRET as string) || 'mysq_unique_secret'
     const acceptedEventToken = jwt.sign(
       {
         email,
