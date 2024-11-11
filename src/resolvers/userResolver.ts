@@ -3,11 +3,10 @@ import { Octokit } from '@octokit/rest'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql'
 // import * as jwt from 'jsonwebtoken'
-import { JwtPayload, verify } from 'jsonwebtoken'
+import Expo from 'expo-server-sdk'
+import jwt, { JwtPayload, verify } from 'jsonwebtoken'
 import mongoose, { Error } from 'mongoose'
 import generateRandomPassword from '../helpers/generateRandomPassword'
-import isAssigned from '../helpers/isAssignedToProgramOrCohort'
-import { checkloginAttepmts } from '../helpers/logintracker'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import {
   checkUserLoggedIn,
@@ -26,19 +25,17 @@ import Program from '../models/program.model'
 import { Rating } from '../models/ratings'
 import Team from '../models/team.model'
 import { RoleOfUser, User, UserRole } from '../models/user'
+import { encodeOtpToToken, generateOtp } from '../utils/2WayAuthentication'
 import { pushNotification } from '../utils/notification/pushNotification'
 import { sendEmail } from '../utils/sendEmail'
 import forgotPasswordTemplate from '../utils/templates/forgotPasswordTemplate'
+import nonTraineeTemplate from '../utils/templates/nonTraineeTemplate'
 import organizationApprovedTemplate from '../utils/templates/organizationApprovedTemplate'
 import organizationCreatedTemplate from '../utils/templates/organizationCreatedTemplate'
 import organizationRejectedTemplate from '../utils/templates/organizationRejectedTemplate'
 import registrationRequest from '../utils/templates/registrationRequestTemplate'
 import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
-import { UserInputError } from 'apollo-server'
-import { encodeOtpToToken, generateOtp } from '../utils/2WayAuthentication'
-import jwt from 'jsonwebtoken'
-import nonTraineeTemplate from '../utils/templates/nonTraineeTemplate'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
@@ -1110,8 +1107,54 @@ const resolvers: any = {
       }
       user.pushNotifications = !user.pushNotifications
       await user.save()
-      const updatedPushNotifications = user.pushNotifications
       return 'updated successful'
+    },
+
+    async addPushNotificationToken(
+      _: any,
+      { pushToken }: { pushToken: string },
+      context: Context
+    ) {
+      if (!Expo.isExpoPushToken(pushToken)) {
+        throw new Error('Invalid push notification')
+      }
+
+      const user: any = await User.findOne({ _id: context.userId })
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      if (!user.pushNotificationTokens.includes(pushToken)) {
+        user.pushNotificationTokens.push(pushToken)
+        await user.save()
+        return 'Notification token added successfully'
+      }
+
+      return 'Notification token already added'
+    },
+
+    async removePushNotificationToken(
+      _: any,
+      { pushToken }: { pushToken: string },
+      context: Context
+    ) {
+      if (!Expo.isExpoPushToken(pushToken)) {
+        throw new Error('Invalid push notification')
+      }
+
+      const user: any = await User.findOne({ _id: context.userId })
+      if (!user) {
+        throw new Error('User not found')
+      }
+
+      const index = user.pushNotificationTokens.indexOf(pushToken)
+      if (index !== -1) {
+        user.pushNotificationTokens.splice(index, 1)
+        await user.save()
+        return 'Notification token removed successfully'
+      }
+
+      return 'Notification token not found'
     },
 
     async resetUserPassword(
