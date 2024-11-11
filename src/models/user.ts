@@ -7,32 +7,21 @@ export interface UserStatus {
   reason?: string
   date?: Date
 }
-export interface OrgUserDataInterface{
-  _id: mongoose.Types.ObjectId;
-  orgId: mongoose.Types.ObjectId;
-  role: string;
-  team?: mongoose.Types.ObjectId;
-  status: UserStatus;
-  cohort?: mongoose.Types.ObjectId;
-  program?: mongoose.Types.ObjectId;
-  phase?: mongoose.Types.ObjectId;
-  pushNotifications: boolean;
-  emailNotifications: boolean;
-  ratings?: mongoose.Types.ObjectId[];
-}
 
 export interface UserInterface {
   _id: mongoose.Types.ObjectId;
   email: string;
   password: string;
-  organizations: mongoose.Types.ObjectId[];
-  firstName: String;
-  lastName: String;
-  name: String;
-  address: String;
-  city: String;
-  country: String;
-  phoneNumber: String;
+  role: string;
+  team?: mongoose.Types.ObjectId;
+  status: UserStatus;
+  cohort?: mongoose.Types.ObjectId;
+  program?: mongoose.Types.ObjectId;
+  organizations: string[];
+  pushNotifications: boolean;
+  emailNotifications: boolean;
+  profile?: mongoose.Types.ObjectId;
+  ratings?: mongoose.Types.ObjectId[];
 }
 
 export enum RoleOfUser {
@@ -51,56 +40,6 @@ mongoose.set('toJSON', {
   },
 })
 
-const orgUserDataSchema = new Schema({
-  orgId: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-    ref: 'Organization',
-  },
-  role: {
-    type: String,
-    default: 'user',
-  },
-  team: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-    ref: 'Team',
-  },
-  status: {
-    status: {
-      type: String,
-      enum: ['active', 'drop', 'suspended'],
-      default: 'active',
-    },
-    reason: String,
-    date: {
-      type: Date,
-    },
-  },
-  cohort: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-    ref: 'Cohort',
-  },
-  program: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-    ref: 'Program',
-  },
-  phase: {
-    type: mongoose.Types.ObjectId,
-    required: false,
-    ref: 'Phase',
-  },
-  pushNotifications: {
-    type: Boolean,
-    default: true,
-  },
-  emailNotifications: {
-    type: Boolean,
-    default: true,
-  },
-})
 const userSchema = new Schema(
   {
     email: {
@@ -112,33 +51,47 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      default: 'user',
+    },
+    team: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref: 'Team',
+    },
+    status: {
+      status: {
+        type: String,
+        enum: ['active', 'drop', 'suspended'],
+        default: 'active',
+      },
+      reason: String,
+      date: {
+        type: Date,
+      },
+    },
+    cohort: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref: 'Cohort',
+    },
+    program: {
+      type: mongoose.Types.ObjectId,
+      required: false,
+      ref: 'Program',
+    },
     organizations: {
-      type: [orgUserDataSchema],
+      type: [String],
       required: true,
     },
-    firstName: {
-      type: String,
+    pushNotifications: {
+      type: Boolean,
+      default: true,
     },
-    lastName: {
-      type: String,
-    },
-    address: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
-    phoneNumber: {
-      type: String,
-    },
-    gender: {
-      type: String,
-    },
-    dateOfBirth: {
-      type: Date,
+    emailNotifications: {
+      type: Boolean,
+      default: true,
     },
   },
 
@@ -147,10 +100,6 @@ const userSchema = new Schema(
     toObject: { virtuals: true },
   }
 )
-
-userSchema.virtual('name').get(function () {
-  return this.firstName + ' ' + this.lastName
-})
 
 userSchema.virtual('profile', {
   ref: 'Profile',
@@ -200,6 +149,5 @@ const UserRole = mongoose.model(
 )
 
 const User = model('User', userSchema)
-const OrgUserData = model('OrgUserData', orgUserDataSchema)
 
-export { User, UserRole, OrgUserData }
+export { User, UserRole }
