@@ -53,6 +53,8 @@ import invitationSchema from './schema/invitation.schema'
 import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
 import eventSchema from './schema/event.schema'
 import './utils/cron-jobs/team-jobs'
+import CommunitySchema from './schema/community.schema'
+import CommunityResolver from './resolvers/community.resolver'
 import faMutation from './resolvers/2fa.resolvers';
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
@@ -69,6 +71,7 @@ export const typeDefs = mergeTypeDefs([
   notificationSchema,
   statisticsSchema,
   eventSchema,
+  CommunitySchema,
   organizationSchema
 ])
 
@@ -91,7 +94,7 @@ export const resolvers = mergeResolvers([
   Sessionresolvers,
   organizationResolvers,
   StatisticsResolvers,
-
+  CommunityResolver,
   invitationResolvers,
   TableViewInvitationResolver,
   faMutation,

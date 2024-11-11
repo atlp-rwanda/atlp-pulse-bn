@@ -274,18 +274,21 @@ const profileResolvers: any = {
         throw new Error('TTL user not found')
       }
       if (user.status?.status !== undefined) {
-        user.status.status = 'drop'; 
-        const team = await Team.findOne({ members: user._id }).exec();
-    if (team) {
-      team.members = team.members.filter(memberId => !(memberId as mongoose.Types.ObjectId).equals(user._id)); // Remove TTL from members
-      await team.save(); // Save the updated team
-    }
-  } else {
-    throw new Error('User status property does not exist');
-      } 
-      user.set('team', undefined, { strict: false });
-      user.set('cohort', undefined, { strict: false });
-      await user.save();
+        user.status.status = 'drop'
+        const team = await Team.findOne({ members: user._id }).exec()
+        if (team) {
+          team.members = team.members.filter(
+            (memberId) =>
+              !(memberId as mongoose.Types.ObjectId).equals(user._id)
+          ) // Remove TTL from members
+          await team.save() // Save the updated team
+        }
+      } else {
+        throw new Error('User status property does not exist')
+      }
+      user.set('team', undefined, { strict: false })
+      user.set('cohort', undefined, { strict: false })
+      await user.save()
       await sendEmail(
         user.email,
         'Dropped',
@@ -296,8 +299,8 @@ const profileResolvers: any = {
       )
       return `TTL user with email ${email} has been deleted. with Reason :${reason} `
     },
-    
-      undropTTLUser: async (
+
+    undropTTLUser: async (
       _: any,
       { email }: { email: string },
       context: Context
@@ -308,11 +311,11 @@ const profileResolvers: any = {
         throw new Error('TTL user not found')
       }
       if (user.status?.status !== undefined) {
-    user.status.status = 'active'; 
-  } else {
-    throw new Error('User status property does not exist');
-  }
-      await user.save();
+        user.status.status = 'active'
+      } else {
+        throw new Error('User status property does not exist')
+      }
+      await user.save()
       await sendEmail(
         user.email,
         'Undropped',
