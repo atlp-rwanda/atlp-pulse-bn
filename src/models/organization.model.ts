@@ -25,7 +25,7 @@ const organizationSchema = new Schema({
     enum: ['active', 'pending', 'rejected'],
     default: 'active',
   },
-})
+}, {timestamps: true})
 
 const Organization = model('Organization', organizationSchema)
 export { Organization }

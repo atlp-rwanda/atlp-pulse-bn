@@ -75,6 +75,7 @@ const cohortSchema = new Schema(
         return cohort
       },
     },
+    timestamps: true,
   }
 )
 

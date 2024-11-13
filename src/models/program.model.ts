@@ -44,6 +44,7 @@ const programSchema = new Schema(
         return program;
       },
     },
+    timestamps: true,
   }
 );
 

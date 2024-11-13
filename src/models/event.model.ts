@@ -51,6 +51,6 @@ const Event = mongoose.model(
         }
       }
     ]
-  })
+  }, { timestamps: true })
 );
 export { Event };
