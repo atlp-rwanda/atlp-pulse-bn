@@ -1,6 +1,6 @@
 name: Docker Image
 on:
-  push:
+  pull_request:
     branches:
       - develop
   
@@ -48,7 +48,7 @@ jobs:
             rm -f env
             echo ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }} >> env
             echo SECRET=${{ secrets.SECRET }} >> env
-            echo ADMIN_PASS=${{ secrets.ADMIN_PASS }} >> env
+            echo ADMIN_PASS="${{ secrets.ADMIN_PASS }}" >> env
             echo COORDINATOR_EMAIL=${{ secrets.COORDINATOR_EMAIL }} >> env
             echo COORDINATOR_PASS=${{ secrets.COORDINATOR_PASS }} >> env
             echo FRONTEND_LINK=${{ secrets.FRONTEND_LINK }} >> env
