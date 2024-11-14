@@ -25,7 +25,24 @@ const organizationSchema = new Schema({
     enum: ['active', 'pending', 'rejected'],
     default: 'active',
   },
-}, {timestamps: true})
+  logins: [
+    {
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      loginsCount: {
+        type: Number,
+        default: 0,
+      },
+      recentLocation: {
+        type: String
+      }
+    },
+  ],
+}, {
+  timestamps: true,
+})
 
 const Organization = model('Organization', organizationSchema)
 export { Organization }

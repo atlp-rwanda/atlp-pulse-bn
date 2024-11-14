@@ -191,39 +191,39 @@ const resolvers = {
           id: ticket._id.toString(),
           user: ticket.user
             ? {
-                ...ticket.user.toObject(),
-                id: ticket.user._id.toString(),
-                team: ticket.user.team
-                  ? {
-                      id: ticket.user.team._id.toString(),
-                      name: ticket.user.team.name,
-                    }
-                  : null,
-                cohort: ticket.user.cohort
-                  ? {
-                      id: ticket.user.cohort._id.toString(),
-                      name: ticket.user.cohort.name,
-                    }
-                  : null,
-              }
+              ...ticket.user.toObject(),
+              id: ticket.user._id.toString(),
+              team: ticket.user.team
+                ? {
+                  id: ticket.user.team._id.toString(),
+                  name: ticket.user.team.name,
+                }
+                : null,
+              cohort: ticket.user.cohort
+                ? {
+                  id: ticket.user.cohort._id.toString(),
+                  name: ticket.user.cohort.name,
+                }
+                : null,
+            }
             : null,
           assignee: ticket.assignee
             ? {
-                ...ticket.assignee.toObject(),
-                id: ticket.assignee._id.toString(),
-                team: ticket.assignee.team
-                  ? {
-                      id: ticket.assignee.team._id.toString(),
-                      name: ticket.assignee.team.name,
-                    }
-                  : null,
-                cohort: ticket.assignee.cohort
-                  ? {
-                      id: ticket.assignee.cohort._id.toString(),
-                      name: ticket.assignee.cohort.name,
-                    }
-                  : null,
-              }
+              ...ticket.assignee.toObject(),
+              id: ticket.assignee._id.toString(),
+              team: ticket.assignee.team
+                ? {
+                  id: ticket.assignee.team._id.toString(),
+                  name: ticket.assignee.team.name,
+                }
+                : null,
+              cohort: ticket.assignee.cohort
+                ? {
+                  id: ticket.assignee.cohort._id.toString(),
+                  name: ticket.assignee.cohort.name,
+                }
+                : null,
+            }
             : null,
         }))
       } catch (error: any) {

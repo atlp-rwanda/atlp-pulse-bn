@@ -93,8 +93,7 @@ const eventResolvers: any = {
           {
             invitees: {
               $elemMatch: {
-                email: user.email,
-                status: INVITEE_STATUS.ACCEPTED,
+                email: user.email
               },
             },
           },
