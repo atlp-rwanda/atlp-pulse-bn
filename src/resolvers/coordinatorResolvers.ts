@@ -14,7 +14,6 @@ import { pushNotification } from '../utils/notification/pushNotification'
 import { sendEmail } from '../utils/sendEmail'
 import generalTemplate from '../utils/templates/generalTemplate'
 import getOrganizationTemplate from '../utils/templates/getOrganizationTemplate'
-import inviteUserTemplate from '../utils/templates/inviteUserTemplate'
 import RemoveTraineeTemplate from '../utils/templates/removeTraineeTamplete'
 import { Context } from './../context'
 import { Document, ObjectId } from 'mongoose'
@@ -43,6 +42,10 @@ interface Cohort extends Document {
 interface Team extends Document {
   cohort: Cohort
 }
+const team = {
+  cohort: { name: 'Your Cohort Name' },
+  name: 'Team Name'
+};
 
 const manageStudentResolvers = {
   Query: {
@@ -450,7 +453,9 @@ const manageStudentResolvers = {
             try {
               const content = getOrganizationTemplate(
                 org!.name,
-                `${process.env.FRONTEND_LINK}/login/org`
+                `${process.env.FRONTEND_LINK}/login/org`,
+                team.cohort.name,
+                team.name 
               )
               await sendEmailOnMembershipActions(
                 role,
@@ -907,7 +912,9 @@ async function sendEmailOnMembershipActions(
     if (program.organization._id.toString() == org?.id.toString()) {
       const content = getOrganizationTemplate(
         org!.name,
-        `${process.env.FRONTEND_LINK}/login/org`
+        `${process.env.FRONTEND_LINK}/login/org`,
+        team.cohort.name,
+        team.name 
       )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
       await sendEmail(
@@ -934,7 +941,9 @@ async function sendEmailOnMembershipActions(
     if (program.organization._id.toString() == org?.id.toString()) {
       const content = getOrganizationTemplate(
         org!.name,
-        `${process.env.FRONTEND_LINK}/login/org`
+        `${process.env.FRONTEND_LINK}/login/org`,
+        team.cohort.name,
+        team.name
       )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
       await sendEmail(
@@ -952,3 +961,7 @@ async function sendEmailOnMembershipActions(
 }
 
 export default manageStudentResolvers
+function inviteUserTemplate(arg0: string, link: string, arg2: string) {
+  throw new Error('Function not implemented.')
+}
+
