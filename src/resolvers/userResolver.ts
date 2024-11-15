@@ -724,7 +724,11 @@ const resolvers: any = {
           })
 
           // Create the organization with 'pending' status
-          const { name: nm, admin: adm, description: desc } = await Organization.create({
+          const {
+            name: nm,
+            admin: adm,
+            description: desc,
+          } = await Organization.create({
             admin: newAdmin._id,
             name,
             description,
@@ -735,8 +739,13 @@ const resolvers: any = {
           const superAdmin = await User.find({ role: RoleOfUser.SUPER_ADMIN })
           // Get the email content
           const link = process.env.FRONTEND_LINK ?? ''
-          const content = registrationRequest(email, name, description, link, newOrgToken)
-
+          const content = registrationRequest(
+            email,
+            name,
+            description,
+            link,
+            newOrgToken
+          )
 
           // Send registration request email to super admin
           await sendEmail(

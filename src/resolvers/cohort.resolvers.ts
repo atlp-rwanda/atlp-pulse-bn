@@ -62,7 +62,8 @@ const resolvers = {
               },
             })
         ).filter((item) => {
-          const org = (item.program as InstanceType<typeof Program>)?.organization
+          const org = (item.program as InstanceType<typeof Program>)
+            ?.organization
           return item.program !== null && org !== null
         })
       } catch (error) {
@@ -74,41 +75,55 @@ const resolvers = {
         })
       }
     },
-    getUserCohorts: async(_:any, { orgToken }: {orgToken: string}, context: Context)=>{
-      const { userId, role} = (await checkUserLoggedIn(context))([RoleOfUser.COORDINATOR, RoleOfUser.TTL, RoleOfUser.TRAINEE])
+    getUserCohorts: async (
+      _: any,
+      { orgToken }: { orgToken: string },
+      context: Context
+    ) => {
+      const { userId, role } = (await checkUserLoggedIn(context))([
+        RoleOfUser.COORDINATOR,
+        RoleOfUser.TTL,
+        RoleOfUser.TRAINEE,
+      ])
       const user = await User.findById(userId)
-      if(!user){
-        throw new GraphQLError("No such user found",{
+      if (!user) {
+        throw new GraphQLError('No such user found', {
           extensions: {
-            code: "USER_NOT_FOUND"
-          }
+            code: 'USER_NOT_FOUND',
+          },
         })
       }
-      const org= await checkLoggedInOrganization(orgToken)
-      if(!org){
-        throw new GraphQLError("No such organization found",{
+      const org = await checkLoggedInOrganization(orgToken)
+      if (!org) {
+        throw new GraphQLError('No such organization found', {
           extensions: {
-            code: "ORG_NOT_FOUND"
-          }
+            code: 'ORG_NOT_FOUND',
+          },
         })
       }
-      switch(role){
-        case RoleOfUser.COORDINATOR:
+
+      switch (role) {
+        case RoleOfUser.COORDINATOR: {
           const coordinatorCohorts = await Cohort.find({
             coordinator: user._id,
-            organization: org._id
-          }).populate(['coordinator','phase','program'])
+            organization: org._id,
+          }).populate(['coordinator', 'phase', 'program'])
 
           return coordinatorCohorts
+        }
         case RoleOfUser.TTL:
-        case RoleOfUser.TRAINEE:
-          const cohort = await Cohort.findOne(user?.cohort)
-          .populate(['coordinator','phase','program'])
-          return [ cohort ]
+        case RoleOfUser.TRAINEE: {
+          const cohort = await Cohort.findOne(user?.cohort).populate([
+            'coordinator',
+            'phase',
+            'program',
+          ])
+          return [cohort]
+        }
         default:
           return []
       }
-    }
+    },
   },
 
   Mutation: {
@@ -136,8 +151,8 @@ const resolvers = {
           orgToken,
         } = args
 
-          // some validations
-          ; (await checkUserLoggedIn(context))([
+        // some validations
+        ;(await checkUserLoggedIn(context))([
           RoleOfUser.SUPER_ADMIN,
           RoleOfUser.ADMIN,
           RoleOfUser.MANAGER,
@@ -183,7 +198,7 @@ const resolvers = {
           endDate &&
           isAfter(new Date(startDate.toString()), new Date(endDate.toString()))
         ) {
-          throw new GraphQLError('End Date can\'t be before Start Date', {
+          throw new GraphQLError("End Date can't be before Start Date", {
             extensions: {
               code: 'VALIDATION_ERROR',
             },

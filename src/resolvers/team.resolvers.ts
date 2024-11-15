@@ -54,9 +54,11 @@ const resolvers = {
         const { userId } = (await checkUserLoggedIn(context))([RoleOfUser.TTL])
         const org = await checkLoggedInOrganization(orgToken)
 
-        const teams = await Team.find({ organization: org, ttl: userId }).populate('phase')
-        return teams;
-
+        const teams = await Team.find({
+          organization: org,
+          ttl: userId,
+        }).populate('phase')
+        return teams
       } catch (error) {
         const { message } = error as { message: any }
         throw new GraphQLError(message.toString(), {
@@ -174,7 +176,6 @@ const resolvers = {
             },
           })
         ).filter((item: any) => {
-
           const org = (item.program as InstanceType<typeof Program>)
             ?.organization
           const itemCohort = item?.cohort?.name === cohort
@@ -273,72 +274,87 @@ const resolvers = {
       }
     },
     // get teams by cohortId -- teams are fetched depending on the user's role
-    getTeamsByCohort: async(_:any, {cohortId, orgToken}:{cohortId: string,orgToken: string}, context: Context)=>{
-      const {userId, role} = (await checkUserLoggedIn(context))([RoleOfUser.ADMIN,RoleOfUser.MANAGER,RoleOfUser.COORDINATOR, RoleOfUser.TTL])
+    getTeamsByCohort: async (
+      _: any,
+      { cohortId, orgToken }: { cohortId: string; orgToken: string },
+      context: Context
+    ) => {
+      const { userId, role } = (await checkUserLoggedIn(context))([
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+        RoleOfUser.COORDINATOR,
+        RoleOfUser.TTL,
+      ])
       const user = await User.findById(userId)
-      if(!user){
-        throw new GraphQLError("No such user found",{
+      if (!user) {
+        throw new GraphQLError('No such user found', {
           extensions: {
-            code: 'USER_NOT_FOUND'
-          }
+            code: 'USER_NOT_FOUND',
+          },
         })
       }
       const org = await checkLoggedInOrganization(orgToken)
-      if(!org){
-        throw new GraphQLError("No organization found",{
+      if (!org) {
+        throw new GraphQLError('No organization found', {
           extensions: {
-            code: 'ORGANIZATION_NOT_FOUND'
-          }
+            code: 'ORGANIZATION_NOT_FOUND',
+          },
         })
       }
-      if(!user.organizations.includes(org.name)){
-        throw new GraphQLError(`User ${user.email} is not part of organization ${org.name}`, {
-          extensions: {
-            code: "FORBIDDEN"
+      if (!user.organizations.includes(org.name)) {
+        throw new GraphQLError(
+          `User ${user.email} is not part of organization ${org.name}`,
+          {
+            extensions: {
+              code: 'FORBIDDEN',
+            },
           }
-        })
+        )
       }
       const cohort = await Cohort.findById(cohortId)
-      if(!cohort){
-        throw new GraphQLError("No such cohort found", {
+      if (!cohort) {
+        throw new GraphQLError('No such cohort found', {
           extensions: {
-            code: "COHORT_NOT_FOUND"
-          }
+            code: 'COHORT_NOT_FOUND',
+          },
         })
       }
-      if(cohort.organization.toString() !== org._id.toString()){
-        throw new GraphQLError(`Cohort ${cohort.name} is not part of organization ${org.name}`, {
-          extensions: {
-            code: "FORBIDDEN"
+      if (cohort.organization.toString() !== org._id.toString()) {
+        throw new GraphQLError(
+          `Cohort ${cohort.name} is not part of organization ${org.name}`,
+          {
+            extensions: {
+              code: 'FORBIDDEN',
+            },
           }
-        })
+        )
       }
-      switch(role){
+      switch (role) {
         case RoleOfUser.ADMIN:
         case RoleOfUser.MANAGER:
-        case RoleOfUser.COORDINATOR:
+        case RoleOfUser.COORDINATOR: {
           const coordinatorTeams = await Team.find({
             cohort: cohort._id,
-            organization: org._id
+            organization: org._id,
           }).populate('members')
           return coordinatorTeams
-
-        case RoleOfUser.TTL:
-          const ttlTeam  = await Team.findOne({
+        }
+        case RoleOfUser.TTL: {
+          const ttlTeam = await Team.findOne({
             cohort: cohortId,
             ttl: user._id,
-            organization: org._id
+            organization: org._id,
           }).populate('members')
           return [ttlTeam]
-
+        }
         default:
-          throw new GraphQLError("Invalid user role",{
+          throw new GraphQLError('Invalid user role', {
             extensions: {
-              code: "FORBIDDEN"
-            }
+              code: 'FORBIDDEN',
+            },
           })
       }
-    }
+    },
   },
   Mutation: {
     addTeam: async (
@@ -355,8 +371,12 @@ const resolvers = {
       try {
         const { name, cohortName, orgToken, startingPhase, ttlEmail } = args
 
-          // some validations
-          ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN, RoleOfUser.ADMIN, RoleOfUser.MANAGER])
+        // some validations
+        ;(await checkUserLoggedIn(context))([
+          RoleOfUser.SUPER_ADMIN,
+          RoleOfUser.ADMIN,
+          RoleOfUser.MANAGER,
+        ])
         const cohort = await Cohort.findOne({ name: cohortName })
 
         const organ = await checkLoggedInOrganization(orgToken)
@@ -392,7 +412,7 @@ const resolvers = {
             },
           })
         }
-        
+
         if (ttlExist.team) {
           throw new GraphQLError(`TTl with ${ttlEmail} already has a team`, {
             extensions: {
@@ -427,7 +447,7 @@ const resolvers = {
           senderId
         )
 
-        addNewAttendanceWeek();
+        addNewAttendanceWeek()
         return newTeam
       } catch (error: any) {
         const { message } = error as { message: any }
@@ -439,7 +459,10 @@ const resolvers = {
       }
     },
     deleteTeam: async (parent: any, args: any, context: Context) => {
-      ; (await checkUserLoggedIn(context))([RoleOfUser.ADMIN, RoleOfUser.MANAGER])
+      ;(await checkUserLoggedIn(context))([
+        RoleOfUser.ADMIN,
+        RoleOfUser.MANAGER,
+      ])
       const findTeam = await Team.findById(args.id)
       if (!findTeam)
         throw new Error('The Team you want to delete does not exist')
@@ -682,7 +705,7 @@ const resolvers = {
           strictPopulate: false,
         })
 
-      addNewAttendanceWeek();
+      addNewAttendanceWeek()
       return updatedteam
     },
   },
