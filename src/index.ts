@@ -53,6 +53,7 @@ import invitationSchema from './schema/invitation.schema'
 import TableViewInvitationResolver from './resolvers/TableViewInvitationResolver'
 import eventSchema from './schema/event.schema'
 import './utils/cron-jobs/team-jobs'
+import faMutation from './resolvers/2fa.resolvers';
 
 const PORT: number = parseInt(process.env.PORT!) || 4000
 
@@ -93,6 +94,7 @@ export const resolvers = mergeResolvers([
 
   invitationResolvers,
   TableViewInvitationResolver,
+  faMutation,
 ])
 
 async function startApolloServer(
