@@ -1,6 +1,6 @@
 const link = process.env.FRONTEND_LINK + '/login/org'
 
-export default function Template(orgName: string, link: string) {
+export default function Template(orgName: string, link: string, cohortName: string, teamName: string) {
   return /* html */ `
     <table style="font-size: 16px; font-family: 'Rubik'; text-align: left">
       <tbody>
@@ -10,7 +10,7 @@ export default function Template(orgName: string, link: string) {
             <br />
 
             <p style="margin-bottom: 5px">
-              You have been added to the <strong>${orgName}</strong> organization. You will now use it to login from here on.
+              You have been added to the <strong>${orgName}</strong> organization in <strong> ${cohortName}</strong>, <strong> ${teamName}</strong>. You will now use it  to login from here on.
             </p>
             <p style="margin-bottom: 10px">
               Use the button below to login into the organization.
