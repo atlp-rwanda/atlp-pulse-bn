@@ -9,7 +9,7 @@ export const sendEmail = async (
   senderPassword: any
 ): Promise<any> => {
   const transport = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: process.env.NODE_ENV === 'production'? 'mail.privateemail.com':'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
