@@ -37,7 +37,7 @@ import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
 import { UserInputError } from 'apollo-server'
 import { encodeOtpToToken, generateOtp } from '../utils/2WayAuthentication'
-import  jwt  from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
@@ -50,7 +50,7 @@ enum Status {
   rejected = 'rejected',
 }
 
- export async function logGeoActivity(user: any, clientIpAdress: string) {
+export async function logGeoActivity(user: any, clientIpAdress: string) {
   const response = await fetch(`https://ipapi.co/${clientIpAdress}/json/`)
 
   const geoData = await response.json()
@@ -86,7 +86,7 @@ enum Status {
   return geoData
 }
 
-async function loginscount(organizationName: any, recentLocation: any) {
+export async function loginsCount(organizationName: any, recentLocation: any) {
   if (!organizationName) return;
 
 
@@ -103,7 +103,7 @@ async function loginscount(organizationName: any, recentLocation: any) {
     loginEntry.recentLocation = recentLocation;
   } else {
 
-    organization.logins.push({ date: new Date(), loginsCount: 1, recentLocation});
+    organization.logins.push({ date: new Date(), loginsCount: 1, recentLocation });
   }
 
 
@@ -264,9 +264,9 @@ const resolvers: any = {
   },
   Login: {
     user: async (parent: any) => {
-      
+
       const user = await User.findById(parent.user.id)
-    
+
       return user
     },
   },
@@ -378,7 +378,7 @@ const resolvers: any = {
       if (!org) {
         throw new GraphQLError('Organization not found', { extensions: { code: 'InvalidOrganization' } });
       }
-    
+
       // Find user with populated fields
       const user: any = await User.findOne({ email }).populate({
         path: 'cohort',
@@ -391,24 +391,24 @@ const resolvers: any = {
           populate: { path: 'organization', model: Organization, strictPopulate: false }
         }
       });
-    
+
       // Check if user exists
       if (!user) {
         throw new GraphQLError('Invalid credentials', { extensions: { code: 'AccountNotFound' } });
       }
-    
+
       // Check if account is active
       if (user.status?.status !== 'active') {
         throw new GraphQLError(`Account is ${user.status?.status}. Contact admin.`, {
           extensions: { code: 'AccountInactive' }
         });
       }
-    
+
       // Check if two-factor authentication is enabled
       if (user.twoFactorAuth) {
         const otp = generateOtp(); // Generate OTP
         const TwoWayVerificationToken = encodeOtpToToken(otp, email); // Encode OTP
-    
+
         // Send email with OTP
         await sendEmail(
           email,
@@ -418,7 +418,7 @@ const resolvers: any = {
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS
         );
-    
+
         // Return response with encoded OTP token and message
         return {
           message: 'Check your email for the OTP code.',
@@ -432,19 +432,27 @@ const resolvers: any = {
         if (!passwordMatch) {
           throw new GraphQLError('Invalid credentials', { extensions: { code: 'InvalidCredential' } });
         }
-    
+
         // Generate token for authenticated user
         const token = jwt.sign(
           { userId: user._id, role: user._doc?.role || 'user' },
           SECRET,
           { expiresIn: '2h' }
         );
-    
+
         const geoData = await logGeoActivity(user, clientIpAdress) // Log activity
-    
+
+        const organizationName = user.organizations[0];
+        if (organizationName) {
+          const location = geoData.city && geoData.country_name ? `${geoData.city}-${geoData.country_name}` : null;
+          await loginsCount(organizationName, location);
+        }
+
         // Return token and user data
-        return { token, user: user.toJSON(), 
-         geoData, otpRequired: false, };
+        return {
+          token, user: user.toJSON(),
+          geoData, otpRequired: false,
+        };
       }
     }
     ,
