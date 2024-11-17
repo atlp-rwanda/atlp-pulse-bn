@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql'
 import * as jwt from 'jsonwebtoken'
-import { Types } from 'mongoose'
+import mongoose, { Types } from 'mongoose'
 import { checkLoggedInOrganization } from '../helpers/organization.helper'
 import { checkUserLoggedIn } from '../helpers/user.helpers'
 import { Attendance } from '../models/attendance.model'
@@ -44,8 +44,8 @@ interface Team extends Document {
 }
 const team = {
   cohort: { name: 'Your Cohort Name' },
-  name: 'Team Name'
-};
+  name: 'Team Name',
+}
 
 const manageStudentResolvers = {
   Query: {
@@ -455,7 +455,7 @@ const manageStudentResolvers = {
                 org!.name,
                 `${process.env.FRONTEND_LINK}/login/org`,
                 team.cohort.name,
-                team.name 
+                team.name
               )
               await sendEmailOnMembershipActions(
                 role,
@@ -507,7 +507,6 @@ const manageStudentResolvers = {
 
         // CATCH ERROR
       } catch (error: any) {
-        console.log(error)
         throw new GraphQLError(error.message, {
           extensions: {
             code: '500',
@@ -607,6 +606,139 @@ const manageStudentResolvers = {
       }
     },
 
+    async giveCoordinatorCohort(
+      _: any,
+      { coordinatorId, cohortId }: { coordinatorId: string; cohortId: string },
+      context: Context
+    ) {
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
+
+      const user = await User.findOne({
+        _id: coordinatorId,
+        role: 'coordinator',
+      }).exec()
+
+      let cohortGiven
+      let cohortFound = false
+
+      if (!user) {
+        throw new Error('Coordinator not found')
+      }
+
+      const allCohorts = await Cohort.find()
+
+      allCohorts.forEach((cohort) => {
+        if (
+          cohort.coordinator &&
+          cohort.coordinator.toString() === coordinatorId
+        ) {
+          cohort.set('coordinator', null)
+        }
+
+        const cohortIdStr = cohort._id?.toString()
+
+        if (cohortIdStr === cohortId) {
+          cohortFound = true
+          cohort.coordinator = new mongoose.Types.ObjectId(coordinatorId)
+          cohortGiven = cohort.name
+        }
+      })
+
+      if (!cohortFound) {
+        throw new Error('Cohort not found')
+      }
+
+      for (const cohort of allCohorts) {
+        await cohort.save({ validateBeforeSave: false })
+      }
+
+      await sendEmail(
+        user.email,
+        'Given new Cohort',
+        `Hello, Congaturations!! You have been assigned a new cohort to coordinate, Cohort name: ${cohortGiven}`,
+        'Best Regards.',
+        process.env.ADMIN_EMAIL,
+        process.env.ADMIN_PASS
+      )
+
+      return `Coordinator with email ${user.email} has been given cohort: ${cohortGiven}`
+    },
+
+    async dropCordinator(
+      _: any,
+      { id, reason }: { id: string; reason: string },
+      context: Context
+    ) {
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
+
+      const user = await User.findOne({ _id: id, role: 'coordinator' }).exec()
+      if (!user) {
+        throw new Error('Coordinator not found')
+      }
+
+      if (user.status?.status !== undefined) {
+        user.status.status = 'drop'
+      } else {
+        throw new Error('User status property does not exist')
+      }
+
+      const cohorts = await Cohort.find()
+      const modifiedCohorts = cohorts.filter((cohort) => {
+        if (
+          cohort.coordinator &&
+          (cohort.coordinator as mongoose.Types.ObjectId).toString() === id
+        ) {
+          cohort.set('coordinator', null)
+          return true
+        }
+        return false
+      })
+      for (const cohort of modifiedCohorts) {
+        await cohort.save({ validateBeforeSave: false })
+      }
+
+      await user.save()
+
+      await sendEmail(
+        user.email,
+        'Dropped',
+        `${reason}. If you think this is a mistake reach out to us!`,
+        '',
+        process.env.ADMIN_EMAIL,
+        process.env.ADMIN_PASS
+      )
+
+      return `Coordinator with email ${user.email} has been dropped. Reason: ${reason}`
+    },
+
+    async undropCordinator(_: any, { id }: { id: string }, context: Context) {
+      ;(await checkUserLoggedIn(context))([RoleOfUser.ADMIN])
+
+      const user = await User.findOne({ _id: id, role: 'coordinator' }).exec()
+      if (!user) {
+        throw new Error('Coordinator not found')
+      }
+
+      if (user.status?.status !== undefined) {
+        user.status.status = 'active'
+      } else {
+        throw new Error('User status property does not exist')
+      }
+
+      await user.save()
+
+      await sendEmail(
+        user.email,
+        'Undropped',
+        'Welcome back To our Organisation',
+        '',
+        process.env.ADMIN_EMAIL,
+        process.env.ADMIN_PASS
+      )
+
+      return `Coordinator with email ${user.email} has been undropped.`
+    },
+
     async removeMemberFromCohort(
       _: any,
       { teamName, email, orgToken }: any,
@@ -676,22 +808,22 @@ const manageStudentResolvers = {
             const Attendances: any[] = await Attendance.find({
               coordinatorId: userId,
             })
-            if(traineeAttendance?.trainees){
-            const traineeExist = traineeAttendance.trainees.findIndex(
-              (data: any) => data.traineeEmail === email
-            )
+            if (traineeAttendance?.trainees) {
+              const traineeExist = traineeAttendance.trainees.findIndex(
+                (data: any) => data.traineeEmail === email
+              )
 
-            if (traineeExist !== -1) {
-              for (const attendance of Attendances) {
-                for (let i = 0; i < attendance.trainees.length; i++) {
-                  if (attendance.trainees[i].traineeEmail === email) {
-                    attendance.trainees.splice(i, 1)
-                    await attendance.save()
+              if (traineeExist !== -1) {
+                for (const attendance of Attendances) {
+                  for (let i = 0; i < attendance.trainees.length; i++) {
+                    if (attendance.trainees[i].traineeEmail === email) {
+                      attendance.trainees.splice(i, 1)
+                      await attendance.save()
+                    }
                   }
                 }
               }
             }
-          }
           }
 
           checkMember.team.members = checkMember.team?.members.filter(
@@ -914,7 +1046,7 @@ async function sendEmailOnMembershipActions(
         org!.name,
         `${process.env.FRONTEND_LINK}/login/org`,
         team.cohort.name,
-        team.name 
+        team.name
       )
       const link: any = process.env.FRONTEND_LINK + '/login/org'
       await sendEmail(
@@ -964,4 +1096,3 @@ export default manageStudentResolvers
 function inviteUserTemplate(arg0: string, link: string, arg2: string) {
   throw new Error('Function not implemented.')
 }
-

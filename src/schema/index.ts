@@ -1,7 +1,6 @@
 import gql from 'graphql-tag'
 
 const Schema = gql`
-
   scalar Upload
 
   type Cohort {
@@ -294,18 +293,18 @@ const Schema = gql`
     getAllTeamInCohort(orgToken: String, cohort: String): [Team!]
     gitHubActivity(organisation: String!, username: String!): GitHubActivity!
     getRatingsByCohort(cohortId: String!, orgToken: String!): [Rating]!
-    getTeamsByCohort(cohortId: String!,orgToken: String!): [Team]!
+    getTeamsByCohort(cohortId: String!, orgToken: String!): [Team]!
   }
 
-  type RejectedRows{
+  type RejectedRows {
     email: String
     quantity: Int
     quality: Int
     professional_skills: Int
     feedBacks: String
   }
-  
-  type AddRatingsByFileData{
+
+  type AddRatingsByFileData {
     NewRatings: [Rating]!
     UpdatedRatings: [updateRating]!
     RejectedRatings: [RejectedRows]!
@@ -320,6 +319,9 @@ const Schema = gql`
     uploadResume(userId: ID!, resume: String!): Profile
     dropTTLUser(email: String!, reason: String!): String!
     undropTTLUser(email: String!): String!
+    dropCordinator(id: String!, reason: String!): String!
+    undropCordinator(id: String!): String!
+    giveCoordinatorCohort(coordinatorId: String!, cohortId: String!): String
     createUser(
       firstName: String!
       lastName: String!
@@ -388,7 +390,7 @@ const Schema = gql`
       cohortId: String!
       sprint: Int!
       orgToken: String!
-    ):AddRatingsByFileData!
+    ): AddRatingsByFileData!
     updateRating(
       user: String!
       sprint: Int!
@@ -506,10 +508,7 @@ const Schema = gql`
   }
 
   type Mutation {
-    addReply(
-      rating: ID!
-      sprint: Int!
-    ): Notifications!
+    addReply(rating: ID!, sprint: Int!): Notifications!
     deleteTeam(id: ID!): String!
     updateTeam(
       id: ID!
@@ -659,7 +658,6 @@ const Schema = gql`
     team: Team!
     sanitizedAttendance: SanitizedAttendance!
   }
-
 
   type traineeAttendanceWeek {
     week: Int!

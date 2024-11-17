@@ -38,7 +38,6 @@ const resolvers = {
 
         await user.save()
 
-
         await sendEmail(
           email,
           ' Two-Factor Authentication enabled ',
@@ -75,7 +74,6 @@ const resolvers = {
         throw new Error('Failed to disable two-factor authentication')
       }
     },
-
 
     loginWithTwoFactorAuthentication: async (
       _: any,
@@ -125,7 +123,6 @@ const resolvers = {
     },
 
   },
-};
-
+}
 
 export default resolvers

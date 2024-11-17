@@ -293,6 +293,7 @@ const resolvers = {
           },
         })
       }
+
       const org = await checkLoggedInOrganization(orgToken)
       if (!org) {
         throw new GraphQLError('No organization found', {
@@ -311,6 +312,7 @@ const resolvers = {
           }
         )
       }
+
       const cohort = await Cohort.findById(cohortId)
       if (!cohort) {
         throw new GraphQLError('No such cohort found', {
