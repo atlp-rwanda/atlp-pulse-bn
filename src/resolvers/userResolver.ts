@@ -87,35 +87,34 @@ export async function logGeoActivity(user: any, clientIpAdress: string) {
 }
 
 export async function loginsCount(organizationName: any, recentLocation: any) {
-  if (!organizationName) return;
+  if (!organizationName) return
 
+  const organization = await Organization.findOne({ name: organizationName })
+  if (!organization) return
 
-  const organization = await Organization.findOne({ name: organizationName });
-  if (!organization) return;
-
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]
   const loginEntry = organization.logins.find(
     (login) => login.date.toISOString().split('T')[0] === today
-  );
+  )
 
   if (loginEntry) {
-    loginEntry.loginsCount += 1;
-    loginEntry.recentLocation = recentLocation;
+    loginEntry.loginsCount += 1
+    loginEntry.recentLocation = recentLocation
   } else {
-
-    organization.logins.push({ date: new Date(), loginsCount: 1, recentLocation });
+    organization.logins.push({
+      date: new Date(),
+      loginsCount: 1,
+      recentLocation,
+    })
   }
 
-
-  await organization.save();
+  await organization.save()
 }
-
 
 const resolvers: any = {
   Query: {
-
     async getOrganizations(_: any, __: any, context: Context) {
-      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
 
       return Organization.find()
     },
@@ -169,7 +168,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      ; (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.COORDINATOR,
         'trainee',
@@ -181,7 +180,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error('This Organization doesn\'t exist')
+        throw new Error("This Organization doesn't exist")
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -264,7 +263,6 @@ const resolvers: any = {
   },
   Login: {
     user: async (parent: any) => {
-
       const user = await User.findById(parent.user.id)
 
       return user
@@ -370,13 +368,16 @@ const resolvers: any = {
 
     async loginUser(
       _: any,
-      { loginInput: { email, password, orgToken } }: any, context: any
+      { loginInput: { email, password, orgToken } }: any,
+      context: any
     ) {
       // Check organization validity
-      const org = await checkLoggedInOrganization(orgToken);
+      const org = await checkLoggedInOrganization(orgToken)
       const { clientIpAdress } = context
       if (!org) {
-        throw new GraphQLError('Organization not found', { extensions: { code: 'InvalidOrganization' } });
+        throw new GraphQLError('Organization not found', {
+          extensions: { code: 'InvalidOrganization' },
+        })
       }
 
       // Find user with populated fields
@@ -388,26 +389,35 @@ const resolvers: any = {
           path: 'program',
           model: Program,
           strictPopulate: false,
-          populate: { path: 'organization', model: Organization, strictPopulate: false }
-        }
-      });
+          populate: {
+            path: 'organization',
+            model: Organization,
+            strictPopulate: false,
+          },
+        },
+      })
 
       // Check if user exists
       if (!user) {
-        throw new GraphQLError('Invalid credentials', { extensions: { code: 'AccountNotFound' } });
+        throw new GraphQLError('Invalid credentials', {
+          extensions: { code: 'AccountNotFound' },
+        })
       }
 
       // Check if account is active
       if (user.status?.status !== 'active') {
-        throw new GraphQLError(`Account is ${user.status?.status}. Contact admin.`, {
-          extensions: { code: 'AccountInactive' }
-        });
+        throw new GraphQLError(
+          `Account is ${user.status?.status}. Contact admin.`,
+          {
+            extensions: { code: 'AccountInactive' },
+          }
+        )
       }
 
       // Check if two-factor authentication is enabled
       if (user.twoFactorAuth) {
-        const otp = generateOtp(); // Generate OTP
-        const TwoWayVerificationToken = encodeOtpToToken(otp, email); // Encode OTP
+        const otp = generateOtp() // Generate OTP
+        const TwoWayVerificationToken = encodeOtpToToken(otp, email) // Encode OTP
 
         // Send email with OTP
         await sendEmail(
@@ -417,20 +427,22 @@ const resolvers: any = {
           null,
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS
-        );
+        )
 
         // Return response with encoded OTP token and message
         return {
           message: 'Check your email for the OTP code.',
           otpRequired: true,
           TwoWayVerificationToken,
-          user: { id: user._id }
-        };
+          user: { id: user._id },
+        }
       } else {
         // Verify password if 2FA is not enabled
-        const passwordMatch = await user?.checkPass(password);
+        const passwordMatch = await user?.checkPass(password)
         if (!passwordMatch) {
-          throw new GraphQLError('Invalid credentials', { extensions: { code: 'InvalidCredential' } });
+          throw new GraphQLError('Invalid credentials', {
+            extensions: { code: 'InvalidCredential' },
+          })
         }
 
         // Generate token for authenticated user
@@ -438,25 +450,28 @@ const resolvers: any = {
           { userId: user._id, role: user._doc?.role || 'user' },
           SECRET,
           { expiresIn: '2h' }
-        );
+        )
 
         const geoData = await logGeoActivity(user, clientIpAdress) // Log activity
 
-        const organizationName = user.organizations[0];
+        const organizationName = user.organizations[0]
         if (organizationName) {
-          const location = geoData.city && geoData.country_name ? `${geoData.city}-${geoData.country_name}` : null;
-          await loginsCount(organizationName, location);
+          const location =
+            geoData.city && geoData.country_name
+              ? `${geoData.city}-${geoData.country_name}`
+              : null
+          await loginsCount(organizationName, location)
         }
 
         // Return token and user data
         return {
-          token, user: user.toJSON(),
-          geoData, otpRequired: false,
-        };
+          token,
+          user: user.toJSON(),
+          geoData,
+          otpRequired: false,
+        }
       }
-    }
-    ,
-
+    },
     async deleteUser(_: any, { input }: any, context: { userId: any }) {
       const requester = await User.findById(context.userId)
       if (!requester) {
@@ -539,9 +554,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error('This role doesn\'t exist')
+      if (!roleExists) throw new Error("This role doesn't exist")
       const userExists = await User.findById(id)
-      if (!userExists) throw new Error('User doesn\'t exist')
+      if (!userExists) throw new Error("User doesn't exist")
 
       const getAllUsers = await User.find({
         role: RoleOfUser.ADMIN,
@@ -778,7 +793,7 @@ const resolvers: any = {
       context: Context
     ) {
       // check if requester is super admin
-      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
@@ -848,7 +863,7 @@ const resolvers: any = {
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
@@ -913,7 +928,7 @@ const resolvers: any = {
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      ; (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1006,7 +1021,7 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ; (await checkUserLoggedIn(context))([
+      ;(await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1014,7 +1029,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error('This Organization doesn\'t exist')
+        throw new Error("This Organization doesn't exist")
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -1092,7 +1107,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error('User doesn\'t exist! ')
+          throw new Error("User doesn't exist! ")
         }
         user.password = password
         await user.save()
@@ -1112,7 +1127,7 @@ const resolvers: any = {
       if (newPassword === confirmPassword) {
         const user: any = await User.findById(userId)
         if (!user) {
-          throw new Error('User doesn\'t exist! ')
+          throw new Error("User doesn't exist! ")
         }
 
         if (bcrypt.compareSync(currentPassword, user.password)) {

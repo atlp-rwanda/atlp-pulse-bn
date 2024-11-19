@@ -1,19 +1,19 @@
 import mongoose, { Schema } from 'mongoose'
 import { User } from './user'
-import { PhaseInterface } from './phase.model';
+import { PhaseInterface } from './phase.model'
 
 export interface CohortInterface {
-  _id: mongoose.Types.ObjectId;
-  name: string;
-  phase: PhaseInterface;
-  coordinator: mongoose.Types.ObjectId;
-  members: mongoose.Types.ObjectId[];
-  program: mongoose.Types.ObjectId;
-  teams: number;
-  active: boolean;
-  startDate: Date;
-  endDate?: Date; // Optional
-  organization: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId
+  name: string
+  phase: PhaseInterface
+  coordinator: mongoose.Types.ObjectId | null
+  members: mongoose.Types.ObjectId[]
+  program: mongoose.Types.ObjectId
+  teams: number
+  active: boolean
+  startDate: Date
+  endDate?: Date // Optional
+  organization: mongoose.Types.ObjectId
 }
 
 const cohortSchema = new Schema(
@@ -29,7 +29,7 @@ const cohortSchema = new Schema(
       ref: 'Phase',
     },
     coordinator: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },

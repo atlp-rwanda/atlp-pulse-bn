@@ -108,7 +108,6 @@ const resolvers = {
             coordinator: user._id,
             organization: org._id,
           }).populate(['coordinator', 'phase', 'program'])
-
           return coordinatorCohorts
         }
         case RoleOfUser.TTL:
