@@ -36,6 +36,7 @@ import attendanceResolver from './resolvers/attendance.resolvers'
 import Sessionresolvers from './resolvers/session.resolver'
 import invitationResolvers from './resolvers/invitation.resolvers'
 import organizationResolvers from './resolvers/organization.resolvers'
+import contactResolver from './resolvers/contactus.resolver'
 import schemas from './schema/index'
 import cohortSchema from './schema/cohort.schema'
 import programSchema from './schema/program.schema'
@@ -44,6 +45,7 @@ import phaseSchema from './schema/phase.schema'
 import ticketSchema from './schema/ticket.shema'
 import notificationSchema from './schema/notification.schema'
 import organizationSchema from './schema/organization.schema'
+import contactUsSchema from './schema/contactus.schema'
 
 import statisticsSchema from './schema/invitationStatics.schema'
 import StatisticsResolvers from './resolvers/invitationStatics.resolvers'
@@ -72,7 +74,8 @@ export const typeDefs = mergeTypeDefs([
   statisticsSchema,
   eventSchema,
   CommunitySchema,
-  organizationSchema
+  organizationSchema,
+  contactUsSchema,
 ])
 
 export const resolvers = mergeResolvers([
@@ -98,6 +101,7 @@ export const resolvers = mergeResolvers([
   invitationResolvers,
   TableViewInvitationResolver,
   faMutation,
+  contactResolver,
 ])
 
 async function startApolloServer(
