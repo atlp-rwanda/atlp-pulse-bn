@@ -110,7 +110,7 @@ const resolvers = {
       const geoData = await logGeoActivity(user, clientIpAdress)
       const organizationName = user.organizations[0];
       if (organizationName) {
-        const location = geoData.city && geoData.country_name ? `${geoData.city}-${geoData.country_name}` : null;
+        const location = geoData && geoData.city && geoData.country_name ? `${geoData.city}-${geoData.country_name}` : null;
         await loginsCount(organizationName, location);
       }
 
