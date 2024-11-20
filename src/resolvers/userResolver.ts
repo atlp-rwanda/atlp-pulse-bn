@@ -37,7 +37,8 @@ import { EmailPattern } from '../utils/validation.utils'
 import { Context } from './../context'
 import { UserInputError } from 'apollo-server'
 import { encodeOtpToToken, generateOtp } from '../utils/2WayAuthentication'
-import jwt from 'jsonwebtoken'
+import  jwt  from 'jsonwebtoken'
+import nonTraineeTemplate from '../utils/templates/nonTraineeTemplate'
 const octokit = new Octokit({ auth: `${process.env.Org_Repo_Access}` })
 
 const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
@@ -327,6 +328,10 @@ const resolvers: any = {
       if (user && invitation) {
         invitation.status = 'accepted'
         await invitation.save()
+      }
+      if(user.role !=='trainee'){
+      const content = nonTraineeTemplate( user.email,password,org.name)
+      sendEmail(user.email,'Login Details',content,process.env.FRONTEND_LINK, process.env.ADMIN_EMAIL, process.env.ADMIN_PASS)
       }
 
       const newProfile = await Profile.create({
