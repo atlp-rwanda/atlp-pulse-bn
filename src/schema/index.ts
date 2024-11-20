@@ -81,6 +81,7 @@ const Schema = gql`
     status: StatusType
     ratings: [Rating]
     twoFactorAuth:Boolean!
+    TwoWayVerificationToken:String
   }
   input RegisterInput {
     email: String!
@@ -157,7 +158,7 @@ const Schema = gql`
     user: User
     message:String
     otpRequired:Boolean
-    TwoWayVerificationToken:String
+    
   }
   type OrgLogin {
     token: String
@@ -314,9 +315,9 @@ const Schema = gql`
 
   type Mutation {
     enableTwoFactorAuth(email: String!): String  
-    oneTimeCode: String!
+    # //TwoWayVerificationToken: String!
     disableTwoFactorAuth(email: String!): String  
-    loginWithTwoFactorAuthentication(email: String!, otp: String!, TwoWayVerificationToken: String!): LoginResponse!
+    loginWithTwoFactorAuthentication(email: String!, otp: String!): LoginResponse!
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
     dropTTLUser(email: String!, reason: String!): String!

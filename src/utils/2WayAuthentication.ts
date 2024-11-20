@@ -8,7 +8,7 @@ export function generateOtp(length = 6): string {
   }
   return otp
 }
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 
 export function encodeOtpToToken(otp: string, email: string): string {
   const payload = { otp, email }

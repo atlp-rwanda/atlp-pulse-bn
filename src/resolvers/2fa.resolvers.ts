@@ -1,13 +1,13 @@
 import { AuthenticationError } from 'apollo-server-errors'
 import mongoose from 'mongoose'
 
-import jwt from 'jsonwebtoken';
-import { generateTokenUserExists } from '../helpers/user.helpers';
-import { sendEmail } from '../utils/sendEmail';
-import { verifyOtpToken } from '../utils/2WayAuthentication';
-import { GraphQLError } from 'graphql';
-import { User } from '../models/user';
-import { logGeoActivity, loginsCount } from './userResolver';
+import jwt from 'jsonwebtoken'
+import { generateTokenUserExists } from '../helpers/user.helpers'
+import { sendEmail } from '../utils/sendEmail'
+import { verifyOtpToken } from '../utils/2WayAuthentication'
+import { GraphQLError } from 'graphql'
+import { User } from '../models/user'
+import { logGeoActivity, loginsCount } from './userResolver'
 
 interface Enable2FAInput {
   email: string
@@ -17,7 +17,7 @@ interface Disable2FAInput {
   email: string
 }
 
-const SECRET: string = process.env.SECRET ?? 'test_secret'
+const SECRET = (process.env.SECRET as string) || 'mysq_unique_secret'
 const resolvers = {
   Mutation: {
     enableTwoFactorAuth: async (_: any, { email }: Enable2FAInput) => {
@@ -65,9 +65,17 @@ const resolvers = {
         // Disable 2FA by clearing the secret and one-time code
         user.twoFactorSecret = null
         user.twoFactorAuth = false
-        user.oneTimeCode = null
+        user.TwoWayVerificationToken = null
 
         await user.save()
+        await sendEmail(
+          email,
+          ' Two-Factor Authentication disabled ',
+          'Two-Factor Authentication has been disabled on your account',
+          null,
+          process.env.ADMIN_EMAIL,
+          process.env.ADMIN_PASS
+        )
 
         return 'Two-factor authentication disabled.'
       } catch (error) {
@@ -77,27 +85,38 @@ const resolvers = {
 
     loginWithTwoFactorAuthentication: async (
       _: any,
-      { id, email, otp, TwoWayVerificationToken }: { id?: string; email?: string; otp: string; TwoWayVerificationToken: string }, context: any
+      {
+        id,
+        email,
+        otp,
+     
+      }: {
+        id?: string
+        email?: string
+        otp: string
+    
+      },
+      context: any
     ) => {
-      const { clientIpAdress } = context;
-      // Verify OTP
-      const isValidOtp = verifyOtpToken(TwoWayVerificationToken, otp);
-
-      if (!isValidOtp) {
-        throw new GraphQLError('Invalid OTP. Please try again.');
-      }
+      const { clientIpAdress } = context
 
       // Fetch user by either ID or email
-      let user: any;
+      let user: any
       if (id) {
-        user = await User.findById(id);
+        user = await User.findById(id)
       } else if (email) {
-        user = await User.findOne({ email });
+        user = await User.findOne({ email })
       }
 
       // Check if user was found
       if (!user) {
-        throw new GraphQLError('User not found.');
+        throw new GraphQLError('User not found.')
+      }
+      // Verify OTP
+      const isValidOtp = verifyOtpToken(user.TwoWayVerificationToken, otp)
+
+      if (!isValidOtp) {
+        throw new GraphQLError('Invalid OTP. Please try again.')
       }
 
       // Generate JWT token
@@ -105,23 +124,27 @@ const resolvers = {
         { userId: user._id, role: user._doc?.role || 'user' },
         SECRET,
         { expiresIn: '2h' }
-      );
+      )
 
       const geoData = await logGeoActivity(user, clientIpAdress)
-      const organizationName = user.organizations[0];
+      const organizationName = user.organizations[0]
       if (organizationName) {
-        const location = geoData && geoData.city && geoData.country_name ? `${geoData.city}-${geoData.country_name}` : null;
-        await loginsCount(organizationName, location);
+        const location =
+          geoData.city && geoData.country_name
+            ? `${geoData.city}-${geoData.country_name}`
+            : null
+        await loginsCount(organizationName, location)
       }
+      user.TwoWayVerificationToken = null
+      await user.save()
 
       return {
         token,
         user: user.toJSON(),
 
         message: 'Logged in successfully',
-      };
+      }
     },
-
   },
 }
 
