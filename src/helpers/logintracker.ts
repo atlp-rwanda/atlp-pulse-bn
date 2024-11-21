@@ -3,7 +3,13 @@ import { sendEmail } from '../utils/sendEmail'
 
 export const checkloginAttepmts = async (Profile: any, user: any) => {
   try {
-    const { activity } = await Profile.findOne({ user })
+    const profile = await Profile.findOne({ user })
+
+    if(!profile || !profile.activity){
+      return;
+    }
+    const { activity } = profile
+
     if (activity && activity?.length > 1) {
       const inline = activity[activity.length - 1]
       const recent = Number(inline.failed) + 1 || 0
@@ -13,7 +19,7 @@ export const checkloginAttepmts = async (Profile: any, user: any) => {
       ) {
         await sendEmail(
           user.email,
-          'SUSPICIOUS ACTIVITY DETECTED ON YOUR ACCOUNT',
+          'ALERT!: Unusual Activity Detected on Your Account!',
           emailtemp(recent, inline.date, inline.country_name, inline.city),
           '',
           process.env.COORDINATOR_EMAIL,
@@ -41,86 +47,125 @@ export async function checkUserAccountStatus(
 
 const emailtemp = (trials: any, date: any, country: any, city: any) => {
   return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Suspicious Activity Detected</title>
-    <style>
-        body {
-            background-color: #f5f5f5;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 4px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #333333;
-            font-size: 24px;
-            margin: 0;
-        }
-
-        p {
-            color: #666666;
-            font-size: 16px;
-            line-height: 1.6;
-            margin: 10px 0;
-        }
-
-        .cta-button {
+  <html>
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Suspicious Activity Detected</title>
+      <style>
+          body {
+              background-color: #f9f9f9;
+              font-family: 'Arial', sans-serif;
+              margin: 0;
+              padding: 0;
+          }
+  
+          .container {
+              max-width: 600px;
+              margin: 30px auto;
+              background-color: #ffffff;
+              padding: 20px 30px;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+  
+          h1 {
+              color: #2c3e50;
+              font-size: 22px;
+              margin-bottom: 10px;
+          }
+  
+          p {
+              color: #7f8c8d;
+              font-size: 15px;
+              line-height: 1.6;
+          }
+  
+          .details-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 15px;
+          }
+  
+          .details-table th,
+          .details-table td {
+              text-align: left;
+              padding: 10px;
+              border-bottom: 1px solid #ecf0f1;
+          }
+  
+          .details-table th {
+              background-color: #f4f6f7;
+              color: #34495e;
+              font-weight: bold;
+          }
+  
+          .cta-button {
             display: inline-block;
             margin-top: 20px;
-            background-color: #4caf50;
-            color: #ffffff;
+            background-color: #6a1b9a; /* Deep purple */
+            color: white;
             font-size: 16px;
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-        }
-
+            padding: 12px 25px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+          }
+  
         .cta-button:hover {
-            background-color: #45a049;
+            background-color: #4a148c; /* Darker shade of purple for hover effect */
         }
-        #det{
-          display:grid;
-          padding: 10% 5%;
-          border: 2px solid red;
-
-        }
-        li{
-          margin:2% 0%;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Suspicious Activity Detected</h1>
-        <p>We have detected some suspicious activity on your account. For your security, we recommend taking immediate action to ensure the safety of your account.</p>
-        <p>If you believe this activity was unauthorized, please click the button below to reset your password:</p>
-        <a class="cta-button" href="${process.env.FRONTEND_LINK}/reset-password">Reset Password</a>
-        <div id="det">
-
-        <li>date:${date}</li>
-        <li>country name: ${country}</li>
-        <li>city: ${city}</li>
-        <li>failed attempts:${trials}</li>
-        </div>
-
-
-        <p>If you recognize this activity and believe it was performed by you, you can safely ignore this message.</p>
-        <p>If you have any questions or need further assistance, please contact our support team.</p>
-        <p>Best regards,</p>
-        <p>Pulse Team</p>
-    </div>
-</body>
-</html>
-`
+  
+  
+          .footer {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #bdc3c7;
+              text-align: center;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <p>We have noticed unusual failed login attempts on your account. To secure your account, we recommend resetting your password immediately.</p>
+          <a class="cta-button" 
+            style="color: white !important; background-color: #6a1b9a; padding: 12px 25px; 
+                    font-size: 16px; border-radius: 6px; text-decoration: none;" 
+            href="${process.env.FRONTEND_LINK}/reset-password">
+            Reset Password
+          </a>
+  
+          <table class="details-table">
+              <thead>
+                  <tr>
+                      <th>Details</th>
+                      <th>Information</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr>
+                      <td>Date</td>
+                      <td>${date}</td>
+                  </tr>
+                  <tr>
+                      <td>Country</td>
+                      <td>${country}</td>
+                  </tr>
+                  <tr>
+                      <td>City</td>
+                      <td>${city}</td>
+                  </tr>
+                  <tr>
+                      <td>Failed Attempts</td>
+                      <td>${trials}</td>
+                  </tr>
+              </tbody>
+          </table>
+          <p>If this activity was initiated by you, no further action is required.</p>
+          <p>Best regards,</p>
+          <p>Pulse Team</p>
+          <div class="footer">Your security is our priority. Contact support if you need assistance.</div>
+      </div>
+  </body>
+  </html>`;
 }
