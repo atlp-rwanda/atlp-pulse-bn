@@ -191,7 +191,7 @@ const Schema = gql`
     description: String
   }
 
-  type Rating {
+    type Rating {
     id: ID!
     user: User!
     sprint: Int!
@@ -205,6 +205,8 @@ const Schema = gql`
     cohort: Cohort!
     average: String
     feedbacks: [RatingMessageTemp]
+    createdAt: String
+    updatedAt: String
   }
 
   type AddRating {

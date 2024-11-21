@@ -26,16 +26,55 @@ import {
 } from '../utils/sheets/extractSheetRatings'
 import Phase from '../models/phase.model'
 import Team from '../models/team.model'
+import { fetchTraineeAttendance } from './attendance.resolvers'
+import { isSameWeek } from 'date-fns'
+
+interface DayInterface {
+  date: string;
+  isValid?: boolean;
+  score?: string | null;
+}
+interface WeekdaysInterface {
+  mon: DayInterface;
+  tue: DayInterface;
+  wed: DayInterface;
+  thu: DayInterface;
+  fri: DayInterface;
+}
+interface TraineeAttendanceWeek {
+  week: number;
+  weekAverage: number;
+  daysStatus: WeekdaysInterface;
+}
+
+interface PhaseInterface {
+  _id: string;
+  name: string;
+}
+
+interface TraineeAttendancePhase {
+  phase: PhaseInterface;
+  phaseAverage: number;
+  weeks: TraineeAttendanceWeek[];
+}
+
+interface TraineeAttendanceInterface {
+  traineeId: string;
+  teamName: string;
+  allPhasesAverage: number;
+  phases: TraineeAttendancePhase[];
+}
+
 const pubsub = new PubSub()
 
 const ratingEmailContent = generalTemplate({
   message:
-    "We're excited to announce that your latest performance ratings are ready for review.",
+    'We\'re excited to announce that your latest performance ratings are ready for review.',
   linkMessage: 'To access your new ratings, click the button below',
   buttonText: 'View Ratings',
   link: `${process.env.FRONTEND_LINK}/performance`,
   closingText:
-    "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+    'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
 })
 
 let org: InstanceType<typeof Organization>
@@ -201,7 +240,7 @@ const ratingResolvers: any = {
     },
 
     async fetchRatingByCohort(_: any, { CohortName }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.COORDINATOR,
         RoleOfUser.ADMIN,
         RoleOfUser.TRAINEE,
@@ -260,8 +299,26 @@ const ratingResolvers: any = {
             populate: 'sender',
           },
         ])
-        .sort({ createdAt: -1 })
-      return findRatings
+        .sort({ createdAt: -1 });
+
+      const sanitizedRatings = [];
+      const traineeAttendance: TraineeAttendanceInterface = await fetchTraineeAttendance(context.userId) as unknown as TraineeAttendanceInterface;
+
+      for (const rating of findRatings) {
+        const mutableRating = rating as typeof rating & { attendance: number };
+        for (const attendancePhase of traineeAttendance.phases) {
+          if (attendancePhase.phase.name.toLowerCase() === mutableRating.phase.toLowerCase()) {
+            for (const attendanceWeek of attendancePhase.weeks) {
+              if (isSameWeek(new Date(attendanceWeek.daysStatus.mon.date), new Date(mutableRating.createdAt), { weekStartsOn: 1 })) {
+                mutableRating.attendance = attendanceWeek.weekAverage;
+              }
+            }
+          }
+        }
+        sanitizedRatings.push(mutableRating);
+      }
+
+      return sanitizedRatings;
     },
   },
   Mutation: {
@@ -507,12 +564,12 @@ const ratingResolvers: any = {
                   : [`${existingRating.quality}->`, row.quality],
               professional_Skills:
                 existingRating.professional_Skills ===
-                row.professional_skills.toString()
+                  row.professional_skills.toString()
                   ? [existingRating.professional_Skills]
                   : [
-                      `${existingRating.professional_Skills}->`,
-                      row.professional_skills,
-                    ],
+                    `${existingRating.professional_Skills}->`,
+                    row.professional_skills,
+                  ],
               feedbacks: [
                 ...existingRating.feedbacks.map((rating) => {
                   if (rating.sender?.toString() === user._id.toString()) {
@@ -633,7 +690,7 @@ const ratingResolvers: any = {
             oldData?.quality == quality[0].toString() &&
             oldData?.professional_Skills == professional_Skills[0].toString() &&
             (oldData?.feedbacks?.[0]?.content ?? '') ==
-              (feedbackContent ?? '') &&
+            (feedbackContent ?? '') &&
             (feedbacks[0]?.toString() ?? '') == (feedbackContent ?? '')
           ) {
             throw new Error('No changes to update!')
@@ -651,12 +708,12 @@ const ratingResolvers: any = {
                   : [`${oldData?.quality} ->`, quality?.toString()],
               professional_Skills:
                 oldData?.professional_Skills ==
-                professional_Skills[0].toString()
+                  professional_Skills[0].toString()
                   ? oldData?.professional_Skills
                   : [
-                      `${oldData?.professional_Skills} ->`,
-                      professional_Skills?.toString(),
-                    ],
+                    `${oldData?.professional_Skills} ->`,
+                    professional_Skills?.toString(),
+                  ],
 
               feedbacks: oldData?.feedbacks.map((feedback) => {
                 feedbackContent === feedback.content
@@ -737,7 +794,7 @@ const ratingResolvers: any = {
             buttonText: 'View Ratings',
             link: `${process.env.FRONTEND_LINK}/performance`,
             closingText:
-              "If you have any questions or require additional information about your ratings, please don't hesitate to reach out to us.",
+              'If you have any questions or require additional information about your ratings, please don\'t hesitate to reach out to us.',
           })
 
           await sendEmails(

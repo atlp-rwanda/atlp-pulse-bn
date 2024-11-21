@@ -115,7 +115,7 @@ export async function loginsCount(organizationName: any, recentLocation: any) {
 const resolvers: any = {
   Query: {
     async getOrganizations(_: any, __: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
 
       return Organization.find()
     },
@@ -169,7 +169,7 @@ const resolvers: any = {
       { organisation, username }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.COORDINATOR,
         'trainee',
@@ -181,7 +181,7 @@ const resolvers: any = {
         name: organisation,
       })
       if (!organisationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
 
       organisation = organisationExists.gitHubOrganisation
 
@@ -408,7 +408,6 @@ const resolvers: any = {
           extensions: { code: 'AccountNotFound' },
         })
       }
-
       // Check if account is active
       if (user.status?.status !== 'active') {
         throw new GraphQLError(
@@ -457,12 +456,13 @@ const resolvers: any = {
           { expiresIn: '2h' }
         )
 
+        
         const geoData = await logGeoActivity(user, clientIpAdress) // Log activity
-
+        
         const organizationName = user.organizations[0]
         if (organizationName) {
           const location =
-            geoData.city && geoData.country_name
+            geoData && geoData.city && geoData.country_name
               ? `${geoData.city}-${geoData.country_name}`
               : null
           await loginsCount(organizationName, location)
@@ -559,9 +559,9 @@ const resolvers: any = {
       ]
       const org = await checkLoggedInOrganization(orgToken)
       const roleExists = allRoles.includes(name)
-      if (!roleExists) throw new Error("This role doesn't exist")
+      if (!roleExists) throw new Error('This role doesn\'t exist')
       const userExists = await User.findById(id)
-      if (!userExists) throw new Error("User doesn't exist")
+      if (!userExists) throw new Error('User doesn\'t exist')
 
       const getAllUsers = await User.find({
         role: RoleOfUser.ADMIN,
@@ -798,7 +798,7 @@ const resolvers: any = {
       context: Context
     ) {
       // check if requester is super admin
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       const orgExists = await Organization.findOne({ name: name })
       if (action == 'approve') {
         if (!orgExists) {
@@ -868,7 +868,7 @@ const resolvers: any = {
       context: Context
     ) {
       // the below commented line help to know if the user is an superAdmin to perform an action of creating an organization
-      ;(await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
+      ; (await checkUserLoggedIn(context))([RoleOfUser.SUPER_ADMIN])
       if (action == 'new') {
         const orgExists = await Organization.findOne({ name: name })
         if (orgExists) {
@@ -933,7 +933,7 @@ const resolvers: any = {
       { name, gitHubOrganisation }: any,
       context: Context
     ) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1026,7 +1026,7 @@ const resolvers: any = {
     },
 
     async deleteOrganization(_: any, { id }: any, context: Context) {
-      ;(await checkUserLoggedIn(context))([
+      ; (await checkUserLoggedIn(context))([
         RoleOfUser.ADMIN,
         RoleOfUser.SUPER_ADMIN,
       ])
@@ -1034,7 +1034,7 @@ const resolvers: any = {
       const organizationExists = await Organization.findOne({ _id: id })
 
       if (!organizationExists)
-        throw new Error("This Organization doesn't exist")
+        throw new Error('This Organization doesn\'t exist')
       await Cohort.deleteMany({ organization: id })
       await Team.deleteMany({ organization: id })
       await Phase.deleteMany({ organization: id })
@@ -1112,7 +1112,7 @@ const resolvers: any = {
       if (password === confirmPassword) {
         const user: any = await User.findOne({ email })
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
         user.password = password
         await user.save()
@@ -1132,7 +1132,7 @@ const resolvers: any = {
       if (newPassword === confirmPassword) {
         const user: any = await User.findById(userId)
         if (!user) {
-          throw new Error("User doesn't exist! ")
+          throw new Error('User doesn\'t exist! ')
         }
 
         if (bcrypt.compareSync(currentPassword, user.password)) {

@@ -349,6 +349,136 @@ const returnAttendanceData = async (teamData: any) => {
   return formatAttendanceData(sanitizedAttendance, teamData)
 }
 
+export const fetchTraineeAttendance = async (userId: string | undefined) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new GraphQLError('User with provided id do not exist')
+  }
+  const userTeamId = user.team;
+  const teamData = await Team.findById(userTeamId);
+  const attendance = await Attendance.find();
+  const phases: TraineeAttendancePhase[] = [];
+
+  if (!teamData) {
+    throw new Error('Team provided doesn\'t exist')
+  }
+
+  let totalAllPhasesScore = 0;
+  let totalAllPhasesDays = 0;
+
+  const phasesAverage: PhasesAverage[] = []
+
+  if (attendance.length) {
+
+    for (const attendanceRecord of attendance) {
+      const phaseData = await Phase.findById(attendanceRecord.phase)
+
+      if (!phaseData) {
+        throw new Error('Phase provided doesn\'t exist')
+      }
+      const phaseObj = phaseData.toObject() as PhaseInterface
+
+      let existingPhaseAverageIndex = phasesAverage.findIndex(phase => phase.id === phaseData.id)
+      if (existingPhaseAverageIndex === -1) {
+        phasesAverage.push({
+          id: phaseData.id,
+          totalPhaseScore: 0,
+          totalPhaseDays: 0
+        });
+        existingPhaseAverageIndex = phasesAverage.length - 1;
+      }
+
+      attendanceRecord.teams.forEach((traineeAttendanceData) => {
+        if (
+          traineeAttendanceData.team.equals(
+            (userTeamId as string).toString()
+          )
+        ) {
+          traineeAttendanceData.trainees.forEach((traineeData) => {
+            if (
+              (traineeData.trainee as string).toString() === userId &&
+              traineeAttendanceData.date
+            ) {
+              let totalWeekScore = 0;
+              let totalWeekDays = 0;
+              const weekDays: WeekdaysInterface = getDateForDays(
+                new Date(traineeAttendanceData.date).getTime().toString()
+              )
+
+              traineeData.status.forEach((status) => {
+                if (weekDays[status.day]) {
+                  if (!('score' in weekDays[status.day])) {
+                    weekDays[status.day].score = status.score.toString();
+                    if (status.score && Number(status.score) >= 0) {
+                      // sum for a week
+                      totalWeekScore += Number(status.score);
+                      totalWeekDays++;
+
+                      // sum for a phase
+                      phasesAverage[existingPhaseAverageIndex].totalPhaseScore += Number(status.score)
+                      phasesAverage[existingPhaseAverageIndex].totalPhaseDays++
+
+                      // sum for all phases
+                      totalAllPhasesScore += Number(status.score);
+                      totalAllPhasesDays++;
+                    }
+                  }
+                }
+              })
+
+              Object.keys(weekDays).forEach((day) => {
+                const dayKey = day as keyof WeekdaysInterface
+                if (!('score' in weekDays[dayKey])) {
+                  weekDays[dayKey].score = null
+                }
+              })
+
+              let phaseExists = false
+
+              phases.forEach((phase) => {
+                if (
+                  phase.phase._id.equals(
+                    (attendanceRecord.phase as string).toString()
+                  )
+                ) {
+                  phase.phaseAverage = (phasesAverage[existingPhaseAverageIndex].totalPhaseScore / phasesAverage[existingPhaseAverageIndex].totalPhaseDays).toPrecision(2);
+                  phase.weeks.push({
+                    week: attendanceRecord.week,
+                    weekAverage: (totalWeekScore / totalWeekDays).toPrecision(2),
+                    daysStatus: weekDays,
+                  });
+                  phaseExists = true;
+                }
+              })
+
+              if (!phaseExists) {
+                phases.push({
+                  phase: phaseObj,
+                  phaseAverage: (phasesAverage[existingPhaseAverageIndex].totalPhaseScore / phasesAverage[existingPhaseAverageIndex].totalPhaseDays).toPrecision(2),
+                  weeks: [
+                    {
+                      week: attendanceRecord.week,
+                      weekAverage: (totalWeekScore / totalWeekDays).toPrecision(2),
+                      daysStatus: weekDays,
+                    },
+                  ],
+                })
+              }
+            }
+          })
+        }
+      })
+    }
+  }
+
+  return {
+    traineeId: userId,
+    allPhasesAverage: (totalAllPhasesScore / totalAllPhasesDays).toPrecision(2),
+    teamName: teamData.name,
+    phases,
+  }
+}
+
 const attendanceResolver = {
   Query: {
 
@@ -358,133 +488,7 @@ const attendanceResolver = {
       ])
       const userId = role === RoleOfUser.TRAINEE ? id : traineeId;
 
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new GraphQLError('User with provided id do not exist')
-      }
-      const userTeamId = user.team;
-      const teamData = await Team.findById(userTeamId);
-      const attendance = await Attendance.find();
-      const phases: TraineeAttendancePhase[] = [];
-
-      if (!teamData) {
-        throw new Error('Team provided doesn\'t exist')
-      }
-
-      let totalAllPhasesScore = 0;
-      let totalAllPhasesDays = 0;
-
-      const phasesAverage: PhasesAverage[] = []
-
-      if (attendance.length) {
-
-        for (const attendanceRecord of attendance) {
-          const phaseData = await Phase.findById(attendanceRecord.phase)
-
-          if (!phaseData) {
-            throw new Error('Phase provided doesn\'t exist')
-          }
-          const phaseObj = phaseData.toObject() as PhaseInterface
-
-          let existingPhaseAverageIndex = phasesAverage.findIndex(phase => phase.id === phaseData.id)
-          if (existingPhaseAverageIndex === -1) {
-            phasesAverage.push({
-              id: phaseData.id,
-              totalPhaseScore: 0,
-              totalPhaseDays: 0
-            });
-            existingPhaseAverageIndex = phasesAverage.length - 1;
-          }
-
-          attendanceRecord.teams.forEach((traineeAttendanceData) => {
-            if (
-              traineeAttendanceData.team.equals(
-                (userTeamId as string).toString()
-              )
-            ) {
-              traineeAttendanceData.trainees.forEach((traineeData) => {
-                if (
-                  (traineeData.trainee as string).toString() === userId &&
-                  traineeAttendanceData.date
-                ) {
-                  let totalWeekScore = 0;
-                  let totalWeekDays = 0;
-                  const weekDays: WeekdaysInterface = getDateForDays(
-                    new Date(traineeAttendanceData.date).getTime().toString()
-                  )
-
-                  traineeData.status.forEach((status) => {
-                    if (weekDays[status.day]) {
-                      if (!('score' in weekDays[status.day])) {
-                        weekDays[status.day].score = status.score.toString();
-                        if (status.score && Number(status.score) >= 0) {
-                          // sum for a week
-                          totalWeekScore += Number(status.score);
-                          totalWeekDays++;
-
-                          // sum for a phase
-                          phasesAverage[existingPhaseAverageIndex].totalPhaseScore += Number(status.score)
-                          phasesAverage[existingPhaseAverageIndex].totalPhaseDays++
-
-                          // sum for all phases
-                          totalAllPhasesScore += Number(status.score);
-                          totalAllPhasesDays++;
-                        }
-                      }
-                    }
-                  })
-
-                  Object.keys(weekDays).forEach((day) => {
-                    const dayKey = day as keyof WeekdaysInterface
-                    if (!('score' in weekDays[dayKey])) {
-                      weekDays[dayKey].score = null
-                    }
-                  })
-
-                  let phaseExists = false
-
-                  phases.forEach((phase) => {
-                    if (
-                      phase.phase._id.equals(
-                        (attendanceRecord.phase as string).toString()
-                      )
-                    ) {
-                      phase.phaseAverage = (phasesAverage[existingPhaseAverageIndex].totalPhaseScore / phasesAverage[existingPhaseAverageIndex].totalPhaseDays).toPrecision(2);
-                      phase.weeks.push({
-                        week: attendanceRecord.week,
-                        weekAverage: (totalWeekScore / totalWeekDays).toPrecision(2),
-                        daysStatus: weekDays,
-                      });
-                      phaseExists = true;
-                    }
-                  })
-
-                  if (!phaseExists) {
-                    phases.push({
-                      phase: phaseObj,
-                      phaseAverage: (phasesAverage[existingPhaseAverageIndex].totalPhaseScore / phasesAverage[existingPhaseAverageIndex].totalPhaseDays).toPrecision(2),
-                      weeks: [
-                        {
-                          week: attendanceRecord.week,
-                          weekAverage: (totalWeekScore / totalWeekDays).toPrecision(2),
-                          daysStatus: weekDays,
-                        },
-                      ],
-                    })
-                  }
-                }
-              })
-            }
-          })
-        }
-      }
-
-      return {
-        traineeId: userId,
-        allPhasesAverage: (totalAllPhasesScore / totalAllPhasesDays).toPrecision(2),
-        teamName: teamData.name,
-        phases,
-      }
+      return await fetchTraineeAttendance(userId);
     },
 
     async getTeamAttendance(
