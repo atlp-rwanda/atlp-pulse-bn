@@ -34,7 +34,8 @@
     "exclude": [
       "dist",
       "coverage",
-      "src/seeders"
+      "src/seeders",
+      "src/utils"
     ]
   },
   "repository": {
