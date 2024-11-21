@@ -377,14 +377,14 @@ const resolvers: any = {
       context: any
     ) {
       // Check organization validity
-      const org = await checkLoggedInOrganization(orgToken)
-      const { clientIpAdress } = context
+      const org = await checkLoggedInOrganization(orgToken);
+      const { clientIpAdress } = context;
       if (!org) {
         throw new GraphQLError('Organization not found', {
           extensions: { code: 'InvalidOrganization' },
-        })
+        });
       }
-
+    
       // Find user with populated fields
       const user: any = await User.findOne({ email }).populate({
         path: 'cohort',
@@ -400,14 +400,15 @@ const resolvers: any = {
             strictPopulate: false,
           },
         },
-      })
-
+      });
+    
       // Check if user exists
       if (!user) {
         throw new GraphQLError('Invalid credentials', {
           extensions: { code: 'AccountNotFound' },
-        })
+        });
       }
+    
       // Check if account is active
       if (user.status?.status !== 'active') {
         throw new GraphQLError(
@@ -415,14 +416,14 @@ const resolvers: any = {
           {
             extensions: { code: 'AccountInactive' },
           }
-        )
+        );
       }
-
+    
       // Check if two-factor authentication is enabled
       if (user.twoFactorAuth) {
-        const otp = generateOtp() // Generate OTP
-        const TwoWayVerificationToken = encodeOtpToToken(otp, email) // Encode OTP
-
+        const otp = generateOtp(); // Generate OTP
+        const TwoWayVerificationToken = encodeOtpToToken(otp, email); // Encode OTP
+    
         // Send email with OTP
         await sendEmail(
           email,
@@ -431,52 +432,55 @@ const resolvers: any = {
           null,
           process.env.ADMIN_EMAIL,
           process.env.ADMIN_PASS
-        )
-
-        // Return response with encoded OTP token and message
+        );
+    
+        // Save the Two-Way Verification Token to the database
+        user.TwoWayVerificationToken = TwoWayVerificationToken;
+        await user.save();
+    
+        // Return a response without exposing the token
         return {
           message: 'Check your email for the OTP code.',
           otpRequired: true,
-          TwoWayVerificationToken,
           user: { id: user._id },
-        }
+        };
       } else {
         // Verify password if 2FA is not enabled
-        const passwordMatch = await user?.checkPass(password)
+        const passwordMatch = await user?.checkPass(password);
         if (!passwordMatch) {
           throw new GraphQLError('Invalid credentials', {
             extensions: { code: 'InvalidCredential' },
-          })
+          });
         }
-
+    
         // Generate token for authenticated user
         const token = jwt.sign(
           { userId: user._id, role: user._doc?.role || 'user' },
           SECRET,
           { expiresIn: '2h' }
-        )
-
-        
-        const geoData = await logGeoActivity(user, clientIpAdress) // Log activity
-        
-        const organizationName = user.organizations[0]
+        );
+    
+        const geoData = await logGeoActivity(user, clientIpAdress); // Log activity
+    
+        const organizationName = user.organizations[0];
         if (organizationName) {
           const location =
             geoData && geoData.city && geoData.country_name
               ? `${geoData.city}-${geoData.country_name}`
-              : null
-          await loginsCount(organizationName, location)
+              : null;
+          await loginsCount(organizationName, location);
         }
-
+    
         // Return token and user data
         return {
           token,
           user: user.toJSON(),
           geoData,
           otpRequired: false,
-        }
+        };
       }
     },
+    
     async deleteUser(_: any, { input }: any, context: { userId: any }) {
       const requester = await User.findById(context.userId)
       if (!requester) {

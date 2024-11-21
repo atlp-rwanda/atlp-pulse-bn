@@ -103,10 +103,10 @@ const userSchema = new Schema(
       type: String,
 
     },
-    oneTimeCode: {
+    TwoWayVerificationToken: {
       type: String,
-      code: String,
-      required: false
+      required: false,
+      default:null
     },
     oneTimeCodeExpiresAt: {
       type: Date,
