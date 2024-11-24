@@ -82,6 +82,8 @@ const Schema = gql`
     ratings: [Rating]
     twoFactorAuth: Boolean!
     TwoWayVerificationToken: String
+    createdAt: String
+    updatedAt: String
   }
   input RegisterInput {
     email: String!

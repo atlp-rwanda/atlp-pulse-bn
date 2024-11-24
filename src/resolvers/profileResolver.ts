@@ -47,22 +47,24 @@ const profileResolvers: any = {
             RoleOfUser.TTL,
           ],
         },
-      }).populate({
-        path: 'team',
-        strictPopulate: false,
-        populate: {
-          path: 'cohort',
+      })
+        .select('id email role status createdAt updatedAt')
+        .populate({
+          path: 'team',
           strictPopulate: false,
           populate: {
-            path: 'program',
+            path: 'cohort',
             strictPopulate: false,
             populate: {
-              path: 'organization',
+              path: 'program',
               strictPopulate: false,
+              populate: {
+                path: 'organization',
+                strictPopulate: false,
+              },
             },
           },
-        },
-      })
+        })
       return users
     },
     async getAllRoles() {
