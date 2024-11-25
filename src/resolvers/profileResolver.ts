@@ -7,6 +7,8 @@ import { sendEmail } from '../utils/sendEmail'
 import Cohort from '../models/cohort.model'
 import Team from '../models/team.model'
 import mongoose, { ObjectId } from 'mongoose'
+import { fetchTraineeAttendance } from './attendance.resolvers'
+import Ticket from '../models/ticket.model'
 
 const profileResolvers: any = {
   Query: {
@@ -163,7 +165,23 @@ const profileResolvers: any = {
         })
         .exec()
 
-      return traineesInSameTeam
+      const traineeWithAttendance = await Promise.all(
+        traineesInSameTeam.map(async (trainee) => {
+          const objectId = new mongoose.Types.ObjectId(trainee.id)
+          const traineeTickets = await Ticket.find({
+            assignee: objectId,
+            status: 'open',
+          })
+          const { allPhasesAverage } = await fetchTraineeAttendance(trainee.id)
+          return {
+            traineeInfo: trainee,
+            attendance: allPhasesAverage,
+            numOfTickets: traineeTickets.length,
+          }
+        })
+      )
+
+      return traineeWithAttendance
     },
   },
   Profile: {

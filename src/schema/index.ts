@@ -80,8 +80,8 @@ const Schema = gql`
     emailNotifications: Boolean!
     status: StatusType
     ratings: [Rating]
-    twoFactorAuth:Boolean!
-    TwoWayVerificationToken:String
+    twoFactorAuth: Boolean!
+    TwoWayVerificationToken: String
   }
   input RegisterInput {
     email: String!
@@ -149,16 +149,15 @@ const Schema = gql`
     user: User
   }
   type LoginResponse {
-  token: String!
-  user: User!
-  message: String!
-}
+    token: String!
+    user: User!
+    message: String!
+  }
   type Login {
     token: String
     user: User
-    message:String
-    otpRequired:Boolean
-    
+    message: String
+    otpRequired: Boolean
   }
   type OrgLogin {
     token: String
@@ -192,7 +191,7 @@ const Schema = gql`
     description: String
   }
 
-    type Rating {
+  type Rating {
     id: ID!
     user: User!
     sprint: Int!
@@ -271,10 +270,16 @@ const Schema = gql`
     createdAt: String
   }
 
+  type TTLTrainee {
+    traineeInfo: User
+    attendance: String
+    numOfTickets: Int
+  }
+
   type Query {
     getAllUsers(orgToken: String): [User]
     getAllTTLUsers(orgToken: String): [User]
-    getTTLTrainees(orgToken: String): [User]
+    getTTLTrainees(orgToken: String): [TTLTrainee]
     getUsers(orgToken: String): [User]
     getAllCoordinators(orgToken: String): [User]
     getProfile: Profile
@@ -314,10 +319,13 @@ const Schema = gql`
   }
 
   type Mutation {
-    enableTwoFactorAuth(email: String!): String  
+    enableTwoFactorAuth(email: String!): String
     # //TwoWayVerificationToken: String!
-    disableTwoFactorAuth(email: String!): String  
-    loginWithTwoFactorAuthentication(email: String!, otp: String!): LoginResponse!
+    disableTwoFactorAuth(email: String!): String
+    loginWithTwoFactorAuthentication(
+      email: String!
+      otp: String!
+    ): LoginResponse!
     createUserRole(name: String!): UserRole!
     uploadResume(userId: ID!, resume: String!): Profile
     dropTTLUser(email: String!, reason: String!): String!
