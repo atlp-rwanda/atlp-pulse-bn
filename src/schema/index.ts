@@ -84,6 +84,7 @@ const Schema = gql`
     TwoWayVerificationToken: String
     createdAt: String
     updatedAt: String
+    pushNotificationTokens: [String]
   }
   input RegisterInput {
     email: String!
@@ -586,6 +587,8 @@ const Schema = gql`
   type Mutation {
     updatePushNotifications(id: ID!): String
     updateEmailNotifications(id: ID!): String
+    addPushNotificationToken(pushToken: String): String
+    removePushNotificationToken(pushToken: String): String
   }
   type Query {
     getUpdatedEmailNotifications(id: ID!): Boolean!
