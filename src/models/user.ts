@@ -113,6 +113,10 @@ const userSchema = new Schema(
       required: false
     },
   
+    pushNotificationTokens: {
+      type: [String],
+      default: [],
+    },
   },
 
   {
